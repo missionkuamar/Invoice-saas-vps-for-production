@@ -41,6 +41,9 @@ import RoyalPurpleInvoiceForm from './components/invoices/forms/RoyalPurpleInvoi
 import GlassmorphismInvoiceForm from './components/invoices/forms/GlassmorphismInvoiceForm';
 import NordicMinimalInvoiceForm from './components/invoices/forms/NordicMinimalInvoiceForm';
 import GradientWaveInvoiceForm from './components/invoices/forms/GradientWaveInvoiceForm';
+import SimpleEmail from './components/email/SimpleEmail';
+
+import ScheduledEmail from './components/email/ScheduledEmail';
 
 // ✅ Affiliate Redirect Component
 const AffiliateRedirect = () => {
@@ -62,11 +65,11 @@ const AffiliateRedirect = () => {
 const ProtectedRoute = ({ children }) => {
   const { token, isAuthenticated } = useSelector((state) => state.auth);
   const location = useLocation();
-  
+
   if (!token || !isAuthenticated) {
     return <Navigate to="/login" state={{ from: location.pathname }} replace />;
   }
-  
+
   return children;
 };
 
@@ -102,29 +105,29 @@ function App() {
   return (
     <Routes>
       {/* ============ PUBLIC ROUTES ============ */}
-      
+
       {/* Landing Page */}
-      <Route 
-        path="/" 
+      <Route
+        path="/"
         element={isAuth ? <Navigate to="/dashboard" replace /> : <Home />}
       />
-      
-      <Route 
-        path="/landing" 
+
+      <Route
+        path="/landing"
         element={isAuth ? <Navigate to="/dashboard" replace /> : <Home />}
       />
 
       {/* Auth Routes */}
-      <Route 
-        path="/login" 
+      <Route
+        path="/login"
         element={isAuth ? <Navigate to="/dashboard" replace /> : <Login />}
       />
-      
-      <Route 
-        path="/register" 
+
+      <Route
+        path="/register"
         element={isAuth ? <Navigate to="/dashboard" replace /> : <Register />}
       />
-      
+
       {/* Public Routes (always accessible) */}
       <Route path="/payment-success" element={<PaymentSuccess />} />
       <Route path="/r/:slug" element={<AffiliateRedirect />} />
@@ -139,24 +142,27 @@ function App() {
       >
         {/* Dashboard */}
         <Route path="/dashboard" element={<Dashboard />} />
-        
+
         {/* Invoices */}
         <Route path="/invoices" element={<Invoices />} />
-        
+
         {/* Create Invoice Routes */}
-        <Route path="/create-invoice" element={<SimpleInvoiceForm type="standard" />} />
+        {/* <Route path="/create-invoice" element={<SimpleInvoiceForm type="standard" />} /> */}
+        <Route path="/email-simple" element={<SimpleEmail />} />
+
+        <Route path="/email-scheduled" element={<ScheduledEmail />} />
 
 
-<Route path="/create-invoice/:type" element={<SimpleInvoiceForm />} />
-
-
+        {/* <Route path="/create-invoice/:type" element={<SimpleInvoiceForm />} /> */}
 
 
 
         <Route path="/create-invoice/simple" element={<SimpleInvoiceForm type="simple" />} />
+
+
+        {/* <Route path="/create-invoice/minimal" element={<MinimalInvoiceForm type="minimal" />} />
         <Route path="/create-invoice/standard" element={<StandardInvoiceForm type="standard" />} />
         <Route path="/create-invoice/modern" element={<ModernInvoiceForm type="modern" />} />
-        <Route path="/create-invoice/minimal" element={<MinimalInvoiceForm type="minimal" />} />
         <Route path="/create-invoice/professional" element={<ProfessionalInvoiceForm type="professional" />} />
         <Route path="/create-invoice/creative" element={<CreativeInvoiceForm type="creative" />} />
         <Route path="/create-invoice/vintage" element={<VintagePaperInvoiceForm type="vintage" />} />
@@ -169,7 +175,7 @@ function App() {
         <Route path="/create-invoice/royal" element={<RoyalPurpleInvoiceForm type="royal" />} />
         <Route path="/create-invoice/glass" element={<GlassmorphismInvoiceForm type="glass" />} />
         <Route path="/create-invoice/nordic" element={<NordicMinimalInvoiceForm type="nordic" />} />
-        <Route path="/create-invoice/wave" element={<GradientWaveInvoiceForm type="wave" />} />
+        <Route path="/create-invoice/wave" element={<GradientWaveInvoiceForm type="wave" />} /> */}
 
         {/* Settings & Subscription */}
         <Route path="/settings" element={<Settings />} />

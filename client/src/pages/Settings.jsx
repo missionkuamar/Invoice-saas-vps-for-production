@@ -76,10 +76,10 @@ const Settings = () => {
 
   const tabs = [
     { id: 'personal', label: 'Personal', icon: '👤' },
-    { id: 'company', label: 'Company', icon: '🏢' },
-    { id: 'tax', label: 'Tax Settings', icon: '💰' },
-    { id: 'bank', label: 'Bank Details', icon: '🏦' },
-    { id: 'invoice', label: 'Invoice Settings', icon: '📄' },
+    // { id: 'company', label: 'Company', icon: '🏢' },
+    // { id: 'tax', label: 'Tax Settings', icon: '💰' },
+    // { id: 'bank', label: 'Bank Details', icon: '🏦' },
+    // { id: 'invoice', label: 'Invoice Settings', icon: '📄' },
   ];
 
   if (loading) {

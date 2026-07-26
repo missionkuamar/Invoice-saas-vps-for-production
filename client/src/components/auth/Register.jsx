@@ -78,48 +78,55 @@ const Register = () => {
     navigate(-1); // Go back to previous page
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  try {
     const finalRef = getRefFromUrl();
     const refToSend = formData.ref || finalRef;
-    
+
+    // Validation
     if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match');
-      return;
+      throw new Error("Passwords do not match");
     }
 
     if (formData.password.length < 6) {
-      toast.error('Password must be at least 6 characters');
-      return;
+      throw new Error("Password must be at least 6 characters");
     }
 
     if (!formData.acceptTerms) {
-      toast.error('Please accept the Terms and Conditions');
-      return;
+      throw new Error("Please accept the Terms and Conditions");
     }
 
-    try {
-      const payload = {
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-        ref: refToSend,
-      };
-      
-      const result = await dispatch(register(payload)).unwrap();
-      
-      if (result.affiliateReferral) {
-        toast.success('🎉 Welcome! Referred by affiliate!');
-      } else {
-        toast.success('Account created successfully! 🎉');
-      }
-      
-      navigate('/dashboard');
-    } catch (error) {
-      toast.error(error || 'Registration failed. Please try again.');
-    }
-  };
+    const payload = {
+      name: formData.name,
+      email: formData.email,
+      password: formData.password,
+      ref: refToSend,
+    };
+
+    const result = await dispatch(register(payload)).unwrap();
+
+    toast.success(
+      result?.affiliateReferral
+        ? "🎉 Welcome! Referred by affiliate!"
+        : "🎉 Account created successfully!"
+    );
+
+    navigate("/dashboard");
+  } catch (error) {
+    console.error("Registration Error:", error);
+
+    const errorMessage =
+      error?.response?.data?.message || // Axios Backend Error
+      error?.data?.message ||           // RTK Query
+      error?.message ||                 // JS Error
+      error ||                          // rejectWithValue String
+      "Registration failed. Please try again.";
+
+    toast.error(errorMessage);
+  }
+};
 
   const refParam = getRefFromUrl();
 

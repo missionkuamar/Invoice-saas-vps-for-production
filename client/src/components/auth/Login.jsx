@@ -102,7 +102,7 @@ const Login = () => {
               <span className="font-medium">Continue with Google</span>
             </button>
             
-            <div className="grid grid-cols-2 gap-3">
+            {/* <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={() => handleSocialLogin('Facebook')}
                 className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border ${theme.colors.border} ${theme.colors.text} hover:${theme.colors.hover} transition-all`}
@@ -117,7 +117,7 @@ const Login = () => {
                 <FaGithub className="text-gray-700 text-xl" />
                 <span className="text-sm font-medium">GitHub</span>
               </button>
-            </div>
+            </div> */}
           </div>
 
           {/* Divider */}

@@ -13,6 +13,10 @@ import InvoiceViewModal from './InvoiceViewModal';
 import InvoiceEditModal from './InvoiceEditModal';
 import { useTheme } from '../../themes/ThemeProvider';
 import toast from 'react-hot-toast';
+import { MdEmail } from "react-icons/md";
+import DialogEmailBox from '../email/Email';
+
+
 
 const InvoiceList = () => {
   const dispatch = useDispatch();
@@ -25,7 +29,7 @@ const InvoiceList = () => {
   const [editModal, setEditModal] = useState({ isOpen: false, invoice: null });
   const [selectedInvoices, setSelectedInvoices] = useState([]);
   const [isBulkAction, setIsBulkAction] = useState(false);
-
+const [emailDialogBox, setEmailDialogBox] = useState({isOpen: false, invoice: null})
   useEffect(() => {
     dispatch(fetchInvoices({ page: pagination.page }));
   }, [dispatch, pagination.page]);
@@ -46,6 +50,9 @@ const InvoiceList = () => {
     setViewModal({ isOpen: true, invoice });
   };
 
+  const handleEmail = (invoice) => {
+    setEmailDialogBox({isOpen: true, invoice})
+  }
   const handleEdit = (invoice) => {
     setEditModal({ isOpen: true, invoice });
   };
@@ -232,6 +239,13 @@ const InvoiceList = () => {
                   </td>
                   <td className="px-3 md:px-4 py-3 whitespace-nowrap text-right">
                     <div className="flex flex-wrap justify-end gap-1">
+                     <button
+                        onClick={() => handleEmail(invoice)}
+                        className={`p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors`}
+                        title="View Invoice"
+                      >
+                        <MdEmail size={14} className="md:w-4 md:h-4" />
+                      </button>
                       <button
                         onClick={() => handleView(invoice)}
                         className={`p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors`}
@@ -301,7 +315,11 @@ const InvoiceList = () => {
         onClose={() => setViewModal({ isOpen: false, invoice: null })}
         invoice={viewModal.invoice}
       />
-
+<DialogEmailBox
+isOpen={emailDialogBox.isOpen}
+onClose={() => setEmailDialogBox({ isOpen: false, invoice: null })}
+invoice={emailDialogBox.invoice}
+ />
       <InvoiceEditModal
         isOpen={editModal.isOpen}
         onClose={() => setEditModal({ isOpen: false, invoice: null })}

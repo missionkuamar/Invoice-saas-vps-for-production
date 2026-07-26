@@ -18,6 +18,9 @@ import affiliateRoutes from './routes/affiliateRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import withdrawalRoutes from './routes/withdrawalRoutes.js';
 import adminWithdrawalRoutes from './routes/adminWithdrawalRoutes.js';
+import emailRoutes from './routes/emailRoutes.js';
+import invoiceEmailRoutes from './routes/invoiceEmailRoutes.js';
+import { startScheduler } from './services/scheduler.js';
 
 
 dotenv.config();
@@ -112,7 +115,10 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/affiliate', affiliateRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/affiliate', withdrawalRoutes);
-app.use('/api/admin/withdrawals', adminWithdrawalRoutes);;
+app.use('/api/admin/withdrawals', adminWithdrawalRoutes);
+app.use('/api/emails', emailRoutes);
+app.use('/api/invoices', invoiceEmailRoutes);
+
 // Health check
 // app.get('/api/health', (req, res) => {
 //   res.status(200).json({ status: 'ok', message: 'Server is running' });
@@ -149,7 +155,8 @@ app.use((req, res, next) => {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  // console.log(`🚀 Server running on port ${PORT}`);
-  // console.log(`📁 Uploads directory: ${path.resolve(uploadsDir)}`);
-  // console.log(`🔗 Affiliate links: http://localhost:${PORT}/r/:slug`);
+  startScheduler();
+   console.log(`🚀 Server running on port ${PORT}`);
+   console.log(`📁 Uploads directory: ${path.resolve(uploadsDir)}`);
+   console.log(`🔗 Affiliate links: http://localhost:${PORT}/r/:slug`);
 });

@@ -9,10 +9,16 @@ import {
   FaCopy, FaStar, FaPalette, FaBolt,
   FaGem, FaHistory, FaWaveSquare, FaSun, FaEye,
   FaLeaf, FaWater, FaCrown, FaSnowflake, FaMoon,
-  FaTimes
+  FaTimes,
+  FaVoicemail
 } from 'react-icons/fa';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
+import { HiOutlineMail } from "react-icons/hi";
+import { MdOutlineAlternateEmail } from "react-icons/md";
+import { SiMinutemailer } from "react-icons/si";
+import { MdOutlineSchedule } from "react-icons/md";
+
 
 const Sidebar = ({ onClose }) => {
   const { user } = useSelector((state) => state.auth);
@@ -20,7 +26,7 @@ const Sidebar = ({ onClose }) => {
   const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
   const [pendingWithdrawals, setPendingWithdrawals] = useState(0);
   const [isCreateSubmenuOpen, setIsCreateSubmenuOpen] = useState(false);
-
+const [isCreateEmailSubmenuOpen, setIsCreateEmailSubmenuOpen] = useState(false);
   useEffect(() => {
     if (isAdmin) {
       fetchPendingCount();
@@ -54,15 +60,127 @@ const Sidebar = ({ onClose }) => {
   const userMenuItems = [
     { path: '/dashboard', icon: FaHome, label: 'Dashboard' },
     {
-      label: 'Create Invoice',
-      icon: FaPlus,
-      submenu: true,
-      isOpen: isCreateSubmenuOpen,
-      toggle: () => setIsCreateSubmenuOpen(!isCreateSubmenuOpen),
-      submenuItems: [
-        { path: '/create-invoice', icon: FaFileAlt, label: 'New Invoice', description: 'Create from scratch' },
-      ]
+  label: 'Create Invoice',
+  icon: FaPlus,
+  submenu: true,
+  isOpen: isCreateSubmenuOpen,
+  toggle: () => setIsCreateSubmenuOpen(!isCreateSubmenuOpen),
+  submenuItems: [
+    {
+      path: '/create-invoice/simple',
+      icon: FaFileAlt,
+      label: 'Simple',
+      description: 'Simple invoice'
     },
+    // {
+    //   path: '/create-invoice/standard',
+    //   icon: FaFileAlt,
+    //   label: 'Standard',
+    //   description: 'Standard invoice'
+    // },
+    // {
+    //   path: '/create-invoice/modern',
+    //   icon: FaFileAlt,
+    //   label: 'Modern',
+    //   description: 'Modern design'
+    // },
+    // {
+    //   path: '/create-invoice/minimal',
+    //   icon: FaFileAlt,
+    //   label: 'Minimal',
+    //   description: 'Minimal template'
+    // },
+    // {
+    //   path: '/create-invoice/professional',
+    //   icon: FaFileAlt,
+    //   label: 'Professional',
+    //   description: 'Professional template'
+    // },
+    // {
+    //   path: '/create-invoice/creative',
+    //   icon: FaFileAlt,
+    //   label: 'Creative',
+    //   description: 'Creative style'
+    // },
+    // {
+    //   path: '/create-invoice/vintage',
+    //   icon: FaFileAlt,
+    //   label: 'Vintage',
+    //   description: 'Vintage paper'
+    // },
+    // {
+    //   path: '/create-invoice/elegant',
+    //   icon: FaFileAlt,
+    //   label: 'Elegant',
+    //   description: 'Elegant invoice'
+    // },
+    // {
+    //   path: '/create-invoice/dark-luxe',
+    //   icon: FaFileAlt,
+    //   label: 'Dark Luxe',
+    //   description: 'Luxury dark theme'
+    // },
+    // {
+    //   path: '/create-invoice/nature',
+    //   icon: FaFileAlt,
+    //   label: 'Nature',
+    //   description: 'Nature green theme'
+    // },
+    // {
+    //   path: '/create-invoice/neon-glow',
+    //   icon: FaFileAlt,
+    //   label: 'Neon Glow',
+    //   description: 'Neon style'
+    // },
+    // {
+    //   path: '/create-invoice/ocean',
+    //   icon: FaFileAlt,
+    //   label: 'Ocean',
+    //   description: 'Ocean blue theme'
+    // },
+    // {
+    //   path: '/create-invoice/sunset',
+    //   icon: FaFileAlt,
+    //   label: 'Sunset',
+    //   description: 'Sunset orange'
+    // },
+    // {
+    //   path: '/create-invoice/royal',
+    //   icon: FaFileAlt,
+    //   label: 'Royal',
+    //   description: 'Royal purple'
+    // },
+    // {
+    //   path: '/create-invoice/glass',
+    //   icon: FaFileAlt,
+    //   label: 'Glass',
+    //   description: 'Glassmorphism'
+    // },
+    // {
+    //   path: '/create-invoice/nordic',
+    //   icon: FaFileAlt,
+    //   label: 'Nordic',
+    //   description: 'Nordic minimal'
+    // },
+    // {
+    //   path: '/create-invoice/wave',
+    //   icon: FaFileAlt,
+    //   label: 'Gradient Wave',
+    //   description: 'Gradient wave style'
+    // }
+  ]
+},
+   { 
+    label: 'Email Service',
+     icon: HiOutlineMail, submenu: true,
+     isOpen: isCreateEmailSubmenuOpen,
+     toggle: () => setIsCreateEmailSubmenuOpen(!isCreateEmailSubmenuOpen),
+      submenuItems: [
+        { path: '/email-simple', icon: MdOutlineAlternateEmail, label: 'Simpe-Service', description: 'Simple-Mail' },
+       
+        { path: '/email-scheduled', icon: SiMinutemailer, label: 'Scheduled Email', description: 'Scheduled Mail' },
+   
+      ] },
     { path: '/invoices', icon: FaFileInvoice, label: 'All Invoices' },
     { path: '/subscription', icon: FaCreditCard, label: 'Subscription' },
     { path: '/affiliate', icon: FaShareAlt, label: 'Affiliate' },

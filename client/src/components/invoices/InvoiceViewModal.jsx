@@ -3,8 +3,11 @@ import React from 'react';
 import { format } from 'date-fns';
 import { FaTimes, FaDownload, FaPrint, FaEnvelope } from 'react-icons/fa';
 import { useTheme } from '../../themes/ThemeProvider';
+import { useSelector } from 'react-redux';
 
 const InvoiceViewModal = ({ isOpen, onClose, invoice }) => {
+  const { user } = useSelector((stata) => stata.auth || {})
+  console.log(user)
   const { theme } = useTheme();
 
   if (!isOpen || !invoice) return null;
@@ -108,8 +111,8 @@ const InvoiceViewModal = ({ isOpen, onClose, invoice }) => {
                 <h4 className={`text-xs md:text-sm font-semibold ${theme.colors.text} opacity-60 mb-2 uppercase tracking-wider`}>
                   From:
                 </h4>
-                <p className={`font-medium ${theme.colors.text}`}>Your Company</p>
-                <p className={`text-sm ${theme.colors.text} opacity-70`}>contact@yourcompany.com</p>
+                <p className={`font-medium ${theme.colors.text}`}>{user?.name}</p>
+                <p className={`text-sm ${theme.colors.text} opacity-70`}>{user?.email}</p>
               </div>
             </div>
 

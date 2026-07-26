@@ -49,7 +49,7 @@ const AffiliateDashboard = () => {
       if (error.response?.status === 404) {
         setAffiliate(null);
       } else {
-        toast.error('Failed to load dashboard');
+        console.error('Failed to load dashboard');
       }
     } finally {
       setLoading(false);
@@ -62,7 +62,7 @@ const AffiliateDashboard = () => {
       setWithdrawals(response.data.data?.withdrawals || []);
     } catch (error) {
     //  console.error('Failed to fetch withdrawals:', error);
-    toast.error(error.message || 'Internal server error');
+    console.error(error.message || 'Internal server error');
     }
   };
 
@@ -72,7 +72,7 @@ const AffiliateDashboard = () => {
       toast.success('Joined affiliate program successfully!');
       fetchDashboard();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to join');
+      console.error(error.response?.data?.message || 'Failed to join');
     }
   };
 
@@ -83,7 +83,7 @@ const AffiliateDashboard = () => {
       return;
     }
     if (!newLink.destination.trim()) {
-      toast.error('Please enter a destination URL');
+      console.error('Please enter a destination URL');
       return;
     }
 
@@ -100,7 +100,7 @@ const AffiliateDashboard = () => {
       setShowCreateLink(false);
       toast.success('Affiliate link created successfully!');
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to create link');
+      console.error(error.response?.data?.message || 'Failed to create link');
     } finally {
       setIsCreatingLink(false);
     }
@@ -111,9 +111,9 @@ const AffiliateDashboard = () => {
     try {
       await api.delete(`/affiliate/links/${id}`);
       setLinks(links.filter(l => l._id !== id));
-      toast.success('Link deleted');
+      console.success('Link deleted');
     } catch (error) {
-      toast.error('Failed to delete link');
+      console.error('Failed to delete link');
     }
   };
 
@@ -121,7 +121,7 @@ const AffiliateDashboard = () => {
     const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
     const url = `${backendUrl}/r/${slug}?ref=${code}`;
     navigator.clipboard.writeText(url);
-    toast.success('Link copied to clipboard!');
+    console.success('Link copied to clipboard!');
   };
 
   if (loading) {

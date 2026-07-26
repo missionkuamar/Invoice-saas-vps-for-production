@@ -49,9 +49,14 @@ const invoiceSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  discount: Number,
   total: {
     type: Number,
     required: true,
+  },
+  currency: {
+    type: String,
+    default: '₹'
   },
   status: {
     type: String,
@@ -109,3 +114,5 @@ invoiceSchema.pre('save', async function (next) {
 });
 
 export default mongoose.model('Invoice', invoiceSchema);
+
+

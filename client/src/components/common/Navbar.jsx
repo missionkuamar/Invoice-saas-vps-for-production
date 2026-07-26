@@ -73,12 +73,12 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
           {/* Right Section */}
           <div className="flex items-center gap-1 md:gap-3">
             {/* Mobile Search Toggle */}
-            <button
+            {/* <button
               onClick={() => setIsSearchOpen(!isSearchOpen)}
               className={`lg:hidden p-2 rounded-lg ${theme.colors.hover} transition-colors duration-200`}
             >
               <FaSearch className={`${theme.colors.text} text-lg`} />
-            </button>
+            </button> */}
 
             {/* Theme Switcher */}
             <ThemeSwitcher />
@@ -86,9 +86,9 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
             {/* Notification Bell */}
             <button className={`relative p-2 rounded-full ${theme.colors.hover} transition-colors duration-200`}>
               <FaBell className={`${theme.colors.text} text-lg md:text-xl`} />
-              <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] w-4 h-4 md:w-5 md:h-5 flex items-center justify-center rounded-full shadow-lg shadow-red-500/50">
+              {/* <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white text-[10px] w-4 h-4 md:w-5 md:h-5 flex items-center justify-center rounded-full shadow-lg shadow-red-500/50">
                 3
-              </span>
+              </span> */}
             </button>
 
             {/* User Profile */}

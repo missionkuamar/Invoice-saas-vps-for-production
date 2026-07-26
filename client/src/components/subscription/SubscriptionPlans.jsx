@@ -251,12 +251,12 @@ const SubscriptionPlans = () => {
             <span className={`text-sm font-medium ${billingCycle === 'monthly' ? theme.colors.primary : theme.colors.text}`}>
               Monthly
             </span>
-            <button
+            {/* <button
               onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
               className={`relative w-14 h-7 rounded-full transition-colors duration-300 ${billingCycle === 'yearly' ? 'bg-primary-500' : 'bg-gray-300 dark:bg-gray-600'}`}
             >
               <span className={`absolute top-1 left-1 w-5 h-5 rounded-full bg-white transition-transform duration-300 ${billingCycle === 'yearly' ? 'translate-x-7' : ''}`} />
-            </button>
+            </button> */}
             <span className={`text-sm font-medium ${billingCycle === 'yearly' ? theme.colors.primary : theme.colors.text}`}>
               Yearly
               <span className={`ml-1 text-xs font-bold text-green-500`}>Save 20%</span>

@@ -4,6 +4,7 @@ import AffiliateWithdrawal from '../models/AffiliateWithdrawal.js';
 import User from '../models/User.js';
 import Notification from '../models/Notification.js';
 import { v4 as uuidv4 } from 'uuid';
+import mongoose from 'mongoose';
 
 
 
@@ -239,67 +240,97 @@ export const adminUpdateWithdrawal = async (req, res) => {
 
 // @desc    Admin - Bulk process withdrawals
 // @route   POST /api/admin/withdrawals/bulk
+
+
+
+
+
+
+
 export const adminBulkProcessWithdrawals = async (req, res) => {
   try {
-    const { withdrawalIds, status, notes } = req.body;
+    const { withdrawalIds, status = "approved", notes } = req.body;
     const adminId = req.user?._id || req.user?.id;
 
-  //  console.log('📝 POST /api/admin/withdrawals/bulk called:', { 
-      count: withdrawalIds?.length, 
-      status 
-    });
-
-    if (!withdrawalIds || withdrawalIds.length === 0) {
+    if (!Array.isArray(withdrawalIds) || withdrawalIds.length === 0) {
       return res.status(400).json({
         success: false,
-        message: 'No withdrawals selected',
+        message: "No withdrawals selected",
       });
     }
 
-    const results = [];
-    for (const id of withdrawalIds) {
-      try {
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-          results.push({ id, status: 'failed', error: 'Invalid ID' });
-          continue;
-        }
+    // Validate ObjectIds
+    const validIds = withdrawalIds.filter((id) =>
+      mongoose.Types.ObjectId.isValid(id)
+    );
 
-        const withdrawal = await AffiliateWithdrawal.findById(id);
-        if (withdrawal && withdrawal.status === 'pending') {
-          withdrawal.status = status || 'approved';
-          withdrawal.processedBy = adminId;
-          if (notes) withdrawal.notes = notes;
-          await withdrawal.save();
-          results.push({ id: withdrawal._id, status: 'success' });
-        } else {
-          results.push({ id, status: 'failed', error: 'Withdrawal not found or not pending' });
-        }
-      } catch (error) {
-        results.push({ id, status: 'failed', error: error.message });
+    const invalidIds = withdrawalIds.filter(
+      (id) => !mongoose.Types.ObjectId.isValid(id)
+    );
+
+    // Fetch only pending withdrawals
+    const withdrawals = await AffiliateWithdrawal.find({
+      _id: { $in: validIds },
+      status: "pending",
+    }).select("_id");
+
+    const foundIds = withdrawals.map((w) => w._id.toString());
+
+    // Bulk update
+    await AffiliateWithdrawal.updateMany(
+      {
+        _id: { $in: foundIds },
+      },
+      {
+        $set: {
+          status,
+          processedBy: adminId,
+          ...(notes && { notes }),
+        },
       }
-    }
+    );
 
-    res.status(200).json({
+    // Prepare response
+    const results = [
+      ...foundIds.map((id) => ({
+        id,
+        status: "success",
+      })),
+      ...invalidIds.map((id) => ({
+        id,
+        status: "failed",
+        error: "Invalid ObjectId",
+      })),
+      ...validIds
+        .filter((id) => !foundIds.includes(id))
+        .map((id) => ({
+          id,
+          status: "failed",
+          error: "Withdrawal not found or already processed",
+        })),
+    ];
+
+    return res.status(200).json({
       success: true,
       data: {
-        processed: results.filter(r => r.status === 'success').length,
-        failed: results.filter(r => r.status === 'failed').length,
+        processed: foundIds.length,
+        failed: results.filter((r) => r.status === "failed").length,
         details: results,
       },
     });
   } catch (error) {
-  //  console.error('❌ Bulk process error:', error);
-    res.status(500).json({
+    console.error("Bulk process error:", error);
+
+    return res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Internal Server Error",
+      error:
+        process.env.NODE_ENV === "development"
+          ? error.message
+          : undefined,
     });
   }
 };
-
-
-
-
-
 
 
 
@@ -324,161 +355,228 @@ export const adminBulkProcessWithdrawals = async (req, res) => {
 
 // @desc    Request withdrawal
 // @route   POST /api/affiliate/withdraw
+
+
+
+// import mongoose from "mongoose";
+// import Affiliate from "../models/Affiliate.js";
+// import AffiliateWithdrawal from "../models/AffiliateWithdrawal.js";
+// import Notification from "../models/Notification.js";
+// import User from "../models/User.js";
+
 export const requestWithdrawal = async (req, res) => {
+  const session = await mongoose.startSession();
+
   try {
-    const { amount, paymentMethod, paymentDetails, notes } = req.body;
+    await session.startTransaction();
+
+    const {
+      amount,
+      paymentMethod = "bank",
+      paymentDetails = {},
+      notes = "",
+    } = req.body;
+
     const userId = req.user?._id || req.user?.id;
 
-    // console.log('📝 ===== WITHDRAWAL REQUEST START =====');
-    // console.log('📝 User ID:', userId);
-    // console.log('📝 Amount:', amount);
-    // console.log('📝 Payment Method:', paymentMethod);
-    // console.log('📝 Payment Details:', paymentDetails);
+    // ==========================
+    // Validate User
+    // ==========================
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      await session.abortTransaction();
 
-    // Find affiliate
-    const affiliate = await Affiliate.findOne({ user: userId });
-    if (!affiliate) {
-    //  console.log('❌ Affiliate not found for user:', userId);
-      return res.status(404).json({
+      return res.status(401).json({
         success: false,
-        message: 'Not an affiliate member',
+        message: "Invalid user",
       });
     }
 
-    //console.log('✅ Affiliate found:', {
-      id: affiliate._id,
-      code: affiliate.affiliateCode,
-      earnings: affiliate.totalEarnings
-    });
+    // ==========================
+    // Validate Amount
+    // ==========================
+    const withdrawAmount = Number(amount);
 
-    // Check minimum amount
+    if (isNaN(withdrawAmount) || withdrawAmount <= 0) {
+      await session.abortTransaction();
+
+      return res.status(400).json({
+        success: false,
+        message: "Invalid withdrawal amount",
+      });
+    }
+
     const MIN_WITHDRAWAL = 100;
-    if (amount < MIN_WITHDRAWAL) {
-     // console.log('❌ Amount below minimum:', amount);
+
+    if (withdrawAmount < MIN_WITHDRAWAL) {
+      await session.abortTransaction();
+
       return res.status(400).json({
         success: false,
         message: `Minimum withdrawal amount is ₹${MIN_WITHDRAWAL}`,
       });
     }
 
-    // Check if enough earnings
-    if (affiliate.totalEarnings < amount) {
-      // console.log('❌ Insufficient earnings:', {
-      //   available: affiliate.totalEarnings,
-      //   requested: amount
-      // });
+    // ==========================
+    // Validate Payment Details
+    // ==========================
+
+    if (paymentMethod === "bank") {
+      if (
+        !paymentDetails.accountHolderName ||
+        !paymentDetails.accountNumber ||
+        !paymentDetails.ifsc
+      ) {
+        await session.abortTransaction();
+
+        return res.status(400).json({
+          success: false,
+          message: "Complete bank details are required.",
+        });
+      }
+    }
+
+    if (paymentMethod === "upi") {
+      if (!paymentDetails.upiId) {
+        await session.abortTransaction();
+
+        return res.status(400).json({
+          success: false,
+          message: "UPI ID is required.",
+        });
+      }
+    }
+
+    // ==========================
+    // Find User
+    // ==========================
+    const user = await User.findById(userId).session(session);
+
+    if (!user) {
+      await session.abortTransaction();
+
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // ==========================
+    // Atomic Balance Update
+    // ==========================
+    const affiliate = await Affiliate.findOneAndUpdate(
+      {
+        user: userId,
+        totalEarnings: { $gte: withdrawAmount },
+      },
+      {
+        $inc: {
+          totalEarnings: -withdrawAmount,
+          totalWithdrawn: withdrawAmount,
+        },
+      },
+      {
+        new: true,
+        session,
+      }
+    );
+
+    if (!affiliate) {
+      await session.abortTransaction();
+
       return res.status(400).json({
         success: false,
-        message: `Insufficient earnings. Available: ₹${affiliate.totalEarnings}`,
+        message: "Insufficient balance or affiliate not found",
       });
     }
 
-    // Get user details
-    const user = await User.findById(userId);
-    if (!user) {
-      // console.log('❌ User not found:', userId);
-      // return res.status(404).json({
-      //   success: false,
-      //   message: 'User not found',
-      // });
-    }
+    // ==========================
+    // Create Withdrawal
+    // ==========================
+    const [withdrawal] = await AffiliateWithdrawal.create(
+      [
+        {
+          affiliate: affiliate._id,
+          user: userId,
+          amount: withdrawAmount,
+          paymentMethod,
+          paymentDetails: {
+            ...paymentDetails,
+            userName: user.name,
+            userEmail: user.email,
+          },
+          notes,
+          status: "pending",
+        },
+      ],
+      { session }
+    );
 
-    // console.log('✅ User found:', {
-    //   id: user._id,
-    //   name: user.name,
-    //   email: user.email
-    // });
+    // ==========================
+    // Find Admins
+    // ==========================
+    const admins = await User.find({
+      role: { $in: ["admin", "super_admin"] },
+    })
+      .select("_id")
+      .lean();
 
-    // ✅ Create withdrawal request
-    const withdrawalData = {
-      affiliate: affiliate._id,
-      user: userId,
-      amount: amount,
-      paymentMethod: paymentMethod || 'bank',
-      paymentDetails: {
-        ...paymentDetails,
-        userName: user.name,
-        userEmail: user.email,
-      },
-      status: 'pending',
-      notes: notes || '',
-    };
+    // ==========================
+    // Notifications
+    // ==========================
+    const notifications = [];
 
-   // console.log('📝 Creating withdrawal with data:', withdrawalData);
-
-    const withdrawal = await AffiliateWithdrawal.create(withdrawalData);
-
-    // console.log('✅ Withdrawal created:', {
-    //   id: withdrawal._id,
-    //   amount: withdrawal.amount,
-    //   status: withdrawal.status
-    // });
-
-    // Deduct from earnings (temporarily hold)
-    affiliate.totalEarnings -= amount;
-    affiliate.totalWithdrawn = (affiliate.totalWithdrawn || 0) + amount;
-    await affiliate.save();
-
-   // console.log('💰 Updated affiliate earnings:', affiliate.totalEarnings);
-
-    // ✅ Create notification for admins
-    const admins = await User.find({ 
-      role: { $in: ['admin', 'super_admin'] } 
-    });
-
- //   console.log(`📝 Creating notifications for ${admins.length} admins`);
-
-    for (const admin of admins) {
-      await Notification.create({
+    admins.forEach((admin) => {
+      notifications.push({
         user: admin._id,
-        type: 'withdrawal_request',
-        title: `💰 New Withdrawal Request - ₹${amount}`,
-        message: `${user.name} requested withdrawal of ₹${amount}`,
-        priority: 'high',
+        type: "withdrawal_request",
+        title: `💰 New Withdrawal Request - ₹${withdrawAmount}`,
+        message: `${user.name} requested ₹${withdrawAmount}`,
+        priority: "high",
         data: {
           withdrawalId: withdrawal._id,
-          amount: amount,
-          userName: user.name,
-          userEmail: user.email,
         },
       });
-    }
+    });
 
-    // Create notification for affiliate
-    await Notification.create({
+    notifications.push({
       user: user._id,
-      type: 'withdrawal_request',
-      title: `✅ Withdrawal Request Submitted - ₹${amount}`,
-      message: `Your withdrawal request of ₹${amount} has been submitted. Admin will process it within 2-3 business days.`,
-      priority: 'medium',
+      type: "withdrawal_request",
+      title: "Withdrawal Request Submitted",
+      message: `Your withdrawal request of ₹${withdrawAmount} has been submitted successfully.`,
+      priority: "medium",
       data: {
         withdrawalId: withdrawal._id,
-        amount: amount,
-        status: 'pending',
       },
     });
 
- //   console.log('✅ Notifications created');
+    await Notification.insertMany(notifications, { session });
 
-    res.status(201).json({
+    // ==========================
+    // Commit
+    // ==========================
+    await session.commitTransaction();
+
+    return res.status(201).json({
       success: true,
-      message: 'Withdrawal request submitted successfully',
+      message: "Withdrawal request submitted successfully",
       data: {
         withdrawal,
         remainingEarnings: affiliate.totalEarnings,
       },
     });
-
-   // console.log('📝 ===== WITHDRAWAL REQUEST END =====');
   } catch (error) {
-  //  console.error('❌ Withdrawal request error:', error);
-    res.status(500).json({
+    await session.abortTransaction();
+
+    console.error("Withdrawal Error:", error);
+
+    return res.status(500).json({
       success: false,
-      message: error.message || 'Failed to process withdrawal request',
+      message: error.message || "Something went wrong",
     });
+  } finally {
+    await session.endSession();
   }
 };
-
 // @desc    Get withdrawal history
 // @route   GET /api/affiliate/withdrawals
 export const getWithdrawals = async (req, res) => {

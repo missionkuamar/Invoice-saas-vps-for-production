@@ -3,6 +3,7 @@ import authReducer from './slices/authSlice';
 import invoiceReducer from './slices/invoiceSlice';
 import subscriptionReducer from './slices/subscriptionSlice';
 import withdrawalReducer from './slices/withdrawalSlice';
+import emailReducer from './slices/emailSlice';
 
 
 export const store = configureStore({
@@ -11,6 +12,7 @@ export const store = configureStore({
     invoices: invoiceReducer,
      withdrawals: withdrawalReducer,
     subscription: subscriptionReducer,
+    emails: emailReducer,
   },
 });
 

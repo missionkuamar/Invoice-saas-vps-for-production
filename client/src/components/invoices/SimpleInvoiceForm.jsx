@@ -187,7 +187,7 @@ const SimpleInvoiceForm = ({ type = 'standard' }) => {
         total: totals.total,
         poNumber: formData.poNumber,
       };
-
+console.log(invoiceData);
       await dispatch(createInvoice(invoiceData)).unwrap();
       toast.success('Invoice created successfully! 🎉');
       navigate('/invoices');

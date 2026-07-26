@@ -40,6 +40,7 @@ export const protect = async (req, res, next) => {
       _id: user._id,
     };
     
+   
     next();
   } catch (error) {
     //console.error('Auth error:', error);
