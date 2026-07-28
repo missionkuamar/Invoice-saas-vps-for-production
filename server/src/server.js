@@ -66,7 +66,8 @@ const allowedOrigins = [
   'http://localhost:5000',
   'http://127.0.0.1:5173',
   'http://127.0.0.1:3000',
-  'https://trello-rnih.onrender.com',
+  'https://invoice-saas-with-email.onrender.com',
+  
   process.env.CLIENT_URL
 ].filter(Boolean);
 
