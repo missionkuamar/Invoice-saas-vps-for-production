@@ -1,474 +1,342 @@
-InvoicePro - Complete SaaS Invoice Generator
-🚀 Overview
-InvoicePro is a complete SaaS (Software as a Service) platform for generating professional invoices with multiple templates, subscription management, affiliate marketing, and admin dashboard. Built with the MERN stack (MongoDB, Express.js, React, Node.js).
+markdown
+# InvoicePro - SaaS Invoice Generator
 
-✨ Features
-🎯 Core Features
-✅ User Authentication - JWT-based login/register system
+A complete SaaS platform for generating professional invoices with user, admin, moderator, and affiliate roles. Features subscription plans, email reminders, and 10% affiliate commission system.
 
-✅ Invoice Generation - 5+ professional invoice templates
+## 🚀 Project Repository
+[GitHub Repo](https://github.com/missionkuamar/Invoice-Saas_with-Email)
 
-✅ Subscription Plans - Basic, Pro, Enterprise with Razorpay integration
+## 📋 Features
 
-✅ Company Profile - Manage company details, logo, tax settings
+### 👤 User Roles
+- **Admin** - Full control over users, invoices, payments, and system settings
+- **Moderator** - Manage invoices, users, and content moderation
+- **Affiliate** - Refer users and earn 10% commission on subscriptions
+- **User** - Create and manage invoices, subscribe to plans
 
-✅ Affiliate Program - Referral system with commission tracking
+### 📄 Invoice Management
+- Create professional invoices with multiple templates
+- Add company and client details
+- Add items with quantity, rate, and tax
+- Generate and download PDF invoices
+- Invoice tracking and history
 
-✅ Withdrawal System - Affiliates can withdraw earnings
+### 💰 Subscription Plans
 
-✅ Admin Panel - Full control over users, invoices, withdrawals
+| Plan | Price | Invoices/Month | Features |
+|------|-------|----------------|----------|
+| **Free** | ₹0 | 5 | Basic invoice creation, 1 template |
+| **Basic** | ₹499/month | 50 | PDF export, 3 templates, Email support |
+| **Pro** | ₹999/month | 200 | Analytics, 5 templates, Priority support, Custom branding |
+| **Enterprise** | ₹2999/month | Unlimited | API access, White-label, Dedicated support, Custom features |
 
-✅ Notifications - Real-time admin and user notifications
+### How Subscription Works
+1. User signs up with Free plan (5 free invoices)
+2. User chooses a plan (Basic/Pro/Enterprise)
+3. Payment via Razorpay
+4. Subscription activated immediately
+5. User can create invoices based on their plan limits
+6. Monthly renewal - automatic payment
+7. Email reminder sent 5 days before renewal
+8. If payment fails, plan downgraded to Free
 
-✅ Responsive Design - Works on all devices
+### 🤝 Affiliate Program
+- **10% commission** on every referral subscription
+- Example: If you refer someone who buys Pro plan (₹999), you earn ₹99
+- If they buy Enterprise (₹2999), you earn ₹299
+- Recurring commission - you earn every month they stay subscribed
+- Custom affiliate links with tracking
+- Withdraw earnings via Bank/UPI/PayPal (minimum ₹500)
 
-📄 Invoice Templates
-Standard - Classic, clean design for all businesses
+### 📧 Email System
+- **Invoice Reminder** - 3 days before due date
+- **Subscription Reminder** - 5 days before renewal
+- **Welcome Email** - New user registration
+- **Payment Confirmation** - After successful payment
+- **Affiliate Commission** - "You earned ₹XX from referral"
 
-Modern - Purple gradient, contemporary design
+## 🛠️ Tech Stack
 
-Minimal - Simple, lightweight, focus on content
+### Backend
+- **Node.js + Express.js** - Server
+- **MongoDB** - Database
+- **JWT** - Authentication
+- **Razorpay** - Payment gateway
+- **Cloudinary** - Image upload
+- **Nodemailer** - Email system
+- **Node-cron** - Email scheduling
 
-Professional - Corporate style, formal layout
+### Frontend
+- **React.js** - UI
+- **Redux Toolkit** - State management
+- **Tailwind CSS** - Styling
+- **Vite** - Build tool
 
-Creative - Colorful, artistic design for creative agencies
-
-💰 Subscription Plans
-Plan	Price	Features
-Free	₹0	5 invoices/month
-Basic	₹499	50 invoices/month, PDF export
-Pro	₹999	200 invoices/month, Analytics, Custom branding
-Enterprise	₹2999	Unlimited invoices, API access, White-label
-👥 Affiliate Program
-✅ Earn 10% commission on referrals
-
-✅ Create custom affiliate links
-
-✅ Track clicks, referrals, and conversions
-
-✅ Withdraw earnings via Bank/UPI/PayPal
-
-✅ Real-time affiliate dashboard
-
-🛠️ Tech Stack
-Backend
-Node.js - Runtime environment
-
-Express.js - Web framework
-
-MongoDB - Database
-
-Mongoose - ODM
-
-JWT - Authentication
-
-Razorpay - Payment gateway
-
-Cloudinary - Image upload
-
-Nodemailer - Email notifications
-
-Frontend
-React - UI framework
-
-Redux Toolkit - State management
-
-Tailwind CSS - Styling
-
-Vite - Build tool
-
-React Router DOM - Routing
-
-React Hook Form - Form handling
-
-React Hot Toast - Notifications
-
-Date-fns - Date formatting
-
-📁 Project Structure
-text
+## 📁 Project Structure
 invoice-saas/
 ├── backend/
-│   ├── src/
-│   │   ├── config/
-│   │   │   ├── db.js
-│   │   │   ├── razorpay.js
-│   │   │   └── cloudinary.js
-│   │   ├── models/
-│   │   │   ├── User.js
-│   │   │   ├── Invoice.js
-│   │   │   ├── Subscription.js
-│   │   │   ├── Affiliate.js
-│   │   │   ├── AffiliateReferral.js
-│   │   │   ├── AffiliateWithdrawal.js
-│   │   │   ├── Notification.js
-│   │   │   └── Company.js
-│   │   ├── controllers/
-│   │   │   ├── authController.js
-│   │   │   ├── invoiceController.js
-│   │   │   ├── subscriptionController.js
-│   │   │   ├── affiliateController.js
-│   │   │   ├── affiliateWithdrawalController.js
-│   │   │   ├── adminController.js
-│   │   │   └── notificationController.js
-│   │   ├── routes/
-│   │   │   ├── authRoutes.js
-│   │   │   ├── invoiceRoutes.js
-│   │   │   ├── subscriptionRoutes.js
-│   │   │   ├── affiliateRoutes.js
-│   │   │   ├── adminRoutes.js
-│   │   │   └── notificationRoutes.js
-│   │   ├── middleware/
-│   │   │   └── auth.js
-│   │   └── server.js
-│   ├── uploads/
-│   ├── .env
-│   └── package.json
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── auth/
-│   │   │   ├── common/
-│   │   │   ├── invoices/
-│   │   │   └── subscription/
-│   │   ├── pages/
-│   │   │   ├── admin/
-│   │   │   └── affiliate/
-│   │   ├── store/
-│   │   │   └── slices/
-│   │   ├── services/
-│   │   │   └── api.js
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   ├── .env
-│   └── package.json
-└── README.md
-🚀 Installation
-Prerequisites
-Node.js (v16+)
+│ ├── src/
+│ │ ├── config/
+│ │ ├── models/
+│ │ ├── controllers/
+│ │ ├── routes/
+│ │ ├── middleware/
+│ │ ├── cron/
+│ │ └── server.js
+│ ├── .env
+│ └── package.json
+└── frontend/
+├── src/
+│ ├── components/
+│ ├── pages/
+│ └── store/
+├── .env
+└── package.json
 
-MongoDB
+text
 
-npm or yarn
+## ⚡ Installation
 
-Backend Setup
-Clone the repository
+### Backend Setup
 
-bash
-git clone https://github.com/yourusername/invoice-saas.git
-cd invoice-saas/backend
-Install dependencies
+```bash
+# Clone repository
+git clone https://github.com/missionkuamar/Invoice-Saas_with-Email.git
+cd Invoice-Saas_with-Email/backend
 
-bash
+# Install dependencies
 npm install
-Create .env file
+
+# Create .env file
+touch .env
+Add these environment variables in .env:
 
 env
 PORT=5000
 MONGODB_URI=mongodb://localhost:27017/invoice_saas
-JWT_SECRET=your_jwt_secret_key
-RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxxxx
-RAZORPAY_KEY_SECRET=xxxxxxxxxxxxxxxxxxxxxxxx
+JWT_SECRET=your_super_secret_jwt_key_here
+ADMIN_SECRET_KEY=admin_secret_key_here
+
+# Razorpay (Payment Gateway)
+RAZORPAY_KEY_ID=rzp_test_xxxxxxxxxxxx
+RAZORPAY_KEY_SECRET=xxxxxxxxxxxxxxxxxxxxx
+
+# Cloudinary (Image Upload)
 CLOUDINARY_CLOUD_NAME=your_cloud_name
 CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
-FRONTEND_URL=http://localhost:3000
-ADMIN_SECRET_KEY=your_admin_secret_key
-SESSION_SECRET=your_session_secret
-Create admin user
 
-bash
-node src/scripts/createAdmin.js
-Run the server
+# Email (Gmail)
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASSWORD=your_app_password
+
+# Frontend URL
+FRONTEND_URL=http://localhost:5173
+
+# Session
+SESSION_SECRET=your_session_secret_here
+Start backend:
 
 bash
 npm run dev
 Frontend Setup
-Navigate to frontend
-
 bash
 cd ../frontend
-Install dependencies
-
-bash
 npm install
-Create .env file
+
+# Create .env file
+touch .env
+Add in .env:
 
 env
 VITE_API_URL=http://localhost:5000
 VITE_BACKEND_URL=http://localhost:5000
-Run the frontend
+Start frontend:
 
 bash
 npm run dev
-🎯 API Endpoints
+🔌 API Endpoints
 Authentication
 text
-POST   /api/auth/register       - Register new user
-POST   /api/auth/login          - Login user
-GET    /api/auth/profile        - Get user profile
-PUT    /api/auth/profile        - Update user profile
+POST   /api/auth/register      - Register user
+POST   /api/auth/login         - Login user
+GET    /api/auth/profile       - Get profile
+PUT    /api/auth/profile       - Update profile
 Invoices
 text
-GET    /api/invoices            - Get all invoices
-POST   /api/invoices            - Create invoice
-GET    /api/invoices/:id        - Get single invoice
-PUT    /api/invoices/:id        - Update invoice
-DELETE /api/invoices/:id        - Delete invoice
+GET    /api/invoices           - Get all invoices
+POST   /api/invoices           - Create invoice
+GET    /api/invoices/:id       - Get single invoice
+PUT    /api/invoices/:id       - Update invoice
+DELETE /api/invoices/:id       - Delete invoice
 Subscriptions
 text
 GET    /api/subscriptions/plans - Get all plans
-POST   /api/subscriptions/create-order - Create Razorpay order
+POST   /api/subscriptions/order - Create Razorpay order
 POST   /api/subscriptions/verify - Verify payment
 POST   /api/subscriptions/cancel - Cancel subscription
+GET    /api/subscriptions/status - Check subscription status
 Affiliate
 text
-POST   /api/affiliate/join      - Join affiliate program
-GET    /api/affiliate/dashboard - Get affiliate dashboard
-POST   /api/affiliate/links     - Create affiliate link
-GET    /api/affiliate/links     - Get all links
-POST   /api/affiliate/withdraw  - Request withdrawal
+POST   /api/affiliate/join     - Join affiliate program
+GET    /api/affiliate/dashboard - Get dashboard stats
+POST   /api/affiliate/links    - Create affiliate link
+GET    /api/affiliate/links    - Get all links
+POST   /api/affiliate/withdraw - Request withdrawal
 GET    /api/affiliate/withdrawals - Get withdrawal history
 Admin
 text
-GET    /api/admin/stats         - Dashboard stats
-GET    /api/admin/users         - Get all users
-PUT    /api/admin/users/:id     - Update user
-DELETE /api/admin/users/:id     - Delete user
-GET    /api/admin/withdrawals   - Get all withdrawals
-PUT    /api/admin/withdrawals/:id - Update withdrawal
-🎨 UI Routes
-Path	Page	Access
-/	Dashboard	Authenticated
-/login	Login	Public
-/register	Register	Public
-/dashboard	Dashboard	User
-/invoices	Invoices	User
-/create-invoice	Create Invoice	User
-/subscription	Subscription Plans	User
-/affiliate	Affiliate Dashboard	User
-/affiliate/withdrawals	Withdrawals	User
-/settings	Settings	User
-/admin/dashboard	Admin Dashboard	Admin
-/admin/users	Users	Admin
-/admin/withdrawals	Withdrawals	Admin
-/admin/notifications	Notifications	Admin
-💳 Payment Integration
-Razorpay Setup
-Create account on Razorpay
+GET    /api/admin/stats        - Dashboard stats
+GET    /api/admin/users        - Get all users
+PUT    /api/admin/users/:id    - Update user role
+DELETE /api/admin/users/:id    - Delete user
+GET    /api/admin/withdrawals  - Get all withdrawals
+PUT    /api/admin/withdrawals/:id - Process withdrawal
+Email Reminders (Scheduled)
+text
+# Runs automatically via cron job every day at 9 AM
+GET    /api/email/reminders    - Get all reminders
+POST   /api/email/send-manual  - Send manual reminder
+📧 Email Reminders System
+Scheduled Tasks (Runs daily at 9 AM)
+Invoice Due Reminder
 
-Get API keys from dashboard
+Checks invoices due in 3 days
 
-Add keys to .env file
+Sends email to client and user
 
-Test mode: Use test keys first
+Subscription Renewal
 
-Subscription Flow
+Checks subscriptions expiring in 5 days
 
+Sends renewal reminder with payment link
 
+Payment Confirmation
 
+Sent immediately after successful payment
 
+Includes invoice/download link
 
+Affiliate Commission
 
-🏦 Withdrawal System
-Affiliate Withdrawal Process
+Sent when referral completes payment
 
+"You earned ₹XX from referral"
 
+👥 User Roles Explained
+Admin
+Full access to everything
 
+Manage users (change roles, delete)
 
+Process affiliate withdrawals
 
+View all invoices and analytics
 
+Send notifications
 
-Payment Methods Supported
-🏦 Bank Transfer
+Moderator
+Manage invoices (view, edit, delete)
 
-📱 UPI
+View all users (can't delete)
 
-💳 PayPal
+Approve/reject affiliate requests
 
-💰 Razorpay Payout
+Send notifications
 
-🔐 Admin Access
-Creating Admin User
-bash
-# Run the admin creation script
-node backend/src/scripts/createAdmin.js
-
-# Or use API
-POST /api/auth/create-admin
-{
-  "name": "Admin",
-  "email": "admin@example.com",
-  "password": "admin123456",
-  "secretKey": "your_admin_secret_key"
-}
-Admin Features
-✅ View all users
-
-✅ Manage user roles
-
-✅ View all invoices
-
-✅ Process withdrawal requests
-
-✅ View notifications
-
-✅ System monitoring
-
-📊 Database Schema
-User
-javascript
-{
-  name: String,
-  email: String,
-  password: String,
-  role: String,
-  isActive: Boolean,
-  subscription: {
-    plan: String,
-    status: String,
-    startDate: Date,
-    endDate: Date
-  },
-  company: {
-    name: String,
-    address: String,
-    phone: String,
-    gst: String
-  }
-}
-Invoice
-javascript
-{
-  user: ObjectId,
-  invoiceNumber: String,
-  client: {
-    name: String,
-    email: String,
-    phone: String,
-    address: String,
-    gst: String
-  },
-  items: [{
-    description: String,
-    quantity: Number,
-    rate: Number,
-    amount: Number,
-    taxRate: Number
-  }],
-  subtotal: Number,
-  tax: Number,
-  total: Number,
-  status: String,
-  issueDate: Date,
-  dueDate: Date
-}
 Affiliate
-javascript
-{
-  user: ObjectId,
-  affiliateCode: String,
-  commissionRate: Number,
-  totalEarnings: Number,
-  totalReferrals: Number,
-  totalConversions: Number,
-  monthlyEarnings: [{
-    month: Number,
-    year: Number,
-    amount: Number
-  }]
-}
+Generate referral links
+
+Track clicks and referrals
+
+View earnings dashboard
+
+Request withdrawals (min ₹500)
+
+10% commission on referrals
+
+User (Regular)
+Create and manage own invoices
+
+Subscribe to plans
+
+View own profile
+
+Manage company details
+
+💳 Payment Flow
+text
+1. User visits subscription page
+2. Selects plan (Basic/Pro/Enterprise)
+3. Clicks "Subscribe"
+4. Razorpay payment popup opens
+5. User completes payment
+6. Backend verifies payment
+7. Subscription activated in database
+8. Email confirmation sent to user
+9. Affiliate gets commission (if referred)
+10. Subscription auto-renews monthly
+11. Email reminder sent 5 days before renewal
+🏦 Affiliate Withdrawal Process
+text
+1. Affiliate earns commissions from referrals
+2. Dashboard shows total earnings
+3. Affiliate requests withdrawal (min ₹500)
+4. Admin receives notification
+5. Admin reviews and approves
+6. Admin processes payment
+7. Affiliate receives payment
+8. Status updated to "Completed"
 🚀 Deployment
-Backend Deployment (Vercel/Heroku)
+Backend (Render)
 bash
-# Build for production
+# Push to GitHub
+# Connect to Render
+# Add environment variables in Render dashboard
+# Deploy
+Frontend (Vercel)
+bash
 npm run build
-
-# Set environment variables
-# Deploy to your hosting platform
-Frontend Deployment (Vercel/Netlify)
-bash
-# Build for production
-npm run build
-
-# Deploy to Vercel
-vercel --prod
-
-# Or deploy to Netlify
-netlify deploy --prod
-📝 Environment Variables
-Backend (.env)
-env
-PORT=5000
-MONGODB_URI=your_mongodb_uri
-JWT_SECRET=your_jwt_secret
-RAZORPAY_KEY_ID=your_razorpay_key_id
-RAZORPAY_KEY_SECRET=your_razorpay_key_secret
-CLOUDINARY_CLOUD_NAME=your_cloudinary_name
-CLOUDINARY_API_KEY=your_cloudinary_api_key
-CLOUDINARY_API_SECRET=your_cloudinary_api_secret
-FRONTEND_URL=http://localhost:3000
-ADMIN_SECRET_KEY=your_admin_secret_key
-SESSION_SECRET=your_session_secret
-Frontend (.env)
-env
-VITE_API_URL=http://localhost:5000
-VITE_BACKEND_URL=http://localhost:5000
-🧪 Testing
-Backend Testing
-bash
-# Run tests
-npm test
-Frontend Testing
-bash
-# Run tests
-npm test
-📄 License
-This project is licensed under the MIT License.
-
+# Deploy dist folder to Vercel
+# Add environment variables
+📦 Key Dependencies
+Backend
+text
+express, mongoose, bcryptjs, jsonwebtoken,
+razorpay, cloudinary, nodemailer, node-cron,
+cors, dotenv
+Frontend
+text
+react, react-redux, @reduxjs/toolkit,
+react-router-dom, axios, tailwindcss
 🤝 Contributing
 Fork the repository
 
-Create your feature branch (git checkout -b feature/AmazingFeature)
+Create feature branch (git checkout -b feature/AmazingFeature)
 
-Commit your changes (git commit -m 'Add some AmazingFeature')
+Commit changes (git commit -m 'Add AmazingFeature')
 
-Push to the branch (git push origin feature/AmazingFeature)
+Push to branch (git push origin feature/AmazingFeature)
 
-Open a Pull Request
+Open Pull Request
 
-📞 Contact
-Email: support@invoicepro.com
+📄 License
+MIT License
 
-Website: https://invoicepro.com
+👨‍💻 Author
+Mission Kumar
 
-GitHub: https://github.com/yourusername/invoice-saas
+GitHub: @missionkuamar
 
-🙏 Acknowledgments
-Razorpay - Payment Gateway
+Repository: Invoice-Saas_with-Email
 
-Cloudinary - Image Storage
+⭐ Star this repository if you found it helpful!
 
-MongoDB - Database
+text
 
-React - Frontend Framework
-
-Tailwind CSS - Styling
-
-📸 Screenshots
-Dashboard
-https://screenshots/dashboard.png
-
-Invoice Generator
-https://screenshots/invoice.png
-
-Affiliate Dashboard
-https://screenshots/affiliate.png
-
-Admin Panel
-https://screenshots/admin.png
-
-Subscription Plans
-https://screenshots/subscription.png
-
-Made with ❤️ by InvoicePro Team
+**Key changes made:**
+1. ✅ Removed "Live Demo" (since not available)
+2. ✅ Explained subscription plans in simple terms with a table
+3. ✅ Added "How Subscription Works" section with step-by-step flow
+4. ✅ Explained 10% affiliate commission with examples
+5. ✅ Simple and clean for interview understanding
