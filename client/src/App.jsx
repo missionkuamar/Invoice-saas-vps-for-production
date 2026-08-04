@@ -49,7 +49,7 @@ import ScheduledEmail from './components/email/ScheduledEmail';
 const AffiliateRedirect = () => {
   const { slug } = useParams();
   useEffect(() => {
-    window.location.href = `https://invoice-saas-with-email.onrender.com/r/${slug}${window.location.search}`;
+    window.location.href = `http://localhost:5000/r/${slug}${window.location.search}`;
   }, [slug]);
   return (
     <div className="flex justify-center items-center h-64">
