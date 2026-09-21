@@ -6,7 +6,7 @@ import AffiliateWithdrawal from '../models/AffiliateWithdrawal.js';
 import Notification from '../models/Notification.js';
 import User from '../models/User.js';
 import { v4 as uuidv4 } from 'uuid';
-
+ import mongoose from 'mongoose';
 // ==================== AFFILIATE PROGRAM ====================
 
 // @desc    Join affiliate program
@@ -14,7 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
 export const joinAffiliateProgram = async (req, res) => {
   try {
     const userId = req.user._id;
-    
+
     // Check if already affiliate
     const existing = await Affiliate.findOne({ user: userId });
     if (existing) {
@@ -37,21 +37,37 @@ export const joinAffiliateProgram = async (req, res) => {
       data: affiliate,
     });
   } catch (error) {
-   // console.error('Join affiliate error:', error);
+    // console.error('Join affiliate error:', error);
     res.status(500).json({
       success: false,
       message: error.message,
+     
     });
   }
 };
 
 // @desc    Get affiliate dashboard
 // @route   GET /api/affiliate/dashboard
+
+
+
+// make sure these models are imported in your file
+// import Affiliate from '../models/Affiliate.js';
+// import AffiliateLink from '../models/AffiliateLink.js';
+// import AffiliateReferral from '../models/AffiliateReferral.js';
+
 export const getAffiliateDashboard = async (req, res) => {
   try {
     const userId = req.user._id;
-    
-    const affiliate = await Affiliate.findOne({ user: userId });
+
+    // ==========================================
+    // FIND AFFILIATE
+    // ==========================================
+
+    const affiliate = await Affiliate.findOne({
+      user: userId,
+    });
+
     if (!affiliate) {
       return res.status(404).json({
         success: false,
@@ -59,53 +75,225 @@ export const getAffiliateDashboard = async (req, res) => {
       });
     }
 
-    // Get stats
-    const [links, referrals, monthlyEarnings] = await Promise.all([
-      AffiliateLink.find({ affiliate: affiliate._id }),
-      AffiliateReferral.find({ affiliate: affiliate._id }),
+    // ==========================================
+    // LINK PAGINATION
+    // ==========================================
+
+    const linkPage = Math.max(
+      Number(req.query.linkPage) || 1,
+      1
+    );
+
+    const linkLimit = Math.min(
+      Math.max(
+        Number(req.query.linkLimit) || 10,
+        1
+      ),
+      200
+    );
+
+    const linkSkip = (linkPage - 1) * linkLimit;
+
+    console.log('Affiliate Pagination Request:', {
+      linkPage,
+      linkLimit,
+      linkSkip,
+    });
+
+    // ==========================================
+    // START OF CURRENT MONTH
+    // ==========================================
+
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+
+    // ==========================================
+    // FETCH LINKS + COUNT + REFERRALS + EARNINGS
+    // ==========================================
+
+    const [
+      links,
+      totalLinks,
+      referrals,
+      monthlyEarnings,
+    ] = await Promise.all([
+      // paginated links
+      AffiliateLink.find({
+        affiliate: affiliate._id,
+      })
+        .sort({ createdAt: -1 })
+        .skip(linkSkip)
+        .limit(linkLimit)
+        .lean(),
+
+      // total links count
+      AffiliateLink.countDocuments({
+        affiliate: affiliate._id,
+      }),
+
+      // all referrals for this affiliate
+      AffiliateReferral.find({
+        affiliate: affiliate._id,
+      }).lean(),
+
+      // monthly earnings
       AffiliateReferral.aggregate([
-        { 
-          $match: { 
-            affiliate: affiliate._id,
-            createdAt: { 
-              $gte: new Date(new Date().setDate(1)) 
-            }
-          }
+        {
+          $match: {
+            affiliate: new mongoose.Types.ObjectId(
+              affiliate._id
+            ),
+            createdAt: {
+              $gte: startOfMonth,
+            },
+          },
         },
-        { $group: { _id: null, total: { $sum: '$commission' } } }
-      ])
+        {
+          $group: {
+            _id: null,
+            total: {
+              $sum: '$commission',
+            },
+          },
+        },
+      ]),
     ]);
 
-    const totalReferrals = await AffiliateReferral.countDocuments({ 
-      affiliate: affiliate._id,
-      status: 'converted'
-    });
+    // ==========================================
+    // TOTAL PAGES
+    // ==========================================
 
-    res.status(200).json({
-      success: true,
-      data: {
-        affiliate,
-        stats: {
-          totalClicks: affiliate.totalClicks || 0,
-          totalReferrals: affiliate.totalReferrals || 0,
-          totalConversions: affiliate.totalConversions || 0,
-          totalEarnings: affiliate.totalEarnings || 0,
-          monthlyEarnings: monthlyEarnings[0]?.total || 0,
-          activeLinks: links.filter(l => l.status === 'active').length,
-          conversionRate: affiliate.totalClicks > 0 
-            ? ((affiliate.totalConversions / affiliate.totalClicks) * 100).toFixed(2)
-            : 0,
-        },
-        recentReferrals: await AffiliateReferral.find({ affiliate: affiliate._id })
-          .sort({ createdAt: -1 })
-          .limit(10)
-          .populate('referredUser', 'name email'),
-        links,
+    const totalPages = Math.max(
+      1,
+      Math.ceil(totalLinks / linkLimit)
+    );
+
+    // ==========================================
+    // ACTIVE LINKS
+    // ==========================================
+
+    const activeLinks =
+      await AffiliateLink.countDocuments({
+        affiliate: affiliate._id,
+        status: 'active',
+      });
+
+    // ==========================================
+    // RECENT REFERRALS
+    // ==========================================
+
+    const recentReferrals =
+      await AffiliateReferral.find({
+        affiliate: affiliate._id,
+      })
+        .sort({ createdAt: -1 })
+        .limit(10)
+        .populate('referredUser', 'name email')
+        .lean();
+
+    // ==========================================
+    // SAFE NUMBERS
+    // ==========================================
+
+    const totalClicks =
+      Number(affiliate.totalClicks) || 0;
+
+    const totalConversions =
+      Number(affiliate.totalConversions) || 0;
+
+    const conversionRate =
+      totalClicks > 0
+        ? ((totalConversions / totalClicks) * 100).toFixed(2)
+        : 0;
+
+    // ==========================================
+    // RESPONSE DATA
+    // ==========================================
+
+    const data = {
+      affiliate,
+
+      stats: {
+        totalClicks,
+
+        totalReferrals:
+          Number(affiliate.totalReferrals) || 0,
+
+        totalConversions,
+
+        totalEarnings:
+          Number(affiliate.totalEarnings) || 0,
+
+        monthlyEarnings:
+          monthlyEarnings[0]?.total || 0,
+
+        activeLinks,
+
+        conversionRate,
       },
+
+      recentReferrals,
+
+      // current page links
+      links,
+
+      // ==========================================
+      // PAGINATION (matches frontend `linkPagination`)
+      // ==========================================
+      linkPagination: {
+        page: linkPage,
+        limit: linkLimit,
+        total: totalLinks,
+        pages: totalPages,
+
+        hasNextPage: linkPage < totalPages,
+        hasPreviousPage: linkPage > 1,
+      },
+
+      // ==========================================
+      // BACKWARD COMPAT (optional alias)
+      // ==========================================
+      linksPagination: {
+        page: linkPage,
+        limit: linkLimit,
+        total: totalLinks,
+        pages: totalPages,
+
+        hasNextPage: linkPage < totalPages,
+        hasPreviousPage: linkPage > 1,
+      },
+    };
+
+    // ==========================================
+    // DEBUG
+    // ==========================================
+
+    console.log(
+      'Affiliate Dashboard Pagination:',
+      data.linkPagination
+    );
+
+    console.log(
+      'Links returned:',
+      data.links.length
+    );
+
+    // ==========================================
+    // RESPONSE
+    // ==========================================
+
+    return res.status(200).json({
+      success: true,
+      data,
     });
   } catch (error) {
-   // console.error('Affiliate dashboard error:', error);
-    res.status(500).json({
+    console.error(
+      'Affiliate dashboard error:',
+      error
+    );
+
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
@@ -129,7 +317,7 @@ export const createAffiliateLink = async (req, res) => {
     if (!affiliate) {
       return res.status(404).json({
         success: false,
-        message: 'Not an affiliate member',
+        // message: 'Not an affiliate member',
       });
     }
 
@@ -162,7 +350,7 @@ export const createAffiliateLink = async (req, res) => {
       },
     });
   } catch (error) {
-   // console.error('Create affiliate link error:', error);
+    // console.error('Create affiliate link error:', error);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -182,27 +370,27 @@ export const trackAffiliateClick = async (req, res) => {
     const userAgent = req.headers['user-agent'] || 'unknown';
     const referrer = req.headers.referer || 'direct';
 
-   // console.log(`🔗 Affiliate click: /r/${slug} | ref: ${ref} | ip: ${ip}`);
+    // console.log(`🔗 Affiliate click: /r/${slug} | ref: ${ref} | ip: ${ip}`);
 
     // Find the link
     const link = await AffiliateLink.findOne({ slug });
     if (!link) {
-   //   console.log(`❌ Link not found: ${slug}`);
+      //   console.log(`❌ Link not found: ${slug}`);
       return res.redirect('/');
     }
 
     // Find affiliate
-    const affiliate = await Affiliate.findOne({ 
+    const affiliate = await Affiliate.findOne({
       _id: link.affiliate,
-      affiliateCode: ref 
+      affiliateCode: ref
     });
 
     if (!affiliate) {
-     // console.log(`❌ Affiliate not found: ${ref}`);
+      // console.log(`❌ Affiliate not found: ${ref}`);
       return res.redirect('/');
     }
 
-   // console.log(`✅ Affiliate found: ${affiliate.affiliateCode} (${affiliate.user})`);
+    // console.log(`✅ Affiliate found: ${affiliate.affiliateCode} (${affiliate.user})`);
 
     // Track click
     link.clicks += 1;
@@ -221,7 +409,7 @@ export const trackAffiliateClick = async (req, res) => {
       status: 'clicked',
     });
 
-   // console.log(`✅ Referral created: ${referral._id}`);
+    // console.log(`✅ Referral created: ${referral._id}`);
 
     // Store in session for later
     req.session.affiliateReferral = {
@@ -240,18 +428,18 @@ export const trackAffiliateClick = async (req, res) => {
 
     // Redirect to destination
     const destination = link.destination || '/';
-  //  console.log(`🔄 Redirecting to: ${destination}`);
-    
+    //  console.log(`🔄 Redirecting to: ${destination}`);
+
     // If destination is a full URL, redirect there
     if (destination.startsWith('http://') || destination.startsWith('https://')) {
       return res.redirect(destination);
     }
-    
+
     // Otherwise, redirect to frontend
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     return res.redirect(`${frontendUrl}${destination}`);
   } catch (error) {
-   // console.error('Track affiliate click error:', error);
+    // console.error('Track affiliate click error:', error);
     // Redirect to home on error
     res.redirect('/');
   }
@@ -263,11 +451,11 @@ export const getAffiliateLinks = async (req, res) => {
   try {
     const userId = req.user._id;
     const affiliate = await Affiliate.findOne({ user: userId });
-    
+
     if (!affiliate) {
       return res.status(404).json({
         success: false,
-        message: 'Not an affiliate member',
+        //  message: 'Not an affiliate member',
       });
     }
 
@@ -299,7 +487,7 @@ export const updateAffiliateLink = async (req, res) => {
     if (!affiliate) {
       return res.status(404).json({
         success: false,
-        message: 'Not an affiliate member',
+        //  message: 'Not an affiliate member',
       });
     }
 
@@ -342,13 +530,13 @@ export const deleteAffiliateLink = async (req, res) => {
     if (!affiliate) {
       return res.status(404).json({
         success: false,
-        message: 'Not an affiliate member',
+        //  message: 'Not an affiliate member',
       });
     }
 
-    const link = await AffiliateLink.findOneAndDelete({ 
-      _id: id, 
-      affiliate: affiliate._id 
+    const link = await AffiliateLink.findOneAndDelete({
+      _id: id,
+      affiliate: affiliate._id
     });
 
     if (!link) {
@@ -363,7 +551,7 @@ export const deleteAffiliateLink = async (req, res) => {
       message: 'Link deleted successfully',
     });
   } catch (error) {
-  //  console.error('Delete affiliate link error:', error);
+    //  console.error('Delete affiliate link error:', error);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -404,7 +592,7 @@ export const trackAffiliateConversion = async (req, res) => {
     if (affiliate) {
       affiliate.totalReferrals += 1;
       affiliate.totalConversions += 1;
-      
+
       const commission = (amount * affiliate.commissionRate) / 100;
       affiliate.totalEarnings += commission;
       referral.commission = commission;
@@ -417,7 +605,7 @@ export const trackAffiliateConversion = async (req, res) => {
       message: 'Conversion tracked successfully',
     });
   } catch (error) {
-   // console.error('Track conversion error:', error);
+    // console.error('Track conversion error:', error);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -433,11 +621,11 @@ export const getEarnings = async (req, res) => {
   try {
     const userId = req.user._id;
     const affiliate = await Affiliate.findOne({ user: userId });
-    
+
     if (!affiliate) {
       return res.status(404).json({
         success: false,
-        message: 'Not an affiliate member',
+        //  message: 'Not an affiliate member',
       });
     }
 
@@ -492,7 +680,7 @@ export const getEarnings = async (req, res) => {
 export const debugAffiliateReferral = async (req, res) => {
   try {
     const { userId } = req.params;
-    
+
     const referrals = await AffiliateReferral.find({ referredUser: userId })
       .populate('affiliate', 'affiliateCode name email')
       .sort({ createdAt: -1 });
@@ -510,7 +698,7 @@ export const debugAffiliateReferral = async (req, res) => {
       },
     });
   } catch (error) {
-   // console.error('Debug error:', error);
+    // console.error('Debug error:', error);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -545,7 +733,7 @@ export const debugAllReferrals = async (req, res) => {
       data: referrals,
     });
   } catch (error) {
-   // console.error('Debug error:', error);
+    // console.error('Debug error:', error);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -558,7 +746,7 @@ export const debugAllReferrals = async (req, res) => {
 export const debugAffiliateByCode = async (req, res) => {
   try {
     const { code } = req.params;
-    
+
     const affiliate = await Affiliate.findOne({ affiliateCode: code })
       .populate('user', 'name email');
 
@@ -576,7 +764,7 @@ export const debugAffiliateByCode = async (req, res) => {
       },
     });
   } catch (error) {
-   // console.error('Debug error:', error);
+    // console.error('Debug error:', error);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -609,7 +797,7 @@ export const requestWithdrawal = async (req, res) => {
     const { amount, paymentMethod, paymentDetails } = req.body;
     const userId = req.user._id;
 
-   // console.log('Withdrawal Request:', { amount, paymentMethod, userId });
+    // console.log('Withdrawal Request:', { amount, paymentMethod, userId });
 
     // Validation
     if (!amount || amount <= 0) {
@@ -649,7 +837,7 @@ export const requestWithdrawal = async (req, res) => {
     if (!affiliate) {
       return res.status(404).json({
         success: false,
-        message: 'You are not an affiliate member',
+        //  message: 'You are not an affiliate member',
       });
     }
 
@@ -697,7 +885,7 @@ export const requestWithdrawal = async (req, res) => {
 
     // Prepare payment details
     let finalPaymentDetails = { ...paymentDetails };
-    
+
     // If no payment details provided, use affiliate's saved payment details
     if (!paymentDetails || Object.keys(paymentDetails).length === 0) {
       if (paymentMethod === 'bank') {
@@ -817,7 +1005,7 @@ export const requestWithdrawal = async (req, res) => {
     });
 
   } catch (error) {
-   // console.error('Withdrawal request error:', error);
+    // console.error('Withdrawal request error:', error);
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to process withdrawal request',
@@ -885,7 +1073,7 @@ export const getWithdrawalHistory = async (req, res) => {
       },
     });
   } catch (error) {
-   // console.error('Get withdrawal history error:', error);
+    // console.error('Get withdrawal history error:', error);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -924,7 +1112,7 @@ export const getWithdrawalDetails = async (req, res) => {
       data: withdrawal,
     });
   } catch (error) {
-   /// console.error('Get withdrawal details error:', error);
+    /// console.error('Get withdrawal details error:', error);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -988,7 +1176,7 @@ export const cancelWithdrawal = async (req, res) => {
       },
     });
   } catch (error) {
-   // console.error('Cancel withdrawal error:', error);
+    // console.error('Cancel withdrawal error:', error);
     res.status(500).json({
       success: false,
       message: error.message,

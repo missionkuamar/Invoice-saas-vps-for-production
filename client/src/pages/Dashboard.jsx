@@ -9,41 +9,58 @@ import { Link } from 'react-router-dom';
 const Dashboard = () => {
   const dispatch = useDispatch();
   const { theme } = useTheme();
-  const { invoices, loading } = useSelector((state) => state.invoices);
+  const { invoices, loading, stats } = useSelector((state) => state.invoices);
   const { user } = useSelector((state) => state.auth);
-
+  console.log("stats:", stats);
   useEffect(() => {
     dispatch(fetchInvoices({ limit: 5 }));
   }, [dispatch]);
 
-  const stats = [
+
+  const formatRevenue = (value) => {
+    const revenue = Number(value ?? 0);
+
+    const formatted = revenue.toLocaleString('en-IN');
+
+    return formatted.length > 3
+      ? `${formatted.slice(0, 4)}...`
+      : formatted;
+  };
+
+
+  const dashboardstats = [
     {
       title: 'Total Invoices',
-      value: invoices.length,
+      value: stats?.totalInvoices ?? 0,
       icon: FaFileInvoice,
       color: 'from-blue-500 to-blue-600',
       bgColor: 'bg-blue-50 dark:bg-blue-900/20',
       textColor: 'text-blue-600 dark:text-blue-400',
     },
+
     {
       title: 'Clients',
-      value: new Set(invoices.map((inv) => inv.client?.name)).size,
+      value: stats?.totalClients ?? 0,
       icon: FaUsers,
       color: 'from-green-500 to-emerald-600',
       bgColor: 'bg-green-50 dark:bg-green-900/20',
       textColor: 'text-green-600 dark:text-green-400',
     },
+
     {
       title: 'Revenue',
-      value: `₹${invoices.reduce((sum, inv) => sum + (inv.total || 0), 0).toFixed(2)}`,
+      value: `₹${formatRevenue(stats?.totalRevenue)}`,
       icon: FaMoneyBill,
       color: 'from-purple-500 to-purple-600',
       bgColor: 'bg-purple-50 dark:bg-purple-900/20',
       textColor: 'text-purple-600 dark:text-purple-400',
     },
+
     {
       title: 'Paid Invoices',
-      value: invoices.filter((inv) => inv.status === 'paid').length,
+      value: invoices.filter(
+        (inv) => inv.status === 'paid'
+      ).length,
       icon: FaChartLine,
       color: 'from-orange-500 to-red-500',
       bgColor: 'bg-orange-50 dark:bg-orange-900/20',
@@ -60,7 +77,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className={`min-h-screen ${theme.colors.background} p-4 md:p-6 space-y-6`}>
+    <div className={`min-h-screen ${theme.colors.background} p-4 md:p-6 space-y-6 lg:mt-[]`}>
       {/* Welcome Section */}
       <div className={`${theme.colors.card} rounded-2xl p-6 md:p-8 border ${theme.colors.border}`}>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -73,7 +90,7 @@ const Dashboard = () => {
             </p>
           </div>
           <Link
-            to="/create-invoice"
+            to="/create-invoice/simple"
             className={`${theme.colors.button} text-white px-6 py-3 rounded-xl flex items-center gap-2 hover:scale-105 transition-all text-sm md:text-base whitespace-nowrap`}
           >
             Create New Invoice <FaArrowRight />
@@ -83,7 +100,7 @@ const Dashboard = () => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-6">
-        {stats.map((stat, index) => {
+        {dashboardstats.map((stat, index) => {
           const Icon = stat.icon;
           return (
             <div
@@ -170,8 +187,8 @@ const Dashboard = () => {
                     <span className={`inline-block px-2 md:px-3 py-1 rounded-full text-xs font-medium
                       ${invoice.status === 'paid' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
                         invoice.status === 'pending' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                        invoice.status === 'overdue' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
-                        'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'}`}
+                          invoice.status === 'overdue' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                            'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'}`}
                     >
                       {invoice.status || 'Draft'}
                     </span>

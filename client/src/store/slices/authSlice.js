@@ -1,7 +1,44 @@
 // frontend/src/store/slices/authSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../../services/api';
+import toast from 'react-hot-toast';
 
+
+
+ // ✅ Google Login Thunk
+export const loginWithGoogle = createAsyncThunk(
+  'auth/loginWithGoogle',
+  async (credentialResponse, { rejectWithValue }) => {
+    try {
+      const { credential } = credentialResponse;
+      
+      // Send the Google credential to backend for verification
+      const response = await api.post('/auth/google', { credential });
+      //console.log('Google login response:', response);
+      
+      const { data } = response.data;
+      
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data));
+      
+      // Show different message for new vs existing user
+      if (response.data.message === 'Registration successful') {
+        toast.success(`Welcome ${data.name}! Account created successfully.`);
+      } else {
+        toast.success(`Welcome back ${data.name}!`);
+      }
+      
+      return data;
+    } catch (error) {
+      console.error('Google login failed:', error);
+      const errorMsg = error.response?.data?.message || 'Login failed. Please try again.';
+      toast.error(errorMsg);
+      return rejectWithValue(errorMsg);
+    }
+  }
+);
+
+  
 // ✅ Login Thunk
 export const login = createAsyncThunk(
   'auth/login',
@@ -50,6 +87,7 @@ export const getProfile = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await api.get('/auth/profile');
+     // console.log("getProfile response: ", response)
       return response.data.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to get profile');
@@ -84,6 +122,7 @@ export const checkAuth = createAsyncThunk(
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       
       const response = await api.get('/auth/profile');
+     // console.log("checkAuth :", response);
       const userData = response.data.data;
       
       // Update localStorage
@@ -138,6 +177,24 @@ const authSlice = createSlice({
   extraReducers: (builder) => {
     builder
       // ============ LOGIN ============
+      .addCase(loginWithGoogle.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(loginWithGoogle.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload;
+        state.token = action.payload.token;
+        state.isAuthenticated = true;
+        state.error = null;
+        api.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`;
+      })
+      .addCase(loginWithGoogle.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+        state.isAuthenticated = false;
+      })
+      // ============ LOGIN ============
       .addCase(login.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -148,7 +205,6 @@ const authSlice = createSlice({
         state.token = action.payload.token;
         state.isAuthenticated = true;
         state.error = null;
-        // Set axios header
         api.defaults.headers.common['Authorization'] = `Bearer ${action.payload.token}`;
       })
       .addCase(login.rejected, (state, action) => {

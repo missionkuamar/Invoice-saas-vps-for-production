@@ -14,7 +14,7 @@ export const requestWithdrawal = async (req, res) => {
     if (!affiliate) {
       return res.status(404).json({
         success: false,
-        message: 'Not an affiliate member',
+       // message: 'Not an affiliate member',
       });
     }
 
@@ -70,7 +70,7 @@ export const getWithdrawals = async (req, res) => {
     if (!affiliate) {
       return res.status(404).json({
         success: false,
-        message: 'Not an affiliate member',
+      //  message: 'Not an affiliate member',
       });
     }
 

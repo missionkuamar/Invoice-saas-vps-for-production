@@ -1,316 +1,686 @@
 // frontend/src/components/common/Sidebar.jsx
-import React, { useState, useEffect } from 'react';
+
+import React, { useEffect, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+
 import {
-  FaHome, FaFileInvoice, FaPlus, FaCog, FaCreditCard,
-  FaUsers, FaChartBar, FaWallet, FaBell, FaShareAlt,
-  FaChevronDown, FaChevronRight, FaPencilAlt, FaFileAlt,
-  FaCopy, FaStar, FaPalette, FaBolt,
-  FaGem, FaHistory, FaWaveSquare, FaSun, FaEye,
-  FaLeaf, FaWater, FaCrown, FaSnowflake, FaMoon,
+  FaHome,
+  FaFileInvoice,
+  FaPlus,
+  FaCog,
+  FaCreditCard,
+  FaUsers,
+  FaChartBar,
+  FaWallet,
+  FaBell,
+  FaShareAlt,
+  FaChevronDown,
+  FaChevronRight,
+  FaFileAlt,
   FaTimes,
-  FaVoicemail
+  FaShieldAlt,
+  FaUserShield,
+  FaTools,
 } from 'react-icons/fa';
+
+import { HiOutlineMail } from 'react-icons/hi';
+import { MdOutlineAlternateEmail } from 'react-icons/md';
+import { SiMinutemailer } from 'react-icons/si';
+
 import api from '../../services/api';
 import toast from 'react-hot-toast';
-import { HiOutlineMail } from "react-icons/hi";
-import { MdOutlineAlternateEmail } from "react-icons/md";
-import { SiMinutemailer } from "react-icons/si";
-import { MdOutlineSchedule } from "react-icons/md";
-
+import { useTheme } from '../../themes/ThemeProvider';
 
 const Sidebar = ({ onClose }) => {
   const { user } = useSelector((state) => state.auth);
+  const { theme } = useTheme();
   const location = useLocation();
-  const isAdmin = user?.role === 'admin' || user?.role === 'super_admin';
+
+  const role = user?.role;
+
+  const isAdmin = role === 'admin';
+  const isSuperAdmin = role === 'super_admin';
+  const hasAdminAccess = isAdmin || isSuperAdmin;
+
   const [pendingWithdrawals, setPendingWithdrawals] = useState(0);
-  const [isCreateSubmenuOpen, setIsCreateSubmenuOpen] = useState(false);
-const [isCreateEmailSubmenuOpen, setIsCreateEmailSubmenuOpen] = useState(false);
+
+  const [isCreateSubmenuOpen, setIsCreateSubmenuOpen] = useState(
+    location.pathname.startsWith('/create-invoice')
+  );
+
+  const [isEmailSubmenuOpen, setIsEmailSubmenuOpen] = useState(
+    location.pathname.startsWith('/email-')
+  );
+
+  const [isAdminSubmenuOpen, setIsAdminSubmenuOpen] = useState(
+    location.pathname.startsWith('/admin')
+  );
+
+  // ============================================================
+  // FETCH ADMIN STATS
+  // ============================================================
+
   useEffect(() => {
-    if (isAdmin) {
+    if (!hasAdminAccess) return;
+
+    fetchPendingCount();
+
+    const interval = setInterval(() => {
       fetchPendingCount();
-      const interval = setInterval(fetchPendingCount, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [isAdmin]);
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [hasAdminAccess]);
 
   const fetchPendingCount = async () => {
     try {
       const response = await api.get('/admin/stats');
-      setPendingWithdrawals(response.data.data.pendingWithdrawals || 0);
+
+      setPendingWithdrawals(
+        response.data?.data?.pendingWithdrawals || 0
+      );
     } catch (error) {
-     // console.error('Failed to fetch pending count:', error);
-     toast.error(error.message || 'Internal server error');
+      console.error('Failed to fetch admin stats:', error);
     }
   };
 
-  // Close sidebar on mobile when a link is clicked
+  // ============================================================
+  // MOBILE CLOSE
+  // ============================================================
+
   const handleLinkClick = () => {
     if (window.innerWidth < 1024 && onClose) {
       onClose();
     }
   };
 
-  // Close sidebar manually
-  const handleClose = () => {
-    if (onClose) onClose();
-  };
+  // ============================================================
+  // MENU DATA
+  // ============================================================
 
   const userMenuItems = [
-    { path: '/dashboard', icon: FaHome, label: 'Dashboard' },
     {
-  label: 'Create Invoice',
-  icon: FaPlus,
-  submenu: true,
-  isOpen: isCreateSubmenuOpen,
-  toggle: () => setIsCreateSubmenuOpen(!isCreateSubmenuOpen),
-  submenuItems: [
-    {
-      path: '/create-invoice/simple',
-      icon: FaFileAlt,
-      label: 'Simple',
-      description: 'Simple invoice'
+      path: '/dashboard',
+      icon: FaHome,
+      label: 'Dashboard',
     },
-    // {
-    //   path: '/create-invoice/standard',
-    //   icon: FaFileAlt,
-    //   label: 'Standard',
-    //   description: 'Standard invoice'
-    // },
-    // {
-    //   path: '/create-invoice/modern',
-    //   icon: FaFileAlt,
-    //   label: 'Modern',
-    //   description: 'Modern design'
-    // },
-    // {
-    //   path: '/create-invoice/minimal',
-    //   icon: FaFileAlt,
-    //   label: 'Minimal',
-    //   description: 'Minimal template'
-    // },
-    // {
-    //   path: '/create-invoice/professional',
-    //   icon: FaFileAlt,
-    //   label: 'Professional',
-    //   description: 'Professional template'
-    // },
-    // {
-    //   path: '/create-invoice/creative',
-    //   icon: FaFileAlt,
-    //   label: 'Creative',
-    //   description: 'Creative style'
-    // },
-    // {
-    //   path: '/create-invoice/vintage',
-    //   icon: FaFileAlt,
-    //   label: 'Vintage',
-    //   description: 'Vintage paper'
-    // },
-    // {
-    //   path: '/create-invoice/elegant',
-    //   icon: FaFileAlt,
-    //   label: 'Elegant',
-    //   description: 'Elegant invoice'
-    // },
-    // {
-    //   path: '/create-invoice/dark-luxe',
-    //   icon: FaFileAlt,
-    //   label: 'Dark Luxe',
-    //   description: 'Luxury dark theme'
-    // },
-    // {
-    //   path: '/create-invoice/nature',
-    //   icon: FaFileAlt,
-    //   label: 'Nature',
-    //   description: 'Nature green theme'
-    // },
-    // {
-    //   path: '/create-invoice/neon-glow',
-    //   icon: FaFileAlt,
-    //   label: 'Neon Glow',
-    //   description: 'Neon style'
-    // },
-    // {
-    //   path: '/create-invoice/ocean',
-    //   icon: FaFileAlt,
-    //   label: 'Ocean',
-    //   description: 'Ocean blue theme'
-    // },
-    // {
-    //   path: '/create-invoice/sunset',
-    //   icon: FaFileAlt,
-    //   label: 'Sunset',
-    //   description: 'Sunset orange'
-    // },
-    // {
-    //   path: '/create-invoice/royal',
-    //   icon: FaFileAlt,
-    //   label: 'Royal',
-    //   description: 'Royal purple'
-    // },
-    // {
-    //   path: '/create-invoice/glass',
-    //   icon: FaFileAlt,
-    //   label: 'Glass',
-    //   description: 'Glassmorphism'
-    // },
-    // {
-    //   path: '/create-invoice/nordic',
-    //   icon: FaFileAlt,
-    //   label: 'Nordic',
-    //   description: 'Nordic minimal'
-    // },
-    // {
-    //   path: '/create-invoice/wave',
-    //   icon: FaFileAlt,
-    //   label: 'Gradient Wave',
-    //   description: 'Gradient wave style'
-    // }
-  ]
-},
-   { 
-    label: 'Email Service',
-     icon: HiOutlineMail, submenu: true,
-     isOpen: isCreateEmailSubmenuOpen,
-     toggle: () => setIsCreateEmailSubmenuOpen(!isCreateEmailSubmenuOpen),
+
+    {
+      label: 'Create Invoice',
+      icon: FaPlus,
+      submenu: true,
+      isOpen: isCreateSubmenuOpen,
+      toggle: () =>
+        setIsCreateSubmenuOpen((prev) => !prev),
+
       submenuItems: [
-        { path: '/email-simple', icon: MdOutlineAlternateEmail, label: 'Simpe-Service', description: 'Simple-Mail' },
-       
-        { path: '/email-scheduled', icon: SiMinutemailer, label: 'Scheduled Email', description: 'Scheduled Mail' },
-   
-      ] },
-    { path: '/invoices', icon: FaFileInvoice, label: 'All Invoices' },
-    { path: '/subscription', icon: FaCreditCard, label: 'Subscription' },
-    { path: '/affiliate', icon: FaShareAlt, label: 'Affiliate' },
-    { path: '/settings', icon: FaCog, label: 'Settings' },
+        {
+          path: '/create-invoice/simple',
+          icon: FaFileAlt,
+          label: 'Simple',
+          description: 'Create simple invoice',
+        },
+      ],
+    },
+
+    {
+      label: 'Email Service',
+      icon: HiOutlineMail,
+      submenu: true,
+      isOpen: isEmailSubmenuOpen,
+      toggle: () =>
+        setIsEmailSubmenuOpen((prev) => !prev),
+
+      submenuItems: [
+        {
+          path: '/email-simple',
+          icon: MdOutlineAlternateEmail,
+          label: 'Simple Service',
+          description: 'Send emails',
+        },
+        {
+          path: '/email-scheduled',
+          icon: SiMinutemailer,
+          label: 'Scheduled Email',
+          description: 'Schedule emails',
+        },
+      ],
+    },
+
+    {
+      path: '/invoices',
+      icon: FaFileInvoice,
+      label: 'All Invoices',
+    },
+
+    {
+      path: '/subscription',
+      icon: FaCreditCard,
+      label: 'Subscription',
+    },
+
+    {
+      path: '/affiliate',
+      icon: FaShareAlt,
+      label: 'Affiliate',
+    },
+
+    {
+      path: '/settings',
+      icon: FaCog,
+      label: 'Settings',
+    },
   ];
 
+  // ============================================================
+  // ADMIN MENU
+  // ============================================================
+
   const adminMenuItems = [
-    { path: '/admin/dashboard', icon: FaChartBar, label: 'Dashboard' },
-    { path: '/admin/users', icon: FaUsers, label: 'Users' },
+    {
+      path: '/admin/dashboard',
+      icon: FaChartBar,
+      label: 'Dashboard',
+    },
+
+    {
+      path: '/admin/users',
+      icon: FaUsers,
+      label: 'Users',
+    },
+
     {
       path: '/admin/withdrawals',
       icon: FaWallet,
       label: 'Withdrawals',
-      badge: pendingWithdrawals > 0 ? pendingWithdrawals : null,
+      badge:
+        pendingWithdrawals > 0
+          ? pendingWithdrawals
+          : null,
     },
-    { path: '/admin/notifications', icon: FaBell, label: 'Notifications' },
+
+    {
+      path: '/admin/notifications',
+      icon: FaBell,
+      label: 'Notifications',
+    },
   ];
 
-  const menuItems = isAdmin ? [...userMenuItems, ...adminMenuItems] : userMenuItems;
+  // ============================================================
+  // SUPER ADMIN ONLY
+  // ============================================================
 
-  const renderMenuItem = (item, index) => {
-    if (item.submenu) {
-      return (
-        <div key={index} className="mb-1">
-          <button
-            onClick={item.toggle}
-            className="w-full flex items-center justify-between px-3 md:px-4 py-2 md:py-3 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors text-sm md:text-base"
+  const superAdminMenuItems = [
+    {
+      path: '/admin/admins',
+      icon: FaUserShield,
+      label: 'Manage Admins',
+    },
+
+    {
+      path: '/admin/system',
+      icon: FaTools,
+      label: 'System Settings',
+    },
+  ];
+
+  // ============================================================
+  // COMMON CLASSES
+  // ============================================================
+
+  const sidebarClass = `
+    h-full
+    w-full
+    ${theme.colors.card}
+    ${theme.colors.text}
+    flex
+    flex-col
+    border-r
+    ${theme.colors.border}
+    overflow-hidden
+  `;
+
+  const navLinkClass = `
+    group
+    flex
+    items-center
+    justify-between
+    w-full
+    min-h-[44px]
+    px-3
+    sm:px-4
+    py-2.5
+    rounded-xl
+    mb-1
+    transition-all
+    duration-200
+    text-sm
+    sm:text-[15px]
+  `;
+
+  const inactiveClass = `
+    opacity-75
+    hover:opacity-100
+    hover:bg-gray-100
+    dark:hover:bg-gray-800
+  `;
+
+  const activeClass = `
+    ${theme.colors.button}
+    text-white
+    shadow-sm
+  `;
+
+  // ============================================================
+  // RENDER SUBMENU
+  // ============================================================
+
+  const renderSubmenu = (item) => {
+    return (
+      <div
+        className="
+          ml-3
+          sm:ml-5
+          mt-1
+          mb-2
+          pl-2
+          sm:pl-3
+          border-l-2
+          border-gray-200
+          dark:border-gray-700
+          space-y-1
+        "
+      >
+        {item.submenuItems.map((subItem, index) => (
+          <NavLink
+            key={subItem.path || index}
+            to={subItem.path}
+            onClick={handleLinkClick}
+            className={({ isActive }) => `
+              flex
+              items-center
+              gap-2.5
+              px-3
+              py-2
+              rounded-lg
+              text-xs
+              sm:text-sm
+              transition-all
+              duration-200
+              ${
+                isActive
+                  ? activeClass
+                  : `
+                    opacity-65
+                    hover:opacity-100
+                    hover:bg-gray-100
+                    dark:hover:bg-gray-800
+                  `
+              }
+            `}
           >
-            <div className="flex items-center gap-2 md:gap-3">
-              <item.icon size={18} className="md:w-5 md:h-5" />
-              <span className="font-medium">{item.label}</span>
-            </div>
-            {item.isOpen ? <FaChevronDown size={12} className="md:w-3 md:h-3" /> : <FaChevronRight size={12} className="md:w-3 md:h-3" />}
-          </button>
+            <subItem.icon
+              className="flex-shrink-0"
+              size={15}
+            />
 
-          {item.isOpen && (
-            <div className="ml-4 md:ml-6 mt-1 space-y-1 border-l-2 border-gray-700 pl-2 md:pl-3">
-              {item.submenuItems.map((subItem, subIndex) => (
-                <NavLink
-                  key={subIndex}
-                  to={subItem.path}
-                  onClick={handleLinkClick}
-                  className={({ isActive }) =>
-                    `flex items-center gap-2 md:gap-3 px-3 md:px-4 py-1.5 md:py-2 rounded-lg transition-colors text-xs md:text-sm ${
-                      isActive
-                        ? 'bg-primary-600 text-white'
-                        : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-                    }`
-                  }
+            <div className="min-w-0">
+              <div className="truncate">
+                {subItem.label}
+              </div>
+
+              {subItem.description && (
+                <div
+                  className="
+                    text-[10px]
+                    sm:text-[11px]
+                    opacity-50
+                    truncate
+                    mt-0.5
+                  "
                 >
-                  <subItem.icon size={14} className="md:w-4 md:h-4" />
-                  <div>
-                    <div>{subItem.label}</div>
-                    {subItem.description && (
-                      <div className="text-[10px] md:text-xs text-gray-500 hidden sm:block">{subItem.description}</div>
-                    )}
-                  </div>
-                </NavLink>
-              ))}
+                  {subItem.description}
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      );
-    }
+          </NavLink>
+        ))}
+      </div>
+    );
+  };
 
+  // ============================================================
+  // RENDER NORMAL ITEM
+  // ============================================================
+
+  const renderNormalItem = (item, index) => {
     return (
       <NavLink
-        key={index}
+        key={item.path || index}
         to={item.path}
         onClick={handleLinkClick}
         className={({ isActive }) =>
-          `flex items-center justify-between px-3 md:px-4 py-2 md:py-3 rounded-lg mb-1 transition-colors text-sm md:text-base ${
+          `${navLinkClass} ${
             isActive
-              ? 'bg-primary-600 text-white'
-              : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+              ? activeClass
+              : inactiveClass
           }`
         }
       >
-        <div className="flex items-center gap-2 md:gap-3">
-          <item.icon size={18} className="md:w-5 md:h-5" />
-          <span>{item.label}</span>
+        <div className="flex items-center gap-3 min-w-0">
+          <item.icon
+            size={18}
+            className="flex-shrink-0"
+          />
+
+          <span className="truncate font-medium">
+            {item.label}
+          </span>
         </div>
+
         {item.badge && (
-          <span className="bg-red-500 text-white text-[10px] md:text-xs font-bold px-1.5 md:px-2 py-0.5 md:py-1 rounded-full animate-pulse">
-            {item.badge}
+          <span
+            className="
+              flex-shrink-0
+              min-w-[22px]
+              h-[22px]
+              px-1.5
+              flex
+              items-center
+              justify-center
+              rounded-full
+              bg-red-500
+              text-white
+              text-[10px]
+              sm:text-xs
+              font-bold
+            "
+          >
+            {item.badge > 99
+              ? '99+'
+              : item.badge}
           </span>
         )}
       </NavLink>
     );
   };
 
-  return (
-    <aside 
-      className={`h-full w-full bg-gray-900 text-white flex-shrink-0 overflow-y-auto flex flex-col`}
-    >
-      {/* Header with Close Button for Mobile */}
-      <div className="p-4 md:p-6 border-b border-gray-800 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
-            Invoice<span className="text-primary-500">Pro</span>
-            <span className="text-xs bg-primary-500/20 text-primary-400 px-2 py-0.5 rounded-full hidden sm:inline">
-              v2.0
+  // ============================================================
+  // RENDER SUBMENU ITEM
+  // ============================================================
+
+  const renderSubmenuItem = (item, index) => {
+    return (
+      <div key={index}>
+        <button
+          type="button"
+          onClick={item.toggle}
+          className={`
+            ${navLinkClass}
+            ${inactiveClass}
+          `}
+          aria-expanded={item.isOpen}
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <item.icon
+              size={18}
+              className="flex-shrink-0"
+            />
+
+            <span className="truncate font-medium">
+              {item.label}
             </span>
-          </h1>
-          {isAdmin && (
-            <p className="text-[10px] md:text-xs text-gray-400 mt-1">
-              {user?.role === 'super_admin' ? '👑 Super Admin' : '🛡️ Admin'}
-            </p>
+          </div>
+
+          {item.isOpen ? (
+            <FaChevronDown
+              size={12}
+              className="flex-shrink-0 opacity-60"
+            />
+          ) : (
+            <FaChevronRight
+              size={12}
+              className="flex-shrink-0 opacity-60"
+            />
+          )}
+        </button>
+
+        {item.isOpen &&
+          renderSubmenu(item)}
+      </div>
+    );
+  };
+
+  // ============================================================
+  // RENDER
+  // ============================================================
+
+  return (
+    <aside className={sidebarClass}>
+      {/* ======================================================
+          HEADER
+      ====================================================== */}
+
+      <div
+        className={`
+          flex-shrink-0
+          px-4
+          sm:px-5
+          py-4
+          border-b
+          ${theme.colors.border}
+        `}
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h1
+              className={`
+                text-xl
+                sm:text-2xl
+                font-bold
+                tracking-tight
+                ${theme.colors.text}
+                truncate
+              `}
+            >
+              Invoice
+              <span className={theme.colors.primary}>
+                Pro
+              </span>
+            </h1>
+
+            <div className="flex items-center gap-2 mt-1">
+              <span
+                className="
+                  text-[10px]
+                  sm:text-xs
+                  opacity-50
+                "
+              >
+                v2.0
+              </span>
+
+              {isSuperAdmin && (
+                <span
+                  className="
+                    text-[10px]
+                    px-2
+                    py-0.5
+                    rounded-full
+                    bg-purple-100
+                    text-purple-700
+                    dark:bg-purple-900/30
+                    dark:text-purple-300
+                    font-medium
+                  "
+                >
+                  Super Admin
+                </span>
+              )}
+
+              {isAdmin && (
+                <span
+                  className="
+                    text-[10px]
+                    px-2
+                    py-0.5
+                    rounded-full
+                    bg-blue-100
+                    text-blue-700
+                    dark:bg-blue-900/30
+                    dark:text-blue-300
+                    font-medium
+                  "
+                >
+                  Admin
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Mobile close */}
+
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="
+                lg:hidden
+                flex-shrink-0
+                w-9
+                h-9
+                flex
+                items-center
+                justify-center
+                rounded-xl
+                hover:bg-gray-100
+                dark:hover:bg-gray-800
+                transition-colors
+              "
+              aria-label="Close sidebar"
+            >
+              <FaTimes
+                className={theme.colors.text}
+              />
+            </button>
           )}
         </div>
-        {/* Close button - visible only on mobile */}
-        <button
-          onClick={handleClose}
-          className="lg:hidden p-2 rounded-lg hover:bg-gray-800 transition-colors"
-          aria-label="Close sidebar"
-        >
-          <FaTimes className="text-white text-xl" />
-        </button>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-2 md:px-4 py-4 pb-20 overflow-y-auto">
-        {menuItems.map((item, index) => renderMenuItem(item, index))}
+      {/* ======================================================
+          NAVIGATION
+      ====================================================== */}
+
+      <nav
+        className="
+          flex-1
+          min-h-0
+          overflow-y-auto
+          overflow-x-hidden
+          px-2
+          sm:px-3
+          py-4
+          scrollbar-thin
+          scrollbar-thumb-gray-300
+          dark:scrollbar-thumb-gray-700
+        "
+      >
+        {/* USER MENU */}
+
+        <div>
+          {userMenuItems.map((item, index) =>
+            item.submenu
+              ? renderSubmenuItem(item, index)
+              : renderNormalItem(item, index)
+          )}
+        </div>
+
+        {/* ADMIN SECTION */}
+
+        {hasAdminAccess && (
+          <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <div className="px-3 mb-2">
+              <p
+                className="
+                  text-[10px]
+                  sm:text-xs
+                  font-semibold
+                  uppercase
+                  tracking-wider
+                  opacity-40
+                "
+              >
+                Administration
+              </p>
+            </div>
+
+            {adminMenuItems.map((item, index) =>
+              renderNormalItem(item, index)
+            )}
+
+            {/* SUPER ADMIN */}
+
+            {isSuperAdmin && (
+              <>
+                <div className="px-3 mt-5 mb-2">
+                  <p
+                    className="
+                      text-[10px]
+                      sm:text-xs
+                      font-semibold
+                      uppercase
+                      tracking-wider
+                      opacity-40
+                    "
+                  >
+                    Super Admin
+                  </p>
+                </div>
+
+                {superAdminMenuItems.map(
+                  (item, index) =>
+                    renderNormalItem(item, index)
+                )}
+              </>
+            )}
+          </div>
+        )}
       </nav>
 
-      {/* Bottom section with version info */}
-      <div className="border-t border-gray-800 p-4 bg-gray-900/95 backdrop-blur">
-        <div className="flex items-center justify-between text-xs text-gray-500">
-          <span>© 2024 InvoicePro</span>
-          <span>v2.0.0</span>
+      {/* ======================================================
+          FOOTER
+      ====================================================== */}
+
+      <div
+        className={`
+          flex-shrink-0
+          px-4
+          py-3
+          border-t
+          ${theme.colors.border}
+        `}
+      >
+        <div
+          className="
+            flex
+            flex-col
+            sm:flex-row
+            sm:items-center
+            sm:justify-between
+            gap-1
+            text-[10px]
+            sm:text-xs
+            opacity-50
+          "
+        >
+          <span>
+            © 2024 InvoicePro
+          </span>
+
+          <span>
+            v2.0.0
+          </span>
         </div>
       </div>
     </aside>

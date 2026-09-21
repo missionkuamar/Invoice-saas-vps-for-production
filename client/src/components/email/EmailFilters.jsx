@@ -119,7 +119,7 @@ const EmailFilters = ({ onApplyFilters, onResetFilters }) => {
                         onChange={hanlderSearch}
                         onKeyPress={handleKeyPress}
                         placeholder="Search by email, subject..."
-                        className={`w-full px-3 py-2 rounded-lg border ${theme.colors.border} ${theme.colors.background} ${theme.colors.text} focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-800 text-gray-100`}
+                        className={`w-full px-3 py-2 rounded-lg border ${theme.colors.border} ${theme.colors.background} ${theme.colors.text} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     />
                 </div>
 
@@ -131,7 +131,7 @@ const EmailFilters = ({ onApplyFilters, onResetFilters }) => {
                     <select
                         value={localFilters?.status}
                         onChange={(e) => setLocalFilters({ ...localFilters, status: e.target.value })}
-                        className={`w-full px-3 py-2 rounded-lg border ${theme.colors.border} ${theme.colors.background} ${theme.colors.text} focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-800 text-gray-100`}
+                        className={`w-full px-3 py-2 rounded-lg border ${theme.colors.border} ${theme.colors.background} ${theme.colors.text} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     >
                         {statuses.map(status => (
                             <option key={status.value} value={status.value}>
@@ -149,7 +149,7 @@ const EmailFilters = ({ onApplyFilters, onResetFilters }) => {
                     <select
                         value={localFilters?.emailType}
                         onChange={(e) => setLocalFilters({ ...localFilters, emailType: e.target.value })}
-                        className={`w-full px-3 py-2 rounded-lg border ${theme.colors.border} ${theme.colors.background} ${theme.colors.text} focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-800 text-gray-100`}
+                        className={`w-full px-3 py-2 rounded-lg border ${theme.colors.border} ${theme.colors.background} ${theme.colors.text} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     >
                         {emailTypes.map(type => (
                             <option key={type.value} value={type.value}>
@@ -167,7 +167,7 @@ const EmailFilters = ({ onApplyFilters, onResetFilters }) => {
                     <select
                         value={localFilters?.sortBy}
                         onChange={(e) => setLocalFilters({ ...localFilters, sortBy: e.target.value })}
-                        className={`w-full px-3 py-2 rounded-lg border ${theme.colors.border} ${theme.colors.background} ${theme.colors.text} focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-800 text-gray-100`}
+                        className={`w-full px-3 py-2 rounded-lg border ${theme.colors.border} ${theme.colors.background} ${theme.colors.text} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     >
                         {sortOptions.map(option => (
                             <option key={option.value} value={option.value}>
@@ -186,7 +186,7 @@ const EmailFilters = ({ onApplyFilters, onResetFilters }) => {
                         type="date"
                         value={localFilters?.startDate}
                         onChange={(e) => setLocalFilters({ ...localFilters, startDate: e.target.value })}
-                        className={`w-full px-3 py-2 rounded-lg border ${theme.colors.border} ${theme.colors.background} ${theme.colors.text} focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-800 text-gray-100`}
+                        className={`w-full px-3 py-2 rounded-lg border ${theme.colors.border} ${theme.colors.background} ${theme.colors.text} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     />
                 </div>
 
@@ -198,7 +198,7 @@ const EmailFilters = ({ onApplyFilters, onResetFilters }) => {
                         type="date"
                         value={localFilters?.endDate}
                         onChange={(e) => setLocalFilters({ ...localFilters, endDate: e.target.value })}
-                        className={`w-full px-3 py-2 rounded-lg border ${theme.colors.border} ${theme.colors.background} ${theme.colors.text} focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-800 text-gray-100`}
+                        className={`w-full px-3 py-2 rounded-lg border ${theme.colors.border} ${theme.colors.background} ${theme.colors.text} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     />
                 </div>
 
@@ -210,7 +210,7 @@ const EmailFilters = ({ onApplyFilters, onResetFilters }) => {
                     <select
                         value={localFilters?.sortOrder}
                         onChange={(e) => setLocalFilters({ ...localFilters, sortOrder: e.target.value })}
-                        className={`w-full px-3 py-2 rounded-lg border ${theme.colors.border} ${theme.colors.background} ${theme.colors.text} focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-800 text-gray-100 `}
+                        className={`w-full px-3 py-2 rounded-lg border ${theme.colors.border} ${theme.colors.background} ${theme.colors.text} focus:outline-none focus:ring-2 focus:ring-blue-500`}
                     >
                         <option value="desc">Descending</option>
                         <option value="asc">Ascending</option>

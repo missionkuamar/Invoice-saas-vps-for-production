@@ -1,22 +1,34 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../../services/api';
 
-// Fetch invoices with filters
+
+
+
 export const fetchInvoices = createAsyncThunk(
   'invoices/fetchAll',
-  async (filters = {}, { rejectWithValue, getState }) => {
+  async (overrideParams = {}, { rejectWithValue, getState }) => {
     try {
       const { invoices } = getState();
-      const params = { ...invoices.filters, ...filters };
-      
-      // Remove empty values
-      Object.keys(params).forEach(key => {
-        if (!params[key] || params[key] === '') {
+
+      // ✅ Merge filters + pagination + override params
+      const params = {
+        ...invoices.filters,
+        page: invoices.pagination.page,
+        limit: invoices.pagination.limit,
+        ...overrideParams,   // override comes last — wins
+      };
+
+      // ✅ Remove empty / null values
+      Object.keys(params).forEach((key) => {
+        const val = params[key];
+        if (val === '' || val === null || val === undefined) {
           delete params[key];
         }
       });
-      
+
       const response = await api.get('/invoices', { params });
+
+      console.log(" total invoice response ", response);
       return response.data.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Failed to fetch invoices');
@@ -73,6 +85,9 @@ export const fetchInvoiceById = createAsyncThunk(
   }
 );
 
+
+// ... saare createAsyncThunk same rahenge
+
 const invoiceSlice = createSlice({
   name: 'invoices',
   initialState: {
@@ -84,6 +99,14 @@ const invoiceSlice = createSlice({
       total: 0,
       pages: 0,
     },
+
+     stats: {
+    totalInvoices: 0,
+    totalRevenue: 0,
+    totalClients: 0,
+  },
+
+
     loading: false,
     error: null,
     filters: {
@@ -99,15 +122,19 @@ const invoiceSlice = createSlice({
       sortBy: 'createdAt',
       sortOrder: 'desc',
     },
-    // Cache for search results
     searchCache: {},
-    // Track if we're in offline search mode
     isOfflineSearch: false,
+
+    // ✅ YE ADD KARO (initialState mein):
+    ui: {
+      showFilters: false,
+    },
   },
+
+  // ✅ SYNC REDUCERS — YAHAN DAALO (extraReducers mein nahi!)
   reducers: {
     setFilters: (state, action) => {
       state.filters = { ...state.filters, ...action.payload };
-      // Reset to page 1 when filters change
       state.pagination.page = 1;
     },
     clearFilters: (state) => {
@@ -139,18 +166,13 @@ const invoiceSlice = createSlice({
     setOfflineSearch: (state, action) => {
       state.isOfflineSearch = action.payload;
     },
-    // Local search in Redux (offline search)
     localSearch: (state, action) => {
       const { query } = action.payload;
       if (!query || query.trim() === '') {
-        // If search is empty, fetch from API
         state.isOfflineSearch = false;
         return;
       }
-
       const searchTerm = query.toLowerCase().trim();
-      
-      // Search in existing invoices
       const results = state.invoices.filter(invoice => {
         const searchableFields = [
           invoice.invoiceNumber,
@@ -158,27 +180,32 @@ const invoiceSlice = createSlice({
           invoice.client?.email,
           invoice.client?.phone,
         ];
-        
-        return searchableFields.some(field => 
+        return searchableFields.some(field =>
           field && field.toLowerCase().includes(searchTerm)
         );
       });
-
-      // Update invoices with search results
       if (results.length > 0) {
         state.isOfflineSearch = true;
         state.invoices = results;
         state.pagination.total = results.length;
         state.pagination.pages = Math.ceil(results.length / state.pagination.limit);
       } else {
-        // If no results in Redux, fetch from API
         state.isOfflineSearch = false;
       }
     },
+
+    // ✅ YE YAHAN DAALO (reducers mein, extraReducers mein NAHI):
+    toggleInvoiceFilters: (state) => {
+      state.ui.showFilters = !state.ui.showFilters;
+    },
+    setInvoiceFiltersOpen: (state, action) => {
+      state.ui.showFilters = action.payload;
+    },
   },
+
+  // ✅ ASYNC THUNKS — YAHAN (sirf addCase wale)
   extraReducers: (builder) => {
     builder
-      // Fetch Invoices
       .addCase(fetchInvoices.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -186,10 +213,28 @@ const invoiceSlice = createSlice({
       })
       .addCase(fetchInvoices.fulfilled, (state, action) => {
         state.loading = false;
-        state.invoices = action.payload.invoices;
-        state.pagination = action.payload.pagination;
+        state.invoices = action.payload.invoices || [];
+
+        // ✅ Merge pagination — safe defaults
+        const p = action.payload.pagination || {};
+        state.pagination = {
+          page: p.page ?? state.pagination.page ?? 1,
+          limit: p.limit ?? state.pagination.limit ?? 10,
+          total: p.total ?? 0,
+          pages: p.pages ?? Math.max(1, Math.ceil((p.total ?? 0) / (p.limit ?? 10))),
+        };
+
+            state.stats = {
+    totalInvoices:
+      action.payload.invoiceCount ?? 0,
+
+    totalRevenue:
+      action.payload.totalRevenue ?? 0,
+      totalClients: action.payload.totalClients ?? 0,
+  };
+
         state.isOfflineSearch = false;
-        // Cache the results
+
         if (state.filters.search) {
           state.searchCache[state.filters.search] = action.payload;
         }
@@ -199,7 +244,6 @@ const invoiceSlice = createSlice({
         state.error = action.payload;
         state.isOfflineSearch = false;
       })
-      // Fetch Invoice By ID
       .addCase(fetchInvoiceById.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -212,13 +256,11 @@ const invoiceSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
-      // Create Invoice
       .addCase(createInvoice.fulfilled, (state, action) => {
         state.invoices.unshift(action.payload);
         state.pagination.total += 1;
         state.pagination.pages = Math.ceil(state.pagination.total / state.pagination.limit);
       })
-      // Update Invoice
       .addCase(updateInvoice.fulfilled, (state, action) => {
         const index = state.invoices.findIndex(
           inv => inv._id === action.payload._id
@@ -230,7 +272,6 @@ const invoiceSlice = createSlice({
           state.selectedInvoice = action.payload;
         }
       })
-      // Delete Invoice
       .addCase(deleteInvoice.fulfilled, (state, action) => {
         state.invoices = state.invoices.filter(
           inv => inv._id !== action.payload
@@ -244,14 +285,17 @@ const invoiceSlice = createSlice({
   },
 });
 
-export const { 
-  setFilters, 
-  clearFilters, 
-  setPage, 
+// ✅ Exports — yahan bhi add karo
+export const {
+  setFilters,
+  clearFilters,
+  setPage,
   setLimit,
   clearSelectedInvoice,
   setOfflineSearch,
   localSearch,
+  toggleInvoiceFilters,      // ✅ ADD
+  setInvoiceFiltersOpen,     // ✅ ADD
 } = invoiceSlice.actions;
 
 export default invoiceSlice.reducer;

@@ -2,53 +2,69 @@
 import React, { useState } from 'react';
 import { useTheme } from '../../../themes/ThemeProvider';
 import { FaCheck } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 
 const Pricing = () => {
   const { theme } = useTheme();
   const [billing, setBilling] = useState('monthly');
 
-  const plans = [
-    {
-      name: 'Starter',
-      price: { monthly: 9, yearly: 90 },
-      features: [
-        '10 invoices/month',
-        '3 clients',
-        'Basic templates',
-        'Email support',
-        'Payment links',
-      ],
-      popular: false,
+ const plans = [
+  {
+    name: 'Starter',
+    price: {
+      monthly: 299,
+      yearly: 2999,
     },
-    {
-      name: 'Professional',
-      price: { monthly: 29, yearly: 290 },
-      features: [
-        'Unlimited invoices',
-        'Unlimited clients',
-        'All templates',
-        'Priority support',
-        'Auto reminders',
-        'Multi-currency',
-        'Payment gateways',
-      ],
-      popular: true,
+    features: [
+      '100 invoices/month',
+      '100 email reminders/month',
+      'Unlimited clients',
+      'Basic invoice templates',
+      'Payment tracking',
+      'Invoice management',
+      'Email support',
+    ],
+    popular: false,
+  },
+
+  {
+    name: 'Professional',
+    price: {
+      monthly: 499,
+      yearly: 4999,
     },
-    {
-      name: 'Enterprise',
-      price: { monthly: 99, yearly: 990 },
-      features: [
-        'Everything in Pro',
-        'Custom branding',
-        'API access',
-        'Team accounts',
-        'Advanced reports',
-        'Dedicated manager',
-        'Custom integration',
-      ],
-      popular: false,
+    features: [
+      '250 invoices/month',
+      '250 email reminders/month',
+      'Unlimited clients',
+      'Advanced invoice templates',
+      'Payment tracking',
+      'Automatic payment reminders',
+      'Invoice management',
+      'Priority support',
+    ],
+    popular: true,
+  },
+
+  {
+    name: 'Business',
+    price: {
+      monthly: 1999,
+      yearly: 19999,
     },
-  ];
+    features: [
+      '1000 invoices/month',
+      '1000 email reminders/month',
+      'Unlimited clients',
+      'Team accounts',
+      'Advanced invoice templates',
+      'Payment tracking',
+      'Automatic payment reminders',
+      'Priority support',
+    ],
+    popular: false,
+  },
+];
 
   return (
     <section id="pricing" className={`py-20 px-4 ${theme.colors.background}`}>
@@ -74,7 +90,7 @@ const Pricing = () => {
             >
               Monthly
             </button>
-            <button
+            {/* <button
               onClick={() => setBilling('yearly')}
               className={`px-4 py-2 rounded-full transition ${
                 billing === 'yearly'
@@ -83,7 +99,7 @@ const Pricing = () => {
               }`}
             >
               Yearly <span className="text-xs text-green-500">Save 20%</span>
-            </button>
+            </button> */}
           </div>
         </div>
 
@@ -107,7 +123,7 @@ const Pricing = () => {
                 <div className="text-center mb-6">
                   <h3 className={`text-lg font-semibold ${theme.colors.text}`}>{plan.name}</h3>
                   <div className="mt-4">
-                    <span className={`text-4xl font-bold ${theme.colors.text}`}>${price}</span>
+                    <span className={`text-4xl font-bold ${theme.colors.text}`}>₹{price}</span>
                     <span className={`text-sm ${theme.colors.text} opacity-70`}>
                       /{billing === 'monthly' ? 'mo' : 'year'}
                     </span>
@@ -121,12 +137,14 @@ const Pricing = () => {
                     </li>
                   ))}
                 </ul>
+                <Link to="/login">
                 <button
                   className={`w-full ${plan.popular ? theme.colors.button : `border-2 ${theme.colors.primary} ${theme.colors.text}`} 
                     ${plan.popular ? 'text-white' : ''} px-6 py-3 rounded-lg font-semibold hover:scale-105 transition-all`}
                 >
                   {plan.popular ? 'Start Free Trial' : 'Get Started'}
                 </button>
+                </Link>
               </div>
             );
           })}

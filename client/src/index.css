@@ -4,6 +4,14 @@
 @tailwind utilities;
 
 @layer base {
+
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  } 
+
+  
   * {
     @apply transition-colors duration-300;
   }
@@ -13,7 +21,51 @@
   }
 }
 
+/* frontend/src/index.css — end mein add karo */
+
+/* ============================================================ */
+/* PRINT STYLES — sirf invoice print hoga, baaki nahi */
+/* ============================================================ */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #print-area,
+  #print-area * {
+    visibility: visible;
+  }
+
+  #print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: white !important;
+    color: black !important;
+    padding: 20px;
+  }
+
+  @page {
+    size: A4;
+    margin: 10mm;
+  }
+
+  /* Colors preserve */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide buttons/actions */
+  button,
+  .no-print {
+    display: none !important;
+  }
+}
 @layer components {
+
+  
   .theme-transition {
     @apply transition-all duration-500 ease-in-out;
   }

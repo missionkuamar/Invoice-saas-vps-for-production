@@ -3,6 +3,8 @@ import fs from 'fs';
 import path from 'path';
 
 export const generateInvoicePDF = async (invoice) => {
+  let browser;
+
   try {
     const html = `
       <!DOCTYPE html>
@@ -56,27 +58,53 @@ export const generateInvoicePDF = async (invoice) => {
       </html>
     `;
 
-    const browser = await puppeteer.launch({ headless: true });
+    // ✅ FIX 1: userDataDir set kiya (EBUSY error solve)
+    // ✅ FIX 2: timeout badhaya
+    // ✅ FIX 3: no-sandbox flags
+    browser = await puppeteer.launch({
+      headless: true,
+      timeout: 60000, // 60 second
+      userDataDir: path.join(process.cwd(), '.puppeteer-profile'),
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--no-first-run',
+        '--no-zygote',
+      ],
+    });
+
     const page = await browser.newPage();
-    await page.setContent(html);
-    
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+
     const uploadDir = path.join(process.cwd(), 'uploads', 'invoices');
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
-    
+
     const pdfPath = path.join(uploadDir, `invoice-${invoice.invoiceNumber}.pdf`);
-    await page.pdf({ 
-      path: pdfPath, 
+    await page.pdf({
+      path: pdfPath,
       format: 'A4',
       printBackground: true,
-      margin: { top: '20px', bottom: '20px', left: '20px', right: '20px' }
+      margin: { top: '20px', bottom: '20px', left: '20px', right: '20px' },
     });
-    
-    await browser.close();
+
     return pdfPath;
+
   } catch (error) {
     console.error('PDF Generation Error:', error);
     throw error;
+
+  } finally {
+    // ✅ FIX 4: Error aaye ya na aaye, browser zaroor band hoga
+    if (browser) {
+      try {
+        await browser.close();
+      } catch (closeErr) {
+        console.warn('Browser close warning:', closeErr.message);
+      }
+    }
   }
 };

@@ -19,6 +19,7 @@ const AdminWithdrawalsTable = ({
 }) => {
   const { theme } = useTheme();
 
+  console.log(withdrawals)
   const getStatusBadge = (status) => {
     const config = {
       pending: { color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400', icon: '⏳', label: 'Pending' },
@@ -98,16 +99,16 @@ const AdminWithdrawalsTable = ({
                 <td className="px-3 md:px-4 py-3">
                   <div>
                     <p className={`text-sm font-medium ${theme.colors.text}`}>
-                      {w.user?.name || 'Unknown'}
+                      {w?.user?.name || 'Unknown'}
                     </p>
                     <p className={`text-xs md:text-sm ${theme.colors.text} opacity-60 truncate max-w-[120px] md:max-w-none`}>
-                      {w.user?.email || 'No email'}
+                      {w?.user?.email || 'No email'}
                     </p>
                   </div>
                 </td>
                 <td className="px-3 md:px-4 py-3">
                   <span className={`text-sm md:text-base font-bold ${theme.colors.text}`}>
-                    ₹{w.amount?.toFixed(2) || '0.00'}
+                    ₹{w?.amount?.toFixed(2) || '0.00'}
                   </span>
                 </td>
                 <td className="px-3 md:px-4 py-3 hidden sm:table-cell">
@@ -129,10 +130,10 @@ const AdminWithdrawalsTable = ({
                 </td>
                 <td className="px-3 md:px-4 py-3 text-right">
                   <div className="flex items-center justify-end gap-1 md:gap-2 flex-wrap">
-                    {w.status === 'pending' && (
+                    {w?.status === 'pending' && (
                       <>
                         <button
-                          onClick={() => onApprove(w._id)}
+                          onClick={() => onApprove(w?._id)}
                           className={`px-2 md:px-3 py-1 rounded-lg text-xs font-medium bg-blue-500 hover:bg-blue-600 text-white transition-colors ${processing ? 'opacity-50 cursor-not-allowed' : ''}`}
                           disabled={processing}
                           title="Approve"
@@ -140,7 +141,7 @@ const AdminWithdrawalsTable = ({
                           <FaCheck size={12} />
                         </button>
                         <button
-                          onClick={() => onComplete(w._id)}
+                          onClick={() => onComplete(w?._id)}
                           className={`px-2 md:px-3 py-1 rounded-lg text-xs font-medium bg-green-500 hover:bg-green-600 text-white transition-colors ${processing ? 'opacity-50 cursor-not-allowed' : ''}`}
                           disabled={processing}
                           title="Complete"
@@ -148,7 +149,7 @@ const AdminWithdrawalsTable = ({
                           <FaCheck size={12} />
                         </button>
                         <button
-                          onClick={() => onReject(w._id)}
+                          onClick={() => onReject(w?._id)}
                           className={`px-2 md:px-3 py-1 rounded-lg text-xs font-medium bg-red-500 hover:bg-red-600 text-white transition-colors ${processing ? 'opacity-50 cursor-not-allowed' : ''}`}
                           disabled={processing}
                           title="Reject"

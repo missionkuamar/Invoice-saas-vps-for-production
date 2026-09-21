@@ -1,89 +1,125 @@
 // src/components/sections/Testimonials.jsx
+
 import React from 'react';
 import { useTheme } from '../../../themes/ThemeProvider';
-import { FaStar } from 'react-icons/fa';
+import {
+  FaFileInvoice,
+  FaClock,
+  FaUsers,
+  FaCheckCircle,
+} from 'react-icons/fa';
 
 const Testimonials = () => {
   const { theme } = useTheme();
 
-  const testimonials = [
+  const benefits = [
     {
-      name: 'Sarah Johnson',
-      role: 'CEO, TechStart Inc.',
-      content: 'InvoiceHub has transformed how we handle our billing. We reduced invoice processing time by 70%!',
-      rating: 5,
-      image: 'https://randomuser.me/api/portraits/women/1.jpg',
+      icon: FaFileInvoice,
+      title: 'Simple Invoicing',
+      content:
+        'Create professional invoices quickly without complicated steps.',
     },
     {
-      name: 'Mike Chen',
-      role: 'Freelance Designer',
-      content: 'The professional invoice templates and easy payment integration have helped me get paid 2x faster.',
-      rating: 5,
-      image: 'https://randomuser.me/api/portraits/men/2.jpg',
+      icon: FaUsers,
+      title: 'Manage Clients',
+      content:
+        'Keep your client information organized in one convenient place.',
     },
     {
-      name: 'Emma Williams',
-      role: 'Finance Manager',
-      content: 'Managing 100+ clients has never been easier. The automation features are a lifesaver.',
-      rating: 5,
-      image: 'https://randomuser.me/api/portraits/women/3.jpg',
+      icon: FaClock,
+      title: 'Save Time',
+      content:
+        'Automate invoice reminders and reduce manual follow-ups.',
     },
     {
-      name: 'David Kumar',
-      role: 'Agency Owner',
-      content: 'Best invoicing tool I\'ve used. The analytics and reporting features give me clear business insights.',
-      rating: 5,
-      image: 'https://randomuser.me/api/portraits/men/4.jpg',
+      icon: FaCheckCircle,
+      title: 'Track Payments',
+      content:
+        'Keep track of invoice and payment status from your dashboard.',
     },
   ];
 
   return (
-    <section id="testimonials" className={`py-20 px-4 ${theme.colors.background}`}>
+    <section
+     id="how-it-works"
+      className={`py-20 px-4 ${theme.colors.background}`}
+    >
       <div className="max-w-7xl mx-auto">
+
+        {/* Heading */}
         <div className="text-center mb-12">
-          <h2 className={`text-4xl font-bold ${theme.colors.text} mb-4`}>
-            Loved by
-            <span className={`bg-gradient-to-r ${theme.colors.gradient} text-transparent bg-clip-text`}>
-              {' '}Thousands
+          <h2
+            className={`text-4xl font-bold ${theme.colors.text} mb-4`}
+          >
+            Simple Tools for
+            <span
+              className={`bg-gradient-to-r ${theme.colors.gradient} text-transparent bg-clip-text`}
+            >
+              {' '}Better Invoicing
             </span>
           </h2>
-          <p className={`${theme.colors.text} opacity-70 max-w-2xl mx-auto`}>
-            See what our users say about InvoiceHub
+
+          <p
+            className={`${theme.colors.text} opacity-70 max-w-2xl mx-auto`}
+          >
+            Everything you need to create invoices, manage clients,
+            and keep track of payments.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {testimonials.map((testimonial, index) => (
-            <div
-              key={index}
-              className={`${theme.colors.card} p-6 rounded-2xl border ${theme.colors.primary} border-opacity-20 hover:shadow-xl transition-all`}
-            >
-              <div className="flex items-start gap-4">
-                <img
-                  src={testimonial.image}
-                  alt={testimonial.name}
-                  className="w-14 h-14 rounded-full object-cover"
-                />
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className={`font-semibold ${theme.colors.text}`}>{testimonial.name}</h4>
-                      <p className={`text-sm ${theme.colors.text} opacity-60`}>{testimonial.role}</p>
-                    </div>
-                    <div className="flex gap-1">
-                      {[...Array(testimonial.rating)].map((_, i) => (
-                        <FaStar key={i} className="text-yellow-400 text-sm" />
-                      ))}
-                    </div>
-                  </div>
-                  <p className={`mt-3 ${theme.colors.text} opacity-80 text-sm italic`}>
-                    "{testimonial.content}"
-                  </p>
+        {/* Benefits */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {benefits.map((benefit, index) => {
+            const Icon = benefit.icon;
+
+            return (
+              <div
+                key={index}
+                className={`
+                  ${theme.colors.card}
+                  p-6
+                  rounded-2xl
+                  border
+                  ${theme.colors.border}
+                  hover:shadow-xl
+                  transition-all
+                  duration-300
+                `}
+              >
+                <div
+                  className={`
+                    w-12
+                    h-12
+                    rounded-xl
+                    ${theme.colors.primary}
+                    bg-opacity-10
+                    flex
+                    items-center
+                    justify-center
+                    mb-4
+                  `}
+                >
+                  <Icon
+                    className={`text-xl ${theme.colors.primary}`}
+                  />
                 </div>
+
+                <h3
+                  className={`text-lg font-semibold ${theme.colors.text} mb-2`}
+                >
+                  {benefit.title}
+                </h3>
+
+                <p
+                  className={`text-sm ${theme.colors.text} opacity-70`}
+                >
+                  {benefit.content}
+                </p>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
+
       </div>
     </section>
   );

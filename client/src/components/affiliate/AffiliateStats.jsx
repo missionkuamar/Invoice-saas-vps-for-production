@@ -1,6 +1,12 @@
 // frontend/src/components/affiliate/AffiliateStats.jsx
+
 import React from 'react';
-import { FaLink, FaUsers, FaChartLine, FaMoneyBill } from 'react-icons/fa';
+import {
+  FaLink,
+  FaUsers,
+  FaChartLine,
+  FaMoneyBill,
+} from 'react-icons/fa';
 import { useTheme } from '../../themes/ThemeProvider';
 
 const AffiliateStats = ({ stats, earnings }) => {
@@ -9,51 +15,145 @@ const AffiliateStats = ({ stats, earnings }) => {
   const statsData = [
     {
       label: 'Total Clicks',
-      value: stats?.totalClicks || 0,
+      value: stats?.totalClicks ?? 0,
       icon: FaLink,
-      color: theme.colors.primary,
-      bgColor: theme.colors.background,
+      iconColor: theme.colors.primary,
+      iconBg: theme.colors.background,
     },
     {
       label: 'Referrals',
-      value: stats?.totalReferrals || 0,
+      value: stats?.totalReferrals ?? 0,
       icon: FaUsers,
-      color: 'text-green-500',
-      bgColor: 'bg-green-500/10',
+      iconColor: 'text-green-500',
+      iconBg: 'bg-green-500/10',
     },
     {
       label: 'Conversion Rate',
-      value: `${stats?.conversionRate || 0}%`,
+      value: `${stats?.conversionRate ?? 0}%`,
       icon: FaChartLine,
-      color: 'text-orange-500',
-      bgColor: 'bg-orange-500/10',
+      iconColor: 'text-orange-500',
+      iconBg: 'bg-orange-500/10',
     },
     {
       label: 'Total Earnings',
-      value: `₹${earnings?.toFixed(2) || 0}`,
+      value: `₹${Number(earnings ?? 0).toFixed(2)}`,
       icon: FaMoneyBill,
-      color: theme.colors.primary,
-      bgColor: 'bg-gradient-to-r from-purple-500 to-pink-500',
+      iconColor: 'text-white',
+      iconBg: 'bg-gradient-to-r from-purple-500 to-pink-500',
       highlight: true,
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+    <div
+      className="
+        w-full
+        grid
+        grid-cols-1
+        min-[360px]:grid-cols-2
+        lg:grid-cols-4
+        gap-3
+        sm:gap-4
+        lg:gap-5
+      "
+    >
       {statsData.map((stat, index) => {
         const Icon = stat.icon;
+
         return (
           <div
             key={index}
-            className={`${theme.colors.card} p-4 rounded-2xl border ${theme.colors.border} ${stat.highlight ? `border-2 ${theme.colors.primary} border-opacity-30` : ''}`}
+            className={`
+              w-full
+              min-w-0
+              ${theme.colors.card}
+              rounded-xl
+              sm:rounded-2xl
+              border
+              ${theme.colors.border}
+              p-3
+              xs:p-4
+              sm:p-5
+              transition-all
+              duration-200
+              hover:shadow-md
+              ${
+                stat.highlight
+                  ? `border-2 ${theme.colors.primary} border-opacity-30`
+                  : ''
+              }
+            `}
           >
-            <div className="flex items-center gap-3">
-              <div className={`p-2 md:p-3 rounded-xl ${stat.bgColor}`}>
-                <Icon className={`${stat.color} text-lg md:text-xl`} />
+            <div
+              className="
+                flex
+                items-center
+                gap-2.5
+                sm:gap-3
+                lg:gap-4
+                min-w-0
+              "
+            >
+              {/* ICON */}
+              <div
+                className={`
+                  shrink-0
+                  flex
+                  items-center
+                  justify-center
+                  w-10
+                  h-10
+                  sm:w-11
+                  sm:h-11
+                  lg:w-12
+                  lg:h-12
+                  rounded-xl
+                  ${stat.iconBg}
+                `}
+              >
+                <Icon
+                  className={`
+                    ${stat.iconColor}
+                    text-base
+                    sm:text-lg
+                    lg:text-xl
+                  `}
+                />
               </div>
-              <div>
-                <p className={`text-xs md:text-sm ${theme.colors.text} opacity-70`}>{stat.label}</p>
-                <p className={`text-lg md:text-2xl font-bold ${stat.highlight ? theme.colors.primary : theme.colors.text}`}>
+
+              {/* CONTENT */}
+              <div className="min-w-0 flex-1">
+                <p
+                  className={`
+                    ${theme.colors.text}
+                    opacity-70
+                    text-[11px]
+                    sm:text-xs
+                    lg:text-sm
+                    leading-tight
+                    truncate
+                  `}
+                >
+                  {stat.label}
+                </p>
+
+                <p
+                  className={`
+                    mt-1
+                    font-bold
+                    leading-tight
+                    truncate
+                    text-base
+                    min-[360px]:text-lg
+                    sm:text-xl
+                    lg:text-2xl
+                    ${
+                      stat.highlight
+                        ? theme.colors.primary
+                        : theme.colors.text
+                    }
+                  `}
+                >
                   {stat.value}
                 </p>
               </div>

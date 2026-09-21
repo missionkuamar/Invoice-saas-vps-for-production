@@ -31,6 +31,7 @@ const EmailStats = ({ summary, loadingStats }) => {
     { label: 'Failed', value: summary.failed || 0, color: 'bg-red-500' }
   ];
 
+  console.log('EmailStats summary:', summary);
   const usage = summary.usage || { plan: 'free', limit: 5, used: 0, remaining: 5 };
   const usagePercent = usage.limit > 0 ? Math.round((usage.used / usage.limit) * 100) : 0;
 

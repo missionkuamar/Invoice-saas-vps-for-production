@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 // Get API URL from environment or use default
 //const API_URL = import.meta.env.VITE_API_URL_API || 'http://localhost:5000/api';
 //const API_URL = https://invoice-saas-with-email.onrender.com
-const API_URL = "https://invoice-saas-with-email.onrender.com/api";
+const API_URL = "http://localhost:3000/api";
 // Create axios instance
 const api = axios.create({
   baseURL: API_URL,
@@ -73,7 +73,7 @@ api.interceptors.response.use(
       
       if (status === 404) {
         if (!error.config.url.includes('/company')) {
-          toast.error(data?.message || 'Resource not found');
+        //  toast.error(data?.message || '');
         }
       }
       

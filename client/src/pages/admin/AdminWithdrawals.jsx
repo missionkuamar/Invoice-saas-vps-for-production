@@ -24,7 +24,7 @@ import AdminWithdrawalDetailModal from '../../components/admin/withdrawals/Admin
 const AdminWithdrawals = () => {
   const { theme } = useTheme();
   const dispatch = useDispatch();
-  
+
   const {
     withdrawals,
     stats,
@@ -56,7 +56,7 @@ const AdminWithdrawals = () => {
 
     await dispatch(fetchWithdrawals(params));
   }, [dispatch, filters.status, pagination.page, pagination.limit, searchTerm]);
-// console.log("fileter :", filters)
+  // console.log("fileter :", filters)
   useEffect(() => {
     fetchWithdrawalsData();
   }, [fetchWithdrawalsData]);

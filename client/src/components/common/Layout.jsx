@@ -92,7 +92,7 @@ const Layout = () => {
               <h1 className={`text-xl md:text-2xl lg:text-3xl font-bold ${theme.colors.text}`}>
                 {getPageTitle(location.pathname)}
               </h1>
-              <p className={`text-sm md:text-base ${theme.colors.text} opacity-70 mt-1`}>
+              <p className={`text-sm md:text-base ${theme.colors.text} opacity-70 mt-10`}>
                 {getPageDescription(location.pathname)}
               </p>
             </div>

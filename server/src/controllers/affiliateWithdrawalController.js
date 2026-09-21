@@ -5,6 +5,7 @@ import User from '../models/User.js';
 import Notification from '../models/Notification.js';
 import { v4 as uuidv4 } from 'uuid';
 import mongoose from 'mongoose';
+import AffiliateReferral from '../models/AffiliateReferral.js';
 
 
 
@@ -579,52 +580,66 @@ export const requestWithdrawal = async (req, res) => {
 };
 // @desc    Get withdrawal history
 // @route   GET /api/affiliate/withdrawals
+
+
 export const getWithdrawals = async (req, res) => {
   try {
     const userId = req.user?._id || req.user?.id;
-    
-   // console.log('📝 Get withdrawals for user:', userId);
 
     const affiliate = await Affiliate.findOne({ user: userId });
     if (!affiliate) {
-    //  console.log('❌ Affiliate not found for user:', userId);
       return res.status(404).json({
         success: false,
-        message: 'Not an affiliate member',
       });
     }
 
-    const { status, page = 1, limit = 20 } = req.query;
+    const {
+      status,
+      page = 1,
+      limit = 5,
+    } = req.query;
+
+    const pageNum = Math.max(Number(page) || 1, 1);
+    const limitNum = Math.min(
+      Math.max(Number(limit) || 20, 1),
+      200
+    );
 
     const query = { affiliate: affiliate._id };
     if (status) query.status = status;
 
-    const skip = (Number(page) - 1) * Number(limit);
+    const skip = (pageNum - 1) * limitNum;
 
     const [withdrawals, total] = await Promise.all([
       AffiliateWithdrawal.find(query)
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(Number(limit)),
+        .limit(limitNum)
+        .lean(),
+
       AffiliateWithdrawal.countDocuments(query),
     ]);
 
-   // console.log(`✅ Found ${withdrawals.length} withdrawals`);
+    const totalPages = Math.max(
+      1,
+      Math.ceil(total / limitNum)
+    );
 
     res.status(200).json({
       success: true,
       data: {
         withdrawals,
         pagination: {
-          page: Number(page),
-          limit: Number(limit),
+          page: pageNum,
+          limit: limitNum,
           total,
-          pages: Math.ceil(total / limit),
+          pages: totalPages,
+          hasNextPage: pageNum < totalPages,
+          hasPreviousPage: pageNum > 1,
         },
       },
     });
   } catch (error) {
-    //console.error('❌ Get withdrawals error:', error);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -632,6 +647,86 @@ export const getWithdrawals = async (req, res) => {
   }
 };
 
+
+// ============================================================
+// GET REFERRALS (paginated + filterable)
+// ============================================================
+
+export const getReferrals = async (req, res) => {
+  try {
+    const userId = req.user?._id || req.user?.id;
+
+    const affiliate = await Affiliate.findOne({
+      user: userId,
+    });
+
+    if (!affiliate) {
+      return res.status(404).json({
+        success: false,
+        message: 'Not an affiliate member',
+      });
+    }
+
+    const {
+      status,
+      page = 1,
+      limit = 20,
+    } = req.query;
+
+    const pageNum = Math.max(Number(page) || 1, 1);
+
+    const limitNum = Math.min(
+      Math.max(Number(limit) || 20, 1),
+      200
+    );
+
+    const query = {
+      affiliate: affiliate._id,
+    };
+
+    if (status) query.status = status;
+
+    const skip = (pageNum - 1) * limitNum;
+
+    const [referrals, total] = await Promise.all([
+      AffiliateReferral.find(query)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limitNum)
+        .populate('referredUser', 'name email')
+        .lean(),
+
+      AffiliateReferral.countDocuments(query),
+    ]);
+
+    const totalPages = Math.max(
+      1,
+      Math.ceil(total / limitNum)
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        referrals,
+        pagination: {
+          page: pageNum,
+          limit: limitNum,
+          total,
+          pages: totalPages,
+          hasNextPage: pageNum < totalPages,
+          hasPreviousPage: pageNum > 1,
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Get referrals error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
 // @desc    Cancel withdrawal
 // @route   POST /api/affiliate/withdraw/:id/cancel
 export const cancelWithdrawal = async (req, res) => {
@@ -816,7 +911,7 @@ export const getWithdrawalStats = async (req, res) => {
     if (!affiliate) {
       return res.status(404).json({
         success: false,
-        message: 'Not an affiliate member',
+      //  message: 'Not an affiliate member',
       });
     }
 

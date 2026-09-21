@@ -1,8 +1,8 @@
 // frontend/src/components/subscription/SubscriptionPlans.jsx
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { 
-  FaCheck, FaSpinner, FaCreditCard, FaShieldAlt, 
+import {
+  FaCheck, FaSpinner, FaCreditCard, FaShieldAlt,
   FaCrown, FaStar, FaRocket, FaArrowRight,
   FaCheckCircle, FaTimesCircle
 } from 'react-icons/fa';
@@ -11,31 +11,51 @@ import { loadRazorpay } from '../../services/razorpay';
 import { useTheme } from '../../themes/ThemeProvider';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { fetchEmailStats } from '../../store/slices/emailSlice';
 
 const SubscriptionPlans = () => {
+
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { theme } = useTheme();
   const { plans, loading, error, verifying, orderData } = useSelector((state) => state.subscription);
+  const summary = useSelector((state) => state.emails.summary);
+
+  useEffect(() => {
+    // ✅ Page load pe dobara fetch karo agar summary nahi hai
+    if (!summary) {
+      console.log('Summary is null — fetching again...');
+      dispatch(fetchEmailStats());
+    }
+  }, [summary, dispatch]);
+
   const { user } = useSelector((state) => state.auth);
   const [processingPlan, setProcessingPlan] = useState(null);
   const [paymentError, setPaymentError] = useState(null);
   const [billingCycle, setBillingCycle] = useState('monthly');
 
   useEffect(() => {
+    //console.log('Fetching subscription plans...', fetchPlans());
     dispatch(fetchPlans());
   }, [dispatch]);
+
+
+  // useEffect(() => {
+  //   //console.log('🔥 Payment Success Page Loaded');
+  // }, []);
+
 
   const handleSubscribe = async (plan) => {
     try {
       setProcessingPlan(plan.id);
       setPaymentError(null);
-      
-      const loadingToast = toast.loading('Initializing payment...');
 
+      const loadingToast = toast.loading('Initializing payment...');
+      console.log('Creating order for plan?.id', plan?.id);
       const orderResult = await dispatch(createOrder(plan.id)).unwrap();
-      
-      //console.log('Order created:', orderResult);
+
+      console.log('Order created:', orderResult);
 
       if (!orderResult || !orderResult.orderId) {
         throw new Error('Invalid order response');
@@ -44,9 +64,9 @@ const SubscriptionPlans = () => {
       toast.loading('Loading payment gateway...', { id: loadingToast });
 
       const Razorpay = await loadRazorpay();
-      
+
       const options = {
-        key: orderResult.key || process.env.RAZORPAY_KEY_ID,
+        key: orderResult.key || import.meta.env.VITE_RAZORPAY_KEY_ID,
         amount: orderResult.amount,
         currency: orderResult.currency || 'INR',
         name: 'InvoicePro',
@@ -69,35 +89,37 @@ const SubscriptionPlans = () => {
         handler: async (response) => {
           try {
             toast.loading('Verifying payment...', { id: loadingToast });
-            
+
             const verifyData = {
               orderId: response.razorpay_order_id,
               paymentId: response.razorpay_payment_id,
               signature: response.razorpay_signature,
               plan: plan.id,
             };
-            
+
             const result = await dispatch(verifyPayment(verifyData)).unwrap();
-            
+
+            console.log('Payment verified:', result);
+
             toast.success('Payment successful! Your subscription is now active.', { id: loadingToast });
             setProcessingPlan(null);
-            
-            navigate('/payment-success', { 
-              state: { 
-                plan, 
+
+            navigate('/subscription', {
+              state: {
+                plan,
                 paymentId: response.razorpay_payment_id,
                 affiliate: result?.affiliate || null
-              } 
+              }
             });
           } catch (error) {
-           // console.error('Verification error:', error);
+            console.error('Verification error:', error);
             toast.error('Payment verification failed. Please contact support.', { id: loadingToast });
             setPaymentError('Payment verification failed');
             setProcessingPlan(null);
           }
         },
         onError: (error) => {
-         // console.error('Razorpay error:', error);
+          // console.error('Razorpay error:', error);
           toast.error('Payment failed. Please try again.');
           setPaymentError('Payment failed');
           setProcessingPlan(null);
@@ -109,13 +131,15 @@ const SubscriptionPlans = () => {
         timeout: 300,
       };
 
+
+
       const rzp = new Razorpay(options);
       rzp.open();
-      
+
       toast.dismiss(loadingToast);
-      
+
     } catch (error) {
-     // console.error('Subscription error:', error);
+      // console.error('Subscription error:', error);
       const errorMessage = error.message || 'Failed to initiate payment. Please try again.';
       toast.error(errorMessage);
       setProcessingPlan(null);
@@ -123,6 +147,7 @@ const SubscriptionPlans = () => {
     }
   };
 
+  console.log("user ka data ", user)
   // Get plan icon
   const getPlanIcon = (planName) => {
     const icons = {
@@ -170,10 +195,10 @@ const SubscriptionPlans = () => {
             </div>
             <div className={`px-4 py-2 rounded-xl ${theme.colors.background} border ${theme.colors.border}`}>
               <span className={`text-sm ${theme.colors.text} opacity-70`}>
-                Current Plan: 
+                Current Plan:
               </span>
               <span className={`font-semibold ml-1 ${theme.colors.primary}`}>
-                {user?.subscription?.plan?.toUpperCase() || 'FREE'}
+                {summary?.usage?.plan?.toUpperCase() || 'FREE'}
               </span>
             </div>
           </div>
@@ -198,12 +223,12 @@ const SubscriptionPlans = () => {
                   })}
                 </p>
               </div>
-              <button 
+              {/* <button
                 onClick={() => navigate('/settings')}
                 className={`${theme.colors.button} text-white px-4 py-2 rounded-xl text-sm hover:scale-105 transition-all`}
               >
                 Manage Subscription
-              </button>
+              </button> */}
             </div>
           </div>
         )}
@@ -218,7 +243,7 @@ const SubscriptionPlans = () => {
                 <p className={`text-sm ${theme.colors.text} opacity-70`}>{error}</p>
               </div>
               <button
-                onClick={() => {}}
+                onClick={() => { }}
                 className="text-red-500 hover:text-red-700"
               >
                 Dismiss
@@ -246,6 +271,7 @@ const SubscriptionPlans = () => {
         )}
 
         {/* Billing Toggle */}
+
         <div className={`${theme.colors.card} rounded-2xl p-4 border ${theme.colors.border}`}>
           <div className="flex items-center justify-center gap-3">
             <span className={`text-sm font-medium ${billingCycle === 'monthly' ? theme.colors.primary : theme.colors.text}`}>
@@ -257,10 +283,10 @@ const SubscriptionPlans = () => {
             >
               <span className={`absolute top-1 left-1 w-5 h-5 rounded-full bg-white transition-transform duration-300 ${billingCycle === 'yearly' ? 'translate-x-7' : ''}`} />
             </button> */}
-            <span className={`text-sm font-medium ${billingCycle === 'yearly' ? theme.colors.primary : theme.colors.text}`}>
+            {/* <span className={`text-sm font-medium ${billingCycle === 'yearly' ? theme.colors.primary : theme.colors.text}`}>
               Yearly
               <span className={`ml-1 text-xs font-bold text-green-500`}>Save 20%</span>
-            </span>
+            </span> */}
           </div>
         </div>
 
@@ -275,13 +301,12 @@ const SubscriptionPlans = () => {
             return (
               <div
                 key={plan.id}
-                className={`relative ${theme.colors.card} rounded-2xl border-2 transition-all duration-300 hover:scale-[1.02] ${
-                  isCurrentPlan
-                    ? `border-primary-500 shadow-xl ${theme.colors.glow}`
-                    : isPopular
+                className={`relative ${theme.colors.card} rounded-2xl border-2 transition-all duration-300 hover:scale-[1.02] ${isCurrentPlan
+                  ? `border-primary-500 shadow-xl ${theme.colors.glow}`
+                  : isPopular
                     ? `border-${theme.colors.primary} shadow-lg`
                     : `${theme.colors.border} hover:shadow-lg`
-                }`}
+                  }`}
               >
                 {/* Popular Badge */}
                 {isPopular && !isCurrentPlan && (
@@ -348,13 +373,12 @@ const SubscriptionPlans = () => {
                   <button
                     onClick={() => handleSubscribe(plan)}
                     disabled={isProcessing || isCurrentPlan || verifying}
-                    className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${
-                      isCurrentPlan
-                        ? `bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed`
-                        : isProcessing || verifying
+                    className={`w-full py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${isCurrentPlan
+                      ? `bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed`
+                      : isProcessing || verifying
                         ? `bg-primary-400 text-white cursor-wait`
                         : `bg-gradient-to-r ${getPlanColor(plan.name)} text-white hover:shadow-lg hover:scale-105`
-                    }`}
+                      }`}
                   >
                     {isProcessing || verifying ? (
                       <>
@@ -403,17 +427,22 @@ const SubscriptionPlans = () => {
                 <FaCreditCard className={theme.colors.primary} size={20} />
               </div>
               <div>
-                <p className={`text-sm font-semibold ${theme.colors.text}`}>Multiple Gateways</p>
-                <p className={`text-xs ${theme.colors.text} opacity-60`}>Razorpay, Stripe & more</p>
+                <p className={`text-sm font-semibold ${theme.colors.text}`}>Payment Gateways</p>
+                <p className={`text-xs ${theme.colors.text} opacity-60`}>Razorpay</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <div className={`p-2 rounded-full ${theme.colors.background} border ${theme.colors.border}`}>
                 <FaCheckCircle className={theme.colors.primary} size={20} />
               </div>
+
               <div>
-                <p className={`text-sm font-semibold ${theme.colors.text}`}>Money Back Guarantee</p>
-                <p className={`text-xs ${theme.colors.text} opacity-60`}>7-day risk-free</p>
+                <p className={`text-sm font-semibold ${theme.colors.text}`}>
+                  Flexible Plans
+                </p>
+                <p className={`text-xs ${theme.colors.text} opacity-60`}>
+                  Choose a plan that fits your business
+                </p>
               </div>
             </div>
           </div>

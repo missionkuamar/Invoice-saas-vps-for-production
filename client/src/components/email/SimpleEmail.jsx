@@ -1,148 +1,223 @@
+// frontend/src/pages/SimpleEmail.jsx
 import { useState, useEffect } from 'react';
-
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  FaEnvelope, FaPaperPlane, FaSpinner, FaTrash,
+  FaCheckCircle, FaExclamationCircle, FaClock,
+  FaUser, FaCalendarAlt,
+} from 'react-icons/fa';
 import api from '../../services/api';
-import { useSelector } from 'react-redux';
+
+import toast from 'react-hot-toast';
+import { useTheme } from '../../themes/ThemeProvider';
+
 export default function SimpleEmail() {
-
-
   const [emails, setEmails] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(false);
   const [formData, setFormData] = useState({
     toEmail: '',
     subject: '',
     message: '',
-    scheduleTime: ''
+    scheduleTime: '',
   });
   const [message, setMessage] = useState(null);
+
   const navigate = useNavigate();
+  const { theme } = useTheme();
+  const { user } = useSelector((state) => state.auth || {});
 
-  const {user } = useSelector((state) => state.auth ||  {});
-
-  //console.log(user);
+  // ✅ Fetch emails on mount
   useEffect(() => {
     fetchEmails();
   }, []);
 
   const fetchEmails = async () => {
+    setFetching(true);
     try {
       const response = await api.get('/emails/my-emails');
-      setEmails(response.data.data);
+      setEmails(response.data.data || []);
     } catch (error) {
       console.error('Error fetching emails:', error);
+      toast.error('Failed to load emails');
+    } finally {
+      setFetching(false);
     }
   };
 
-  // const handleLogout = async () => {
-  //   try {
-  //     await api.post('/auth/logout');
-  //     setUser(null);
-  //     navigate('/login');
-  //   } catch (error) {
-  //     console.error('Logout error:', error);
-  //   }
-  // };
-
+  // ✅ Schedule email
   const handleSchedule = async (e) => {
     e.preventDefault();
     setLoading(true);
     setMessage(null);
 
     try {
-      await api.post('/emails/schedule', formData);
+      const payload = {
+        ...formData,
+        scheduleTime: formData.scheduleTime || new Date().toISOString(),
+      };
+
+      await api.post('/emails/schedule', payload);
+
       setMessage({ type: 'success', text: '✅ Email scheduled successfully!' });
+      toast.success('Email scheduled successfully!');
       setFormData({ toEmail: '', subject: '', message: '', scheduleTime: '' });
       fetchEmails();
     } catch (error) {
-      setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to schedule' });
+      const errorMsg = error.response?.data?.message || 'Failed to schedule email';
+      setMessage({ type: 'error', text: errorMsg });
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
   };
 
+  // ✅ Delete email
   const handleDelete = async (id) => {
-    if (!confirm('Delete this scheduled email?')) return;
+    if (!window.confirm('Delete this scheduled email?')) return;
 
     try {
       await api.delete(`/emails/${id}`);
-      setEmails(emails.filter(email => email._id !== id));
-      setMessage({ type: 'success', text: '✅ Email deleted!' });
+      setEmails((prev) => prev.filter((email) => email._id !== id));
+      toast.success('Email deleted successfully!');
     } catch (error) {
-      setMessage({ type: 'error', text: 'Failed to delete' });
+      toast.error('Failed to delete email');
     }
   };
 
+  // ✅ Status color helper
+  const getStatusColor = (status) => {
+    const colors = {
+      pending: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+      sent: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+      failed: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+    };
+    return colors[status] || 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
+  };
+
+  // ✅ Common classes
+  const inputClass = `w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border ${theme.colors.border} ${theme.colors.text} bg-transparent focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm transition-colors`;
+  const labelClass = `block text-xs sm:text-sm font-medium ${theme.colors.text} opacity-80 mb-1`;
+
   return (
-    <div className="min-h-screen bg-gray-800 p-6 text-cyan-50">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8 bg-gray-700 p-4 text-gray-100 rounded-lg shadow">
-          <div >
-            <h1 className="text-2xl font-boldb bg-gray-700 text-gray-100">📧 Email Scheduler</h1>
-            <p className="bg-gray-700 text-gray-100 ">Welcome, {user?.name}!</p>
+    <div className={`min-h-screen ${theme.colors.background} w-full overflow-x-hidden`}>
+      <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
+
+        {/* ============================================================ */}
+        {/* HEADER */}
+        {/* ============================================================ */}
+        <div
+          className={`flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 ${theme.colors.card} p-4 sm:p-5 md:p-6 rounded-2xl border ${theme.colors.border} shadow-sm`}
+        >
+          <div className="min-w-0 flex-1">
+            <h1 className={`text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold ${theme.colors.text} flex items-center gap-2 truncate`}>
+              <FaEnvelope className={theme.colors.primary} />
+              Email Scheduler
+            </h1>
+            <p className={`text-xs sm:text-sm ${theme.colors.text} opacity-70 mt-1 flex items-center gap-2`}>
+              <FaUser size={12} />
+              Welcome, <span className="font-medium">{user?.name || 'User'}</span>!
+            </p>
           </div>
-          {/* <button
-            onClick={handleLogout}
-            className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 transition"
+
+          <button
+            onClick={fetchEmails}
+            disabled={fetching}
+            className={`${theme.colors.button} text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl flex items-center justify-center gap-2 hover:scale-105 transition-all text-xs sm:text-sm font-medium w-full sm:w-auto disabled:opacity-50 disabled:hover:scale-100`}
           >
-            Logout
-          </button> */}
+            {fetching ? (
+              <>
+                <FaSpinner className="animate-spin" />
+                Loading...
+              </>
+            ) : (
+              <>
+                <FaClock />
+                Refresh
+              </>
+            )}
+          </button>
         </div>
 
-        {/* Message */}
+        {/* ============================================================ */}
+        {/* MESSAGE ALERT */}
+        {/* ============================================================ */}
         {message && (
-          <div className={`p-3 rounded mb-4 ${
-            message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-          }`}>
-            {message.text}
+          <div
+            className={`p-3 sm:p-4 rounded-xl flex items-start gap-3 text-xs sm:text-sm border ${
+              message.type === 'success'
+                ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/30'
+                : 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/30'
+            }`}
+          >
+            {message.type === 'success' ? (
+              <FaCheckCircle className="mt-0.5 flex-shrink-0" />
+            ) : (
+              <FaExclamationCircle className="mt-0.5 flex-shrink-0" />
+            )}
+            <span>{message.text}</span>
           </div>
         )}
 
-        <div className="grid md:grid-cols-2 gap-6 bg-gray-700 text-gray-100">
-          {/* Schedule Form */}
-          <div className="bg-gray-700 text-gray-100 p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold mb-4">Schedule Email</h2>
-            
-            <form onSubmit={handleSchedule}>
-              <div className="mb-3">
+        {/* ============================================================ */}
+        {/* MAIN GRID — Form + List */}
+        {/* ============================================================ */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+
+          {/* ============================================================ */}
+          {/* SCHEDULE FORM */}
+          {/* ============================================================ */}
+          <div className={`${theme.colors.card} p-4 sm:p-5 md:p-6 rounded-2xl border ${theme.colors.border} shadow-sm`}>
+            <h2 className={`text-base sm:text-lg md:text-xl font-semibold ${theme.colors.text} mb-4 flex items-center gap-2`}>
+              <FaPaperPlane className={theme.colors.primary} size={16} />
+              Schedule Email
+            </h2>
+
+            <form onSubmit={handleSchedule} className="space-y-3 sm:space-y-4">
+              <div>
+                <label className={labelClass}>To Email *</label>
                 <input
                   type="email"
-                  placeholder="To Email"
+                  placeholder="recipient@example.com"
                   value={formData.toEmail}
-                  onChange={(e) => setFormData({...formData, toEmail: e.target.value})}
-                  className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
+                  onChange={(e) => setFormData({ ...formData, toEmail: e.target.value })}
+                  className={inputClass}
                   required
                 />
               </div>
 
-              <div className="mb-3">
+              <div>
+                <label className={labelClass}>Subject *</label>
                 <input
                   type="text"
-                  placeholder="Subject"
+                  placeholder="Email subject"
                   value={formData.subject}
-                  onChange={(e) => setFormData({...formData, subject: e.target.value})}
-                  className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500  text-black"
+                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                  className={inputClass}
                   required
                 />
               </div>
 
-              <div className="mb-3">
+              <div>
+                <label className={labelClass}>Message *</label>
                 <textarea
-                  placeholder="Message"
+                  placeholder="Write your message here..."
                   value={formData.message}
-                  onChange={(e) => setFormData({...formData, message: e.target.value})}
-                  className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500  text-black"
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                  className={`${inputClass} resize-none`}
                   rows="4"
                   required
                 />
               </div>
 
-              <div className="mb-3">
+              <div>
+                <label className={labelClass}>Schedule Time *</label>
                 <input
                   type="datetime-local"
                   value={formData.scheduleTime}
-                  onChange={(e) => setFormData({...formData, scheduleTime: e.target.value})}
-                  className="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500  text-black"
+                  onChange={(e) => setFormData({ ...formData, scheduleTime: e.target.value })}
+                  className={inputClass}
                   required
                   min={new Date().toISOString().slice(0, 16)}
                 />
@@ -151,44 +226,110 @@ export default function SimpleEmail() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition disabled:opacity-50"
+                className={`w-full ${theme.colors.button} text-white py-2.5 sm:py-3 rounded-xl flex items-center justify-center gap-2 hover:scale-[1.02] transition-all text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100`}
               >
-                {loading ? 'Scheduling...' : 'Schedule Email'}
+                {loading ? (
+                  <>
+                    <FaSpinner className="animate-spin" />
+                    Scheduling...
+                  </>
+                ) : (
+                  <>
+                    <FaPaperPlane />
+                    Schedule Email
+                  </>
+                )}
               </button>
             </form>
           </div>
 
-          {/* Email List */}
-          <div className="bg-gray-700 text-gray-100 p-6 rounded-lg shadow">
-            <h2 className="text-xl font-semibold mb-4">Scheduled Emails</h2>
-            
-            {emails.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">No emails scheduled</p>
-            ) : (
-              <div className="space-y-4 max-h-[500px] overflow-y-auto text-gray-50">
+          {/* ============================================================ */}
+          {/* SCHEDULED EMAILS LIST */}
+          {/* ============================================================ */}
+          <div className={`${theme.colors.card} p-4 sm:p-5 md:p-6 rounded-2xl border ${theme.colors.border} shadow-sm flex flex-col`}>
+            <div className="flex items-center justify-between gap-2 mb-4">
+              <h2 className={`text-base sm:text-lg md:text-xl font-semibold ${theme.colors.text} flex items-center gap-2`}>
+                <FaClock className={theme.colors.primary} size={16} />
+                Scheduled Emails
+              </h2>
+              <span className={`text-xs sm:text-sm ${theme.colors.text} opacity-60 px-2 py-1 rounded-full ${theme.colors.background}`}>
+                {emails.length}
+              </span>
+            </div>
+
+            {/* Empty State */}
+            {emails.length === 0 && !fetching && (
+              <div className={`flex-1 flex flex-col items-center justify-center text-center py-12 px-4`}>
+                <div className={`text-4xl sm:text-5xl mb-4 ${theme.colors.text} opacity-20`}>
+                  <FaEnvelope className="mx-auto" />
+                </div>
+                <p className={`text-sm sm:text-base font-medium ${theme.colors.text}`}>
+                  No emails scheduled
+                </p>
+                <p className={`text-xs sm:text-sm ${theme.colors.text} opacity-60 mt-1`}>
+                  Schedule your first email to get started
+                </p>
+              </div>
+            )}
+
+            {/* Loading State */}
+            {fetching && emails.length === 0 && (
+              <div className="flex-1 flex items-center justify-center py-12">
+                <FaSpinner className={`animate-spin text-3xl sm:text-4xl ${theme.colors.primary}`} />
+              </div>
+            )}
+
+            {/* Email List */}
+            {emails.length > 0 && (
+              <div className="flex-1 space-y-3 max-h-[500px] lg:max-h-[600px] overflow-y-auto pr-1">
                 {emails.map((email) => (
-                  <div key={email._id} className="border rounded p-4">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <h3 className="font-semibold">{email.subject}</h3>
-                        <p className="text-sm text-gray-50">To: {email.toEmail}</p>
-                        <p className="text-sm text-gray-50">
-                          Scheduled: {new Date(email.scheduleTime).toLocaleString()}
+                  <div
+                    key={email._id}
+                    className={`${theme.colors.background} border ${theme.colors.border} rounded-xl p-3 sm:p-4 hover:shadow-md transition-all`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        {/* Subject */}
+                        <h3 className={`font-semibold text-sm sm:text-base ${theme.colors.text} truncate`}>
+                          {email.subject || 'No subject'}
+                        </h3>
+
+                        {/* To Email */}
+                        <p className={`text-xs sm:text-sm ${theme.colors.text} opacity-70 truncate mt-1 flex items-center gap-1.5`}>
+                          <FaEnvelope size={10} className="flex-shrink-0" />
+                          {email.toEmail}
                         </p>
-                        <span className={`inline-block px-2 py-1 text-xs rounded mt-1 ${
-                          email.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                          email.status === 'sent' ? 'bg-green-100 text-green-700' :
-                          'bg-red-100 text-red-700'
-                        }`}>
-                          {email.status}
+
+                        {/* Schedule Time */}
+                        <p className={`text-xs sm:text-sm ${theme.colors.text} opacity-70 flex items-center gap-1.5 mt-0.5`}>
+                          <FaCalendarAlt size={10} className="flex-shrink-0" />
+                          {new Date(email.scheduleTime).toLocaleString('en-IN', {
+                            day: '2-digit',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </p>
+
+                        {/* Status Badge */}
+                        <span
+                          className={`inline-block px-2 py-0.5 text-[10px] sm:text-xs font-semibold rounded-full mt-2 ${getStatusColor(
+                            email.status
+                          )}`}
+                        >
+                          {(email.status || 'pending').toUpperCase()}
                         </span>
                       </div>
+
+                      {/* Delete Button (only for pending) */}
                       {email.status === 'pending' && (
                         <button
                           onClick={() => handleDelete(email._id)}
-                          className="text-red-600 hover:text-red-800 ml-2"
+                          className={`p-2 rounded-lg text-red-500 hover:bg-red-500/10 transition-colors flex-shrink-0`}
+                          title="Delete"
+                          aria-label="Delete email"
                         >
-                          Delete
+                          <FaTrash size={12} />
                         </button>
                       )}
                     </div>

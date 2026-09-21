@@ -39,59 +39,231 @@ const processEmailWithLimit = async (userId, emailData) => {
 // 1. Schedule Simple Email
 export const scheduleEmail = async (req, res) => {
   try {
-    const { toEmail, subject, message, scheduleTime } = req.body;
-
-    if (!toEmail || !subject || !message || !scheduleTime) {
-      return res.status(400).json({
-        success: false,
-        message: 'All fields are required'
-      });
-    }
-
-    // Check email limit
-    const user = await User.findById(req.user._id);
-    const canSend = await user.canSendEmail();
-    
-    if (!canSend) {
-      return res.status(403).json({
-        success: false,
-        message: `Email limit exceeded. You have used ${user.subscription.limits.used} out of ${user.subscription.limits.monthly} emails.`,
-        data: {
-          plan: user.subscription.plan,
-          limit: user.subscription.limits.monthly,
-          used: user.subscription.limits.used,
-          remaining: user.getRemainingEmails(),
-        }
-      });
-    }
-
-    const scheduledEmail = await ScheduledEmail.create({
-      userId: req.user._id,
+    const {
       toEmail,
       subject,
       message,
-      scheduleTime: new Date(scheduleTime)
-    });
+      scheduleTime,
+    } = req.body;
 
-    // Increment email count
+    // ============================================================
+    // VALIDATION
+    // ============================================================
+
+    if (
+      !toEmail ||
+      !subject ||
+      !message ||
+      !scheduleTime
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          'All fields are required',
+      });
+    }
+
+    // ============================================================
+    // VALIDATE SCHEDULE TIME
+    // ============================================================
+
+    const parsedScheduleTime =
+      new Date(scheduleTime);
+
+    if (
+      Number.isNaN(
+        parsedScheduleTime.getTime()
+      )
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          'Invalid schedule time',
+      });
+    }
+
+    // ============================================================
+    // USER FETCH
+    // ============================================================
+
+    const user =
+      await User.findById(
+        req.user._id
+      );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message:
+          'User not found',
+      });
+    }
+
+    // ============================================================
+    // EMAIL CREDIT CHECK
+    // ============================================================
+    //
+    // canSendEmail() async hai.
+    //
+
+    const canSend =
+      await user.canSendEmail();
+
+    if (!canSend) {
+
+      const emailLimit =
+        user.subscription
+          .limits
+          .emails
+          .total;
+
+      const emailUsed =
+        user.subscription
+          .usage
+          .emails;
+
+      const remaining =
+        Math.max(
+          0,
+          emailLimit - emailUsed
+        );
+
+      return res.status(403).json({
+
+        success: false,
+
+        message:
+          `Email limit exceeded. You have used ${emailUsed} out of ${emailLimit} emails. Please upgrade your plan.`,
+
+        data: {
+
+          plan:
+            user.subscription.plan,
+
+          limit:
+            emailLimit,
+
+          used:
+            emailUsed,
+
+          remaining,
+
+          startDate:
+            user.subscription
+              .currentPeriodStart,
+
+          endDate:
+            user.subscription
+              .currentPeriodEnd,
+
+        },
+
+      });
+    }
+
+    // ============================================================
+    // CREATE SCHEDULED EMAIL
+    // ============================================================
+
+    const scheduledEmail =
+      await ScheduledEmail.create({
+
+        userId:
+          req.user._id,
+
+        toEmail,
+
+        subject,
+
+        message,
+
+        scheduleTime:
+          parsedScheduleTime,
+
+      });
+
+    // ============================================================
+    // INCREMENT EMAIL USAGE
+    // ============================================================
+
     await user.incrementEmailCount();
 
-    res.status(201).json({
+    // ============================================================
+    // GET UPDATED STATS
+    // ============================================================
+
+    const emailLimit =
+      user.subscription
+        .limits
+        .emails
+        .total;
+
+    const emailUsed =
+      user.subscription
+        .usage
+        .emails;
+
+    const emailRemaining =
+      Math.max(
+        0,
+        emailLimit - emailUsed
+      );
+
+    // ============================================================
+    // RESPONSE
+    // ============================================================
+
+    return res.status(201).json({
+
       success: true,
-      message: 'Email scheduled successfully',
-      data: scheduledEmail,
+
+      message:
+        'Email scheduled successfully',
+
+      data:
+        scheduledEmail,
+
       emailStats: {
-        remaining: user.getRemainingEmails(),
-        used: user.subscription.limits.used,
-        limit: user.subscription.limits.monthly,
-      }
+
+        remaining:
+          emailRemaining,
+
+        used:
+          emailUsed,
+
+        limit:
+          emailLimit,
+
+        plan:
+          user.subscription.plan,
+
+        startDate:
+          user.subscription
+            .currentPeriodStart,
+
+        endDate:
+          user.subscription
+            .currentPeriodEnd,
+
+      },
+
     });
 
   } catch (error) {
-    console.error('Schedule Email Error:', error);
-    res.status(500).json({
+
+    console.error(
+      'Schedule Email Error:',
+      error
+    );
+
+    return res.status(500).json({
+
       success: false,
-      message: error.message
+
+      message:
+        error.message ||
+        'Failed to schedule email',
+
     });
   }
 };

@@ -11,48 +11,96 @@ import Notification from '../models/Notification.js';
 
 // @desc    Get admin dashboard stats
 // @route   GET /api/admin/stats
+
+
 export const getDashboardStats = async (req, res) => {
+  console.log("getDashboardStats API calling");
+
   try {
-    const [totalUsers, totalInvoices, totalRevenue, activeSubscriptions, totalCompanies] = await Promise.all([
+    const [
+      totalUsers,
+      totalInvoices,
+      totalRevenue,
+      activeSubscriptions,
+      totalCompanies
+    ] = await Promise.all([
+      // Total users
       User.countDocuments(),
+
+      // Total invoices
       Invoice.countDocuments(),
-      Invoice.aggregate([{ $group: { _id: null, total: { $sum: '$total' } } }]),
-      User.countDocuments({ 'subscription.status': 'active' }),
+
+      // Total revenue
+      Invoice.aggregate([
+        {
+          $group: {
+            _id: null,
+            total: { $sum: '$total' }
+          }
+        }
+      ]),
+
+      // ✅ ONLY PAID ACTIVE SUBSCRIPTIONS
+      User.countDocuments({
+        'subscription.status': 'active',
+        'subscription.plan': {
+          $in: ['basic', 'pro', 'enterprise']
+        }
+      }),
+
+      // Total companies
       Company.countDocuments(),
     ]);
 
-    // Get recent users
+    // Recent users
     const recentUsers = await User.find()
       .sort({ createdAt: -1 })
       .limit(5)
       .select('name email role createdAt subscription.plan');
 
-    // Get recent invoices
+    // Recent invoices
     const recentInvoices = await Invoice.find()
       .sort({ createdAt: -1 })
       .limit(5)
       .populate('user', 'name email');
 
-    // Get subscription distribution
+    // Subscription distribution
     const subscriptionDistribution = await User.aggregate([
-      { $group: { _id: '$subscription.plan', count: { $sum: 1 } } },
+      {
+        $group: {
+          _id: '$subscription.plan',
+          count: { $sum: 1 }
+        }
+      }
     ]);
 
-    // Get monthly stats for chart
+    // Monthly stats
     const monthlyStats = await Invoice.aggregate([
       {
         $match: {
-          createdAt: { $gte: new Date(new Date().setMonth(new Date().getMonth() - 6)) }
+          createdAt: {
+            $gte: new Date(
+              new Date().setMonth(new Date().getMonth() - 6)
+            )
+          }
         }
       },
       {
         $group: {
-          _id: { month: { $month: '$createdAt' }, year: { $year: '$createdAt' } },
+          _id: {
+            month: { $month: '$createdAt' },
+            year: { $year: '$createdAt' }
+          },
           total: { $sum: '$total' },
           count: { $sum: 1 }
         }
       },
-      { $sort: { '_id.year': 1, '_id.month': 1 } }
+      {
+        $sort: {
+          '_id.year': 1,
+          '_id.month': 1
+        }
+      }
     ]);
 
     res.status(200).json({
@@ -61,7 +109,10 @@ export const getDashboardStats = async (req, res) => {
         totalUsers,
         totalInvoices,
         totalRevenue: totalRevenue[0]?.total || 0,
+
+        // ✅ Free users excluded
         activeSubscriptions,
+
         totalCompanies,
         recentUsers,
         recentInvoices,
@@ -69,8 +120,10 @@ export const getDashboardStats = async (req, res) => {
         monthlyStats,
       },
     });
+
   } catch (error) {
-    //console.error('Dashboard stats error:', error);
+    console.error('Dashboard stats error:', error);
+
     res.status(500).json({
       success: false,
       message: error.message,
@@ -99,54 +152,156 @@ export const getUsers = async (req, res) => {
       sortOrder = 'desc',
     } = req.query;
 
+    // --------------------------------
+    // Pagination
+    // --------------------------------
+    const allowedLimits = [5, 10, 20, 50, 100, 200];
+
+    const currentPage = Math.max(
+      parseInt(page, 10) || 1,
+      1
+    );
+
+    const requestedLimit = parseInt(limit, 10) || 10;
+
+    const currentLimit = allowedLimits.includes(requestedLimit)
+      ? requestedLimit
+      : 10;
+
+    // --------------------------------
+    // Build Query
+    // --------------------------------
     const query = {};
 
-    if (search) {
+    // Search
+    if (search && search.trim()) {
       query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
+        {
+          name: {
+            $regex: search.trim(),
+            $options: 'i',
+          },
+        },
+        {
+          email: {
+            $regex: search.trim(),
+            $options: 'i',
+          },
+        },
       ];
     }
 
-    if (role) query.role = role;
-    if (subscription) query['subscription.plan'] = subscription;
-
-    // Fix: Properly handle status filter
-    if (status !== undefined && status !== '') {
-      query.isActive = status === 'true' || status === true;
+    // Role
+    if (role && role.trim()) {
+      query.role = role;
     }
 
-    const sort = {};
-    sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+    // Subscription
+    if (subscription && subscription.trim()) {
+      query['subscription.plan'] = subscription;
+    }
 
-    const skip = (Number(page) - 1) * Number(limit);
+    // Status
+    if (status !== undefined && status !== '') {
+      query.isActive =
+        status === 'true' || status === true;
+    }
 
+    // --------------------------------
+    // Sorting
+    // --------------------------------
+    const allowedSortFields = [
+      'createdAt',
+      'name',
+      'email',
+      'role',
+      'isActive',
+    ];
+
+    const safeSortBy = allowedSortFields.includes(sortBy)
+      ? sortBy
+      : 'createdAt';
+
+    const safeSortOrder =
+      sortOrder === 'asc' ? 1 : -1;
+
+    const sort = {
+      [safeSortBy]: safeSortOrder,
+    };
+
+    // --------------------------------
+    // Skip
+    // --------------------------------
+    const skip =
+      (currentPage - 1) * currentLimit;
+
+    // --------------------------------
+    // Fetch Users + Total
+    // --------------------------------
     const [users, total] = await Promise.all([
       User.find(query)
         .sort(sort)
         .skip(skip)
-        .limit(Number(limit))
+        .limit(currentLimit)
         .select('-password'),
+
       User.countDocuments(query),
     ]);
 
+    // --------------------------------
+    // Pagination
+    // --------------------------------
+    const totalPages =
+      Math.ceil(total / currentLimit);
+
+    // If requested page is greater than
+    // available pages, return empty result
+    // with the requested page information.
+    // Frontend can handle this safely.
+    // --------------------------------
+
     res.status(200).json({
       success: true,
+
       data: {
         users,
+
         pagination: {
-          page: Number(page),
-          limit: Number(limit),
+          page: currentPage,
+          limit: currentLimit,
           total,
-          pages: Math.ceil(total / limit),
+          pages: totalPages,
+
+          hasNextPage:
+            currentPage < totalPages,
+
+          hasPrevPage:
+            currentPage > 1,
+
+          nextPage:
+            currentPage < totalPages
+              ? currentPage + 1
+              : null,
+
+          prevPage:
+            currentPage > 1
+              ? currentPage - 1
+              : null,
         },
       },
     });
+
   } catch (error) {
-  //  console.error('Get users error:', error);
+    console.error(
+      'Get users error:',
+      error
+    );
+
     res.status(500).json({
       success: false,
-      message: error.message,
+      message:
+        error.message ||
+        'Failed to fetch users',
     });
   }
 };

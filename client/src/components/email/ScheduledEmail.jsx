@@ -1,13 +1,13 @@
 // frontend/src/pages/ScheduledEmail.jsx
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { 
-  fetchEmails, 
-  deleteEmail, 
+import {
+  fetchEmails,
+  deleteEmail,
   setFilters,
   resetFilters,
   fetchEmailStats,
-  setLocalSearchResults
+  setLocalSearchResults,
 } from '../../store/slices/emailSlice';
 import { useTheme } from '../../themes/ThemeProvider';
 import { FaSpinner } from 'react-icons/fa';
@@ -20,26 +20,54 @@ import EmailList from './EmailList';
 const ScheduledEmail = () => {
   const dispatch = useDispatch();
   const { theme } = useTheme();
-  
-  // Redux state
-  const { 
-    emails, 
-    loading, 
+
+  const {
+    emails,
+    loading,
     loadingStats,
-    pagination, 
+    pagination,
     filters,
     error,
     deletingId,
-    summary
+    summary,
   } = useSelector((state) => state.emails);
-  
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
 
-  // Memoize filtered emails for local search
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // ✅ Local filter state (mirrors Redux filters)
+  const [localFilters, setLocalFilters] = useState({
+    status: filters.status || '',
+    emailType: filters.emailType || '',
+    startDate: filters.startDate || '',
+    endDate: filters.endDate || '',
+    sortBy: filters.sortBy || 'createdAt',
+    sortOrder: filters.sortOrder || 'desc',
+  });
+
+  // ✅ Keep localFilters in sync when Redux filters change (e.g., after reset)
+  useEffect(() => {
+    setLocalFilters({
+      status: filters.status || '',
+      emailType: filters.emailType || '',
+      startDate: filters.startDate || '',
+      endDate: filters.endDate || '',
+      sortBy: filters.sortBy || 'createdAt',
+      sortOrder: filters.sortOrder || 'desc',
+    });
+  }, [
+    filters.status,
+    filters.emailType,
+    filters.startDate,
+    filters.endDate,
+    filters.sortBy,
+    filters.sortOrder,
+  ]);
+
+  // Memoized local search filter
   const filteredEmails = useMemo(() => {
     const search = filters.search?.trim().toLowerCase();
     if (!search) return emails;
-    
+
     const results = emails.filter((email) => {
       return (
         email.subject?.toLowerCase().includes(search) ||
@@ -50,28 +78,28 @@ const ScheduledEmail = () => {
         email.invoiceId?.clientName?.toLowerCase().includes(search)
       );
     });
-    
+
     dispatch(setLocalSearchResults(results));
     return results;
   }, [emails, filters.search, dispatch]);
 
-  // Initial load - runs once
+  // Initial load
   useEffect(() => {
     dispatch(fetchEmails(filters));
     dispatch(fetchEmailStats());
-  }, []); // Empty dependency - runs once
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Handle filter changes
+  // Debounced filter change handler
   useEffect(() => {
-    // Skip initial load
     if (loading) return;
-    
-    // Debounce search
+
     const timer = setTimeout(() => {
       dispatch(fetchEmails(filters));
     }, 500);
 
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     filters.search,
     filters.status,
@@ -81,7 +109,7 @@ const ScheduledEmail = () => {
     filters.sortBy,
     filters.sortOrder,
     filters.page,
-    filters.limit
+    filters.limit,
   ]);
 
   // Handle delete
@@ -102,93 +130,101 @@ const ScheduledEmail = () => {
   };
 
   // Handle reset filters
- const handleResetFilters = () => {
-  const resetData = {
-    page: 1,
-    limit: pagination.limit,
-    search: "",
-    status: "",
-    emailType: "",
-    startDate: "",
-    endDate: "",
-    sortBy: "createdAt",
-    sortOrder: "desc",
+  const handleResetFilters = () => {
+    const resetData = {
+      page: 1,
+      limit: pagination.limit || 10,
+      search: '',
+      status: '',
+      emailType: '',
+      startDate: '',
+      endDate: '',
+      sortBy: 'createdAt',
+      sortOrder: 'desc',
+    };
+
+    setLocalFilters({
+      status: '',
+      emailType: '',
+      startDate: '',
+      endDate: '',
+      sortBy: 'createdAt',
+      sortOrder: 'desc',
+    });
+
+    dispatch(resetFilters());
+    dispatch(fetchEmails(resetData));
   };
 
-  dispatch(resetFilters());
-  dispatch(fetchEmails(resetData));
-};
-
-  // Handle refresh
-  const handleRefresh = () => {
-    dispatch(fetchEmails(filters));
-    dispatch(fetchEmailStats());
-    toast.success('Refreshed email list');
-  };
-
-  // Show error
+  // Error state
   if (error && !loading) {
     return (
-      <div className={`${theme.colors.card} p-6 rounded-2xl border ${theme.colors.border}`}>
-        <div className="text-center text-red-500">
-          <p className="text-lg font-semibold">Error loading emails</p>
-          <p className="text-sm">{error}</p>
-          <button
-            onClick={handleRefresh}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-          >
-            Retry
-          </button>
+      <div className={`min-h-screen ${theme.colors.background} w-full overflow-x-hidden`}>
+        <div className="w-full max-w-3xl mx-auto px-3 sm:px-4 md:px-6 py-6">
+          <div className={`${theme.colors.card} p-4 sm:p-6 rounded-2xl border ${theme.colors.border}`}>
+            <div className="text-center text-red-500">
+              <p className="text-base sm:text-lg font-semibold">Error loading emails</p>
+              <p className="text-xs sm:text-sm break-words mt-1">{error}</p>
+              <button
+                onClick={() => {
+                  dispatch(fetchEmails(filters));
+                  dispatch(fetchEmailStats());
+                }}
+                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 md:space-y-6">
-      {/* Header */}
-      <div className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 ${theme.colors.card} p-4 md:p-6 rounded-2xl border ${theme.colors.border}`}>
-        <div>
-          <h1 className={`text-xl md:text-2xl lg:text-3xl font-bold ${theme.colors.text}`}>
-            📨 Scheduled Emails
-          </h1>
-          <p className={`text-sm ${theme.colors.text} opacity-70 mt-1`}>
-            Manage and track all your scheduled email communications
-          </p>
+    // ✅ Fully responsive wrapper — sidebar-aware
+    <div className={`min-h-screen ${theme.colors.background} w-full overflow-x-hidden`}>
+      <div className="w-full max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4 md:py-6 space-y-3 sm:space-y-4 md:space-y-6">
+
+        {/* ================= HEADER ================= */}
+        <div className={`flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 ${theme.colors.card} p-3 sm:p-4 md:p-6 rounded-2xl border ${theme.colors.border}`}>
+          <div className="min-w-0 flex-1 w-full">
+            <h1 className={`text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold ${theme.colors.text} break-words`}>
+              📨 Scheduled Emails
+            </h1>
+            <p className={`text-xs sm:text-sm ${theme.colors.text} opacity-70 mt-1 line-clamp-2`}>
+              Manage and track all your scheduled email communications
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <button
-            onClick={handleRefresh}
-            disabled={loading}
-            className={`${theme.colors.button} text-white px-4 md:px-6 py-2.5 md:py-3 rounded-xl flex items-center gap-2 hover:scale-105 transition-all text-sm md:text-base w-full sm:w-auto justify-center disabled:opacity-50`}
-          >
-            {loading ? <FaSpinner className="animate-spin" /> : '🔄 Refresh'}
-          </button>
+
+        {/* ================= STATS ================= */}
+        <div className={loadingStats ? 'opacity-50 pointer-events-none' : ''}>
+          <EmailStats summary={summary} loadingStats={loadingStats} />
         </div>
+
+        {/* ================= FILTERS ================= */}
+        {/* ✅ key ensures filter inputs re-render when filters reset */}
+       <EmailFilters
+  filters={filters}
+  localFilters={localFilters}
+  setLocalFilters={setLocalFilters}
+  onApplyFilters={handleApplyFilters}
+  onResetFilters={handleResetFilters}
+/>
+
+        {/* ================= EMAIL LIST ================= */}
+        <EmailList
+          emails={filteredEmails}
+          loading={loading}
+          onDelete={handleDelete}
+          deletingId={deletingId}
+        />
+
+        {/* ================= PAGINATION ================= */}
+        <EmailPagination />
+
       </div>
-
-      {/* Stats */}
-      <div className={loadingStats ? 'opacity-50 pointer-events-none' : ''}>
-        <EmailStats summary={summary} loadingStats={loadingStats} />
-      </div>
-
-      {/* Filters */}
-      <EmailFilters 
-        filters={filters}
-        onApplyFilters={handleApplyFilters}
-        onResetFilters={handleResetFilters}
-      />
-
-      {/* Email List */}
-      <EmailList 
-        emails={filteredEmails}
-        loading={loading}
-        onDelete={handleDelete}
-        deletingId={deletingId}
-      />
-
-      {/* Pagination */}
-      <EmailPagination />
     </div>
   );
 };

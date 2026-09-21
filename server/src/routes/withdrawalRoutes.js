@@ -5,6 +5,7 @@ import {
   getWithdrawals,
   cancelWithdrawal,
   getWithdrawalStats,
+  getReferrals
 } from '../controllers/affiliateWithdrawalController.js';
 import { protect } from '../middleware/auth.js';
 import { bulkProcessWithdrawals, exportWithdrawals, getWithdrawalById, updateWithdrawal } from '../controllers/adminController.js';
@@ -17,6 +18,7 @@ router.use(protect);
 router.post('/withdraw', requestWithdrawal);
 
 router.get('/withdrawals', getWithdrawals);
+router.get('/referrals', getReferrals);
 
 router.get('/withdrawals/stats', getWithdrawalStats);
 router.post('/withdraw/:id/cancel', cancelWithdrawal);

@@ -51,9 +51,9 @@ export const fetchEmails = createAsyncThunk(
         sortBy: params.sortBy || 'createdAt',
         sortOrder: params.sortOrder || 'desc'
       });
-console.log("queryParams :" , queryParams);
+///console.log("queryParams :" , queryParams);
       const response = await api.get(`/emails/my-emails?${queryParams}`);
-      console.log("response :" , response)
+      //console.log("response :" , response)
       return response.data;
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Failed to fetch emails';

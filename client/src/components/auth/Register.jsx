@@ -179,7 +179,7 @@ const Register = () => {
           </div>
 
           {/* Social Register Buttons */}
-          <div className="space-y-3 mb-6">
+          {/* <div className="space-y-3 mb-6">
             <button
               onClick={() => handleSocialRegister('Google')}
               className={`w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border ${theme.colors.border} ${theme.colors.text} hover:${theme.colors.hover} transition-all hover:scale-[1.02]`}
@@ -204,10 +204,10 @@ const Register = () => {
                 <span className="text-sm font-medium">GitHub</span>
               </button>
             </div>
-          </div>
+          </div> */}
 
           {/* Divider */}
-          <div className="relative mb-6">
+          {/* <div className="relative mb-6">
             <div className="absolute inset-0 flex items-center">
               <div className={`w-full border-t ${theme.colors.border}`}></div>
             </div>
@@ -216,7 +216,7 @@ const Register = () => {
                 Or register with email
               </span>
             </div>
-          </div>
+          </div> */}
 
           {/* Register Form */}
           <form onSubmit={handleSubmit} className="space-y-4">

@@ -44,6 +44,10 @@ import GradientWaveInvoiceForm from './components/invoices/forms/GradientWaveInv
 import SimpleEmail from './components/email/SimpleEmail';
 
 import ScheduledEmail from './components/email/ScheduledEmail';
+import { PersonalData } from './components/common/PersonalData';
+import PrivacyPolicy from './components/homepage/contact/PrivacyPolicy';
+import TermsConditions from './components/homepage/contact/TermsConditions';
+import RefundPolicy from './components/homepage/contact/RefundPolicy';
 
 // ✅ Affiliate Redirect Component
 const AffiliateRedirect = () => {
@@ -116,7 +120,20 @@ function App() {
         path="/landing"
         element={isAuth ? <Navigate to="/dashboard" replace /> : <Home />}
       />
+<Route
+  path="/privacy-policy"
+  element={<PrivacyPolicy />}
+/>
 
+<Route
+  path="/terms"
+  element={<TermsConditions />}
+/>
+
+<Route
+  path="/refund-policy"
+  element={<RefundPolicy />}
+/>
       {/* Auth Routes */}
       <Route
         path="/login"
@@ -142,7 +159,7 @@ function App() {
       >
         {/* Dashboard */}
         <Route path="/dashboard" element={<Dashboard />} />
-
+<Route path='/personaldata' element={<PersonalData />} />
         {/* Invoices */}
         <Route path="/invoices" element={<Invoices />} />
 

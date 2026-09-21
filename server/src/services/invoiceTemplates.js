@@ -308,27 +308,6 @@ ${
     : ""
 }
 
-<div style="text-align:center;margin-top:30px;">
-
-<a
-href="${process.env.FRONTEND_URL}/invoice/${invoice._id}"
-class="btn">
-
-View Invoice
-
-</a>
-
-<a
-href="${process.env.BACKEND_URL}/api/invoices/${invoice._id}/download"
-class="btn"
-style="background:#28a745;">
-
-Download PDF
-
-</a>
-
-</div>
-
 </div>
 
 <div class="footer">
@@ -540,41 +519,7 @@ ${invoice.notes}
     : ""
 }
 
-<div style="text-align:center;margin-top:30px;">
-
-<a
-href="${process.env.FRONTEND_URL}/invoice/${invoice._id}"
-class="btn">
-
-👁 View Invoice
-
-</a>
-
-<a
-href="${process.env.BACKEND_URL}/api/invoices/${invoice._id}/download"
-class="btn"
-style="background:#28a745;">
-
-📄 Download PDF
-
-</a>
-
-${
-  invoice.status !== "paid"
-    ? `
-<a
-href="${process.env.FRONTEND_URL}/pay/${invoice._id}"
-class="btn"
-style="background:#ff6f00;">
-
-💳 Pay Now
-
-</a>
-`
-    : ""
-}
-
-</div>
+<!-- Invoice action buttons disabled -->
 
 <p>
 
@@ -823,39 +768,7 @@ ${invoice.notes}
     : ""
 }
 
-<div style="text-align:center;margin-top:30px;">
-
-<a
-href="${process.env.FRONTEND_URL}/invoice/${invoice._id}"
-class="btn btn-view">
-
-👁 View Invoice
-
-</a>
-
-<a
-href="${process.env.BACKEND_URL}/api/invoices/${invoice._id}/download"
-class="btn btn-download">
-
-📄 Download PDF
-
-</a>
-
-${
-  invoice.status !== "paid"
-    ? `
-<a
-href="${process.env.FRONTEND_URL}/pay/${invoice._id}"
-class="btn btn-pay">
-
-💳 Pay Now
-
-</a>
-`
-    : ""
-}
-
-</div>
+<!-- Invoice action buttons disabled -->
 
 <p>
 
@@ -1091,25 +1004,7 @@ ${invoice.notes}
     : ""
 }
 
-<div style="text-align:center;margin-top:30px;">
-
-<a
-href="${process.env.FRONTEND_URL}/invoice/${invoice._id}"
-class="btn btn-view">
-
-👁 View Invoice
-
-</a>
-
-<a
-href="${process.env.BACKEND_URL}/api/invoices/${invoice._id}/download"
-class="btn btn-download">
-
-📄 Download Receipt
-
-</a>
-
-</div>
+<!-- Invoice action buttons disabled -->
 
 <p>
 
@@ -1331,25 +1226,7 @@ ${invoice.notes}
     : ""
 }
 
-<div style="text-align:center;margin-top:30px;">
-
-<a
-href="${process.env.FRONTEND_URL}/invoice/${invoice._id}"
-class="btn btn-view">
-
-👁 View Invoice
-
-</a>
-
-<a
-href="${process.env.BACKEND_URL}/api/invoices/${invoice._id}/download"
-class="btn btn-download">
-
-📄 Download PDF
-
-</a>
-
-</div>
+<!-- Invoice action buttons disabled -->
 
 <p>
 
@@ -1599,25 +1476,7 @@ ${invoice.notes}
     : ""
 }
 
-<div style="text-align:center;margin-top:30px;">
-
-<a
-href="${process.env.FRONTEND_URL}/invoice/${invoice._id}"
-class="btn btn-view">
-
-👁 View Revised Invoice
-
-</a>
-
-<a
-href="${process.env.BACKEND_URL}/api/invoices/${invoice._id}/download"
-class="btn btn-download">
-
-📄 Download PDF
-
-</a>
-
-</div>
+<!-- Invoice action buttons disabled -->
 
 <p>
 
@@ -1892,25 +1751,7 @@ ${invoice.notes}
     : ""
 }
 
-<div style="text-align:center;margin-top:30px;">
-
-<a
-href="${process.env.FRONTEND_URL}/invoice/${invoice._id}"
-class="btn btn-view">
-
-👁 View Invoice
-
-</a>
-
-<a
-href="${process.env.BACKEND_URL}/api/invoices/${invoice._id}/download"
-class="btn btn-download">
-
-📄 Download PDF
-
-</a>
-
-</div>
+<!-- Invoice action buttons disabled -->
 
 <p>
 
@@ -2279,25 +2120,7 @@ A final tax invoice will be issued after payment is received.
 
 </div>
 
-<div style="text-align:center;margin-top:30px;">
-
-<a
-href="${process.env.FRONTEND_URL}/invoice/${invoice._id}"
-class="btn btn-view">
-
-👁 View Proforma
-
-</a>
-
-<a
-href="${process.env.BACKEND_URL}/api/invoices/${invoice._id}/download"
-class="btn btn-download">
-
-📄 Download PDF
-
-</a>
-
-</div>
+<!-- Invoice action buttons disabled -->
 
 </div>
 
@@ -2505,25 +2328,7 @@ ${invoice.notes}
     : ""
 }
 
-<div style="text-align:center;margin-top:30px;">
-
-<a
-href="${process.env.FRONTEND_URL}/credit/${invoice._id}"
-class="btn btn-view">
-
-💳 View Credit Note
-
-</a>
-
-<a
-href="${process.env.BACKEND_URL}/api/invoices/${invoice._id}/download"
-class="btn btn-download">
-
-📄 Download Invoice
-
-</a>
-
-</div>
+<!-- Invoice action buttons disabled -->
 
 <p>
 

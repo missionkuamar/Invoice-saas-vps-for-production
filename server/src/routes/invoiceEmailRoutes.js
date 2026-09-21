@@ -10,7 +10,11 @@ import {
 
 const router = express.Router();
 
-router.post('/create', protect, createInvoice);
+
+// ye wala route kaam ka nhi hia extra hia 
+// router.post('/create', protect, createInvoice);
+
+
 router.get('/my-invoices', protect, getMyInvoices);
 router.get('/:id', protect, getInvoiceById);
 router.put('/:id', protect, updateInvoice);

@@ -40,6 +40,10 @@ const affiliateReferralSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  lastPaymentId: {
+  type: String,
+  default: null,
+},
   isRecurring: {
     type: Boolean,
     default: false,

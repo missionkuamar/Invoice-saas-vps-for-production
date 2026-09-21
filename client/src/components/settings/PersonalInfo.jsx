@@ -4,11 +4,12 @@ import { FaUser, FaEnvelope, FaSave, FaSpinner } from 'react-icons/fa';
 import { useTheme } from '../../themes/ThemeProvider';
 
 const PersonalInfo = ({ company, onUpdate, user }) => {
+  // console.log(user)
   const { theme } = useTheme();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    companyName: company?.companyName || '',
-    companyEmail: company?.companyEmail || '',
+    companyName: user?.name || '',
+    companyEmail: user?.email || '',
   });
 
   const handleChange = (e) => {
@@ -68,7 +69,7 @@ const PersonalInfo = ({ company, onUpdate, user }) => {
           </div>
         </div>
 
-        <div className="flex justify-end">
+        {/* <div className="flex justify-end">
           <button
             type="submit"
             disabled={loading}
@@ -85,7 +86,7 @@ const PersonalInfo = ({ company, onUpdate, user }) => {
               </>
             )}
           </button>
-        </div>
+        </div> */}
       </form>
     </div>
   );
