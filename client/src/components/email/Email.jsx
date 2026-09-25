@@ -18,7 +18,7 @@ const DialogEmailBox = ({ isOpen, onClose, invoice }) => {
       setEmails(response.data.data || []);
       toast.success('Emails fetched successfully');
     } catch (error) {
-      console.error('Error fetching emails:', error);
+      // console.error('Error fetching emails:', error);
       toast.error('Failed to fetch scheduled emails');
     } finally {
       setLoading(false);

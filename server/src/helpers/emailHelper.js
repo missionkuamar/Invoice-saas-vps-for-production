@@ -10,7 +10,7 @@ export const incrementEmailCount = async (userId) => {
     }
     return false;
   } catch (error) {
-    console.error('Error incrementing email count:', error);
+    // console.error('Error incrementing email count:', error);
     return false;
   }
 };
@@ -29,7 +29,7 @@ export const getEmailStats = async (userId) => {
       percentage: Math.round((user.subscription.limits.used / user.subscription.limits.monthly) * 100),
     };
   } catch (error) {
-    console.error('Error getting email stats:', error);
+    // console.error('Error getting email stats:', error);
     return null;
   }
 };

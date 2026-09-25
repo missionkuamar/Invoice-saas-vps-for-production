@@ -11,7 +11,7 @@ const Dashboard = () => {
   const { theme } = useTheme();
   const { invoices, loading, stats } = useSelector((state) => state.invoices);
   const { user } = useSelector((state) => state.auth);
-  console.log("stats:", stats);
+//  console.log("stats:", stats);
   useEffect(() => {
     dispatch(fetchInvoices({ limit: 5 }));
   }, [dispatch]);

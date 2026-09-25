@@ -59,6 +59,7 @@ const AffiliateReferrals = ({
 }) => {
   const { theme } = useTheme();
 
+  
   const isReferral = type === 'referral';
   const isServerPaginated = Boolean(fetchUrl);
 
@@ -67,7 +68,7 @@ const AffiliateReferrals = ({
   // ============================================================
 
   const [items, setItems] = useState(initialItems);
-
+// console.log(items);
   const [pagination, setPagination] = useState(
     DEFAULT_PAGINATION
   );
@@ -95,7 +96,7 @@ const AffiliateReferrals = ({
   // ============================================================
 
   const fetchData = useCallback(
-    async (page = 1, limit = 20, status = '') => {
+    async (page = 1, limit = 5, status = '') => {
       if (!fetchUrl) return;
 
       setLoading(true);
@@ -148,11 +149,11 @@ const list =
           hasPreviousPage: page > 1,
         });
       } catch (error) {
-        console.error(
-          'Failed to fetch:',
-          error.response?.data?.message ||
-            error.message
-        );
+        // console.error(
+        //   'Failed to fetch:',
+        //   error.response?.data?.message ||
+        //     error.message
+        // );
 
         // silent — parent already shows toast if needed
       } finally {
@@ -169,7 +170,7 @@ const list =
 
   useEffect(() => {
     if (isServerPaginated) {
-      fetchData(1, 20, '');
+      fetchData(1, 5, '');
     }
   }, [isServerPaginated, fetchData]);
 

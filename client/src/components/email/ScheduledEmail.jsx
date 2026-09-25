@@ -119,7 +119,7 @@ const ScheduledEmail = () => {
       await dispatch(deleteEmail(id)).unwrap();
       toast.success('Email deleted successfully!');
     } catch (error) {
-      console.error('Delete failed:', error);
+      // console.error('Delete failed:', error);
       toast.error('Failed to delete email');
     }
   };

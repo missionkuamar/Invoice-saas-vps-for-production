@@ -14,7 +14,7 @@ import Notification from '../models/Notification.js';
 
 
 export const getDashboardStats = async (req, res) => {
-  console.log("getDashboardStats API calling");
+ // console.log("getDashboardStats API calling");
 
   try {
     const [
@@ -122,7 +122,7 @@ export const getDashboardStats = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Dashboard stats error:', error);
+    // console.error('Dashboard stats error:', error);
 
     res.status(500).json({
       success: false,
@@ -292,10 +292,10 @@ export const getUsers = async (req, res) => {
     });
 
   } catch (error) {
-    console.error(
-      'Get users error:',
-      error
-    );
+    // console.error(
+    //   'Get users error:',
+    //   error
+    // );
 
     res.status(500).json({
       success: false,

@@ -19,7 +19,7 @@ export const createOrder = createAsyncThunk(
   async (plan, { rejectWithValue }) => {
     try {
       const response = await api.post('/subscriptions/create-order', { plan });
-      console.log("create order response:", response);
+      //console.log("create order response:", response);
       // Make sure we return the data properly
       if (response.data && response.data.success) {
         return response.data.data;
@@ -27,7 +27,7 @@ export const createOrder = createAsyncThunk(
         return rejectWithValue(response.data?.message || 'Failed to create order');
       }
     } catch (error) {
-      console.error('Create order error:', error);
+      // console.error('Create order error:', error);
       const message = error.response?.data?.message || error.message || 'Failed to create order';
       return rejectWithValue(message);
     }
@@ -39,14 +39,14 @@ export const verifyPayment = createAsyncThunk(
   async (paymentData, { rejectWithValue }) => {
     try {
       const response = await api.post('/subscriptions/verify', paymentData);
-      console.log("payement verification response:", response);
+     // console.log("payement verification response:", response);
       if (response.data && response.data.success) {
         return response.data.data;
       } else {
         return rejectWithValue(response.data?.message || 'Payment verification failed');
       }
     } catch (error) {
-      console.error('Verify payment error:', error);
+      // console.error('Verify payment error:', error);
       const message = error.response?.data?.message || error.message || 'Payment verification failed';
       return rejectWithValue(message);
     }
@@ -88,19 +88,19 @@ const subscriptionSlice = createSlice({
       })
       // Create Order
       .addCase(createOrder.pending, (state) => {
-        console.log('Creating order...');
-        console.log('State before creating order:', state);
+       // console.log('Creating order...');
+       // console.log('State before creating order:', state);
         state.loading = true;
         state.error = null;
         state.orderData = null;
       })
       .addCase(createOrder.fulfilled, (state, action) => {
-        console.log('Order created:', action.payload);
+       // console.log('Order created:', action.payload);
         state.loading = false;
         state.orderData = action.payload;
       })
       .addCase(createOrder.rejected, (state, action) => {
-        console.error('Order creation failed:', action.payload);
+        // console.error('Order creation failed:', action.payload);
         state.loading = false;
         state.error = action.payload;
         state.orderData = null;
@@ -112,12 +112,12 @@ const subscriptionSlice = createSlice({
         state.error = null;
       })
       .addCase(verifyPayment.fulfilled, (state, action) => {
-        console.log('Payment verified:', action.payload);
+        //console.log('Payment verified:', action.payload);
         state.verifying = false;
         state.currentPlan = action.payload?.plan;
       })
       .addCase(verifyPayment.rejected, (state, action) => {
-        console.log('payment verified:', action.payload);
+        //console.log('payment verified:', action.payload);
         state.verifying = false;
         state.error = action.payload;
       });

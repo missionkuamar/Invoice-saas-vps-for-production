@@ -21,6 +21,7 @@ const WithdrawalTable = ({
   onCancel,
   onWithdraw,
   earnings,
+  onLimitChange,
 }) => {
   const { theme } = useTheme();
 
@@ -454,95 +455,209 @@ const WithdrawalTable = ({
       {/* =====================================================
           PAGINATION
       ====================================================== */}
-      {pagination?.pages > 1 && (
-        <div
-          className={`
-            px-4 sm:px-5
-            py-4
-            border-t
-            ${theme.colors.border}
-            flex
-            flex-col
-            sm:flex-row
-            items-center
-            justify-between
-            gap-3
-          `}
-        >
+      {/* ================= PAGINATION ================= */}
+
+      <div
+        className={`
+    px-4 sm:px-5
+    py-4
+    border-t
+    ${theme.colors.border}
+    flex
+    flex-col
+    lg:flex-row
+    items-center
+    justify-between
+    gap-4
+  `}
+      >
+        {/* LEFT SIDE */}
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+
           {/* Showing */}
           <span
-            className={`text-xs sm:text-sm ${theme.colors.text} opacity-70 text-center sm:text-left`}
+            className={`text-xs sm:text-sm ${theme.colors.text} opacity-70`}
           >
-            Showing{' '}
-            {((pagination.page - 1) * pagination.limit) + 1}{' '}
-            to{' '}
-            {Math.min(
-              pagination.page * pagination.limit,
-              pagination.total
-            )}{' '}
-            of {pagination.total}
+            Showing{" "}
+            {pagination?.startItem || 0}
+            {" – "}
+            {pagination?.endItem || 0}
+            {" of "}
+            {pagination?.total || 0}
           </span>
 
-          {/* Buttons */}
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <button
-              onClick={() => onPageChange(pagination.page - 1)}
-              disabled={pagination.page === 1}
-              className={`
-                flex-1 sm:flex-none
-                px-4 py-2
-                rounded-xl
-                border
-                ${theme.colors.border}
-                ${theme.colors.text}
-                ${theme.colors.hover}
-                transition-colors
-                disabled:opacity-40
-                disabled:cursor-not-allowed
-                text-xs sm:text-sm
-                font-medium
-              `}
+          {/* ITEMS PER PAGE */}
+          <div className="flex items-center gap-2">
+            <span
+              className={`text-xs sm:text-sm ${theme.colors.text} opacity-70 whitespace-nowrap`}
             >
-              ← Previous
-            </button>
+              Items per page:
+            </span>
 
-            <div
+            <select
+              value={pagination?.limit || 20}
+              onChange={(e) =>
+                onLimitChange(Number(e.target.value))
+              }
               className={`
-                px-3 py-2
-                rounded-xl
-                ${theme.colors.background}
-                ${theme.colors.text}
-                text-xs sm:text-sm
-                font-medium
-                whitespace-nowrap
-              `}
+          px-3
+          py-2
+          rounded-lg
+          border
+          ${theme.colors.border}
+          ${theme.colors.background}
+          ${theme.colors.text}
+          text-xs
+          sm:text-sm
+          font-medium
+          outline-none
+          cursor-pointer
+        `}
             >
-              {pagination.page} / {pagination.pages}
-            </div>
-
-            <button
-              onClick={() => onPageChange(pagination.page + 1)}
-              disabled={pagination.page === pagination.pages}
-              className={`
-                flex-1 sm:flex-none
-                px-4 py-2
-                rounded-xl
-                border
-                ${theme.colors.border}
-                ${theme.colors.text}
-                ${theme.colors.hover}
-                transition-colors
-                disabled:opacity-40
-                disabled:cursor-not-allowed
-                text-xs sm:text-sm
-                font-medium
-              `}
-            >
-              Next →
-            </button>
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+              <option value={200}>200</option>
+            </select>
           </div>
         </div>
-      )}
+
+
+        {/* RIGHT SIDE */}
+        <div className="flex items-center gap-1 sm:gap-2">
+
+          {/* FIRST */}
+          <button
+            onClick={() =>
+              onPageChange(pagination.firstPage)
+            }
+            disabled={
+              !pagination?.hasPreviousPage
+            }
+            className={`
+        px-3
+        py-2
+        rounded-lg
+        border
+        ${theme.colors.border}
+        ${theme.colors.text}
+        text-xs
+        sm:text-sm
+        font-medium
+        disabled:opacity-40
+        disabled:cursor-not-allowed
+        hover:bg-black/5
+      `}
+          >
+            First
+          </button>
+
+
+          {/* PREVIOUS */}
+          <button
+            onClick={() =>
+              onPageChange(pagination.previousPage)
+            }
+            disabled={
+              !pagination?.hasPreviousPage
+            }
+            className={`
+        px-3
+        py-2
+        rounded-lg
+        border
+        ${theme.colors.border}
+        ${theme.colors.text}
+        text-xs
+        sm:text-sm
+        font-medium
+        disabled:opacity-40
+        disabled:cursor-not-allowed
+        hover:bg-black/5
+      `}
+          >
+            Previous
+          </button>
+
+
+          {/* PAGE NUMBER */}
+          <div
+            className={`
+        px-3
+        sm:px-4
+        py-2
+        rounded-lg
+        ${theme.colors.background}
+        ${theme.colors.text}
+        text-xs
+        sm:text-sm
+        font-semibold
+        whitespace-nowrap
+      `}
+          >
+            Page {pagination?.page || 1}
+            {" / "}
+            {pagination?.pages || 1}
+          </div>
+
+
+          {/* NEXT */}
+          <button
+            onClick={() =>
+              onPageChange(pagination.nextPage)
+            }
+            disabled={
+              !pagination?.hasNextPage
+            }
+            className={`
+        px-3
+        py-2
+        rounded-lg
+        border
+        ${theme.colors.border}
+        ${theme.colors.text}
+        text-xs
+        sm:text-sm
+        font-medium
+        disabled:opacity-40
+        disabled:cursor-not-allowed
+        hover:bg-black/5
+      `}
+          >
+            Next
+          </button>
+
+
+          {/* LAST */}
+          <button
+            onClick={() =>
+              onPageChange(pagination.lastPage)
+            }
+            disabled={
+              !pagination?.hasNextPage
+            }
+            className={`
+        px-3
+        py-2
+        rounded-lg
+        border
+        ${theme.colors.border}
+        ${theme.colors.text}
+        text-xs
+        sm:text-sm
+        font-medium
+        disabled:opacity-40
+        disabled:cursor-not-allowed
+        hover:bg-black/5
+      `}
+          >
+            Last
+          </button>
+
+        </div>
+      </div>
     </div>
   );
 };

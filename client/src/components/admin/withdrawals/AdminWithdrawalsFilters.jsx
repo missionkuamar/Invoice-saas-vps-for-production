@@ -3,12 +3,12 @@ import React from 'react';
 import { FaSearch } from 'react-icons/fa';
 import { useTheme } from '../../../themes/ThemeProvider';
 
-const AdminWithdrawalsFilters = ({ 
-  filters, 
-  searchTerm, 
-  onStatusChange, 
-  onSearch, 
-  onClearFilters 
+const AdminWithdrawalsFilters = ({
+  filters,
+  searchTerm,
+  onStatusChange,
+  onSearch,
+  onClearFilters
 }) => {
   const { theme } = useTheme();
 
@@ -27,20 +27,21 @@ const AdminWithdrawalsFilters = ({
             />
           </div>
         </div>
-        
+
         <select
           value={filters.status}
           onChange={(e) => onStatusChange(e.target.value)}
           className={`px-3 py-2 rounded-xl border ${theme.colors.border} ${theme.colors.text} bg-transparent focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm w-full lg:w-auto`}
         >
-          <option value="">All Status</option>
+          <option value="">📋 All Status</option>
           <option value="pending">⏳ Pending</option>
           <option value="approved">✅ Approved</option>
           <option value="processing">🔄 Processing</option>
+          <option value="cancelled">🚫 Cancelled</option>
           <option value="completed">🎉 Completed</option>
           <option value="failed">❌ Failed</option>
         </select>
-        
+
         <button
           onClick={onClearFilters}
           className={`px-4 py-2 rounded-xl border ${theme.colors.border} ${theme.colors.text} hover:${theme.colors.hover} transition-colors text-sm w-full lg:w-auto`}

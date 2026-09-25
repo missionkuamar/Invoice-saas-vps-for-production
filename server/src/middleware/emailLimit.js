@@ -44,7 +44,7 @@ export const checkEmailLimit = async (req, res, next) => {
     req.userData = user;
     next();
   } catch (error) {
-    console.error('Email limit check error:', error);
+    // console.error('Email limit check error:', error);
     return res.status(500).json({
       success: false,
       message: 'Error checking email limit',

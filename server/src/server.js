@@ -64,23 +64,48 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
   'http://localhost:5000',
-  'http://127.0.0.1:5173',
-  'http://127.0.0.1:3000',
-  'https://invoice-saas-with-email.onrender.com',
-  
-  process.env.CLIENT_URL
+  'https://invoicehub.fun',
+  'https://www.invoicehub.fun',
+  'https://invoicehub-fun-frontend-dmye.vercel.app',
+  process.env.FRONTEND_URL,
+  process.env.CLIENT_URL,
 ].filter(Boolean);
 
 // CORS middleware
-app.use(cors({
-  origin: allowedOrigins,
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // console.log('CORS Origin:', origin);
 
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        // console.log('❌ CORS BLOCKED:', origin);
+        callback(new Error(`CORS blocked: ${origin}`));
+      }
+    },
+    credentials: true,
+  })
+);
+// server.js / index.js
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: true,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production', // true in prod (HTTPS)
+    httpOnly: true,
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // ✅ important!
+    maxAge: 24 * 60 * 60 * 1000,
+  }
+}));
 // Body parsing middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', env: process.env.NODE_ENV });
+});
 // Static files
 app.use('/uploads', express.static('uploads'));
 
@@ -93,7 +118,7 @@ app.get('/r/:slug', async (req, res) => {
     const { slug } = req.params;
     const { ref } = req.query;
 
-  //  console.log(`🔗 Affiliate redirect: /r/${slug}?ref=${ref}`);
+    //  console.log(`🔗 Affiliate redirect: /r/${slug}?ref=${ref}`);
 
     // Import the controller function dynamically
     const { trackAffiliateClick } = await import('./controllers/affiliateController.js');
@@ -101,7 +126,7 @@ app.get('/r/:slug', async (req, res) => {
     // Call the controller with the request and response
     return trackAffiliateClick(req, res);
   } catch (error) {
-  //  console.error('Affiliate redirect error:', error);
+    //  console.error('Affiliate redirect error:', error);
     res.redirect('/');
   }
 });
@@ -121,9 +146,9 @@ app.use('/api/emails', emailRoutes);
 app.use('/api/invoices', invoiceEmailRoutes);
 
 // Health check
-// app.get('/api/health', (req, res) => {
-//   res.status(200).json({ status: 'ok', message: 'Server is running' });
-// });
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'ok', message: 'Server is running' });
+});
 
 // ============ ERROR HANDLING ============
 
@@ -146,18 +171,19 @@ app.use('/api/invoices', invoiceEmailRoutes);
 // });
 
 // Serve static files from the 'client/dist' folder
-app.use(express.static(path.join(__dirname, 'client', 'dist')));
+
+////app.use(express.static(path.join(__dirname, 'client', 'dist')));
 
 // Catch-all route to serve index.html for frontend React app (This should be last)
-app.use((req, res, next) => {
-  res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
-});
+// app.use((req, res, next) => {
+//   res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
+// });
 
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   startScheduler();
-   console.log(`🚀 Server running on port ${PORT}`);
-   console.log(`📁 Uploads directory: ${path.resolve(uploadsDir)}`);
-   console.log(`🔗 Affiliate links: http://localhost:${PORT}/r/:slug`);
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`📁 Uploads directory: ${path.resolve(uploadsDir)}`);
+  console.log(`🔗 Affiliate links: http://localhost:${PORT}/r/:slug`);
 });

@@ -90,11 +90,11 @@ const AffiliateDashboard = () => {
         response.data?.data?.withdrawals || []
       );
     } catch (error) {
-      console.error(
-        'Failed to fetch withdrawals:',
-        error.response?.data?.message ||
-          error.message
-      );
+      // console.error(
+      //   'Failed to fetch withdrawals:',
+      //   error.response?.data?.message ||
+      //   error.message
+      // );
     }
   }, []);
 
@@ -111,10 +111,10 @@ const AffiliateDashboard = () => {
     setLoading(true);
 
     try {
-      console.log('API REQUEST:', {
-        page: linksPagination.page,
-        limit: linksPagination.limit,
-      });
+      // console.log('API REQUEST:', {
+      //   page: linksPagination.page,
+      //   limit: linksPagination.limit,
+      // });
 
       const response = await api.get('/affiliate/dashboard', {
         params: {
@@ -129,8 +129,8 @@ const AffiliateDashboard = () => {
         throw new Error('Invalid affiliate dashboard response');
       }
 
-      console.log('API RESPONSE pagination:', data.linkPagination);
-      console.log('API RESPONSE links:', data.links);
+      // console.log('API RESPONSE pagination:', data.linkPagination);
+      // console.log('API RESPONSE links:', data.links);
 
       setAffiliate(data.affiliate || null);
       setStats(data.stats || null);
@@ -168,7 +168,7 @@ const AffiliateDashboard = () => {
           error.message ||
           'Failed to load affiliate dashboard';
 
-        console.error('Affiliate dashboard error:', message);
+        // console.error('Affiliate dashboard error:', message);
         toast.error(message);
       }
     } finally {
@@ -219,7 +219,7 @@ const AffiliateDashboard = () => {
         error.response?.data?.message ||
         'Failed to join affiliate program';
 
-      console.error(message);
+      // console.error(message);
       toast.error(message);
     }
   };
@@ -232,7 +232,7 @@ const AffiliateDashboard = () => {
   const handleLinkPageChange = (page) => {
     const newPage = Number(page);
 
-    console.log('PAGE CHANGE:', newPage);
+    //console.log('PAGE CHANGE:', newPage);
 
     if (!Number.isInteger(newPage) || newPage < 1) {
       return;
@@ -256,7 +256,7 @@ const AffiliateDashboard = () => {
   const handleLinkLimitChange = (limit) => {
     const newLimit = Number(limit);
 
-    console.log('LIMIT CHANGE:', newLimit);
+    // console.log('LIMIT CHANGE:', newLimit);
 
     const allowedLimits = [5, 10, 20, 50, 100, 200];
 
@@ -341,7 +341,7 @@ const AffiliateDashboard = () => {
         error.response?.data?.message ||
         'Failed to create affiliate link';
 
-      console.error('Create affiliate link:', message);
+      // console.error('Create affiliate link:', message);
       toast.error(message);
     } finally {
       setIsCreatingLink(false);
@@ -403,7 +403,7 @@ const AffiliateDashboard = () => {
         error.response?.data?.message ||
         'Failed to delete affiliate link';
 
-      console.error('Delete affiliate link:', message);
+      // console.error('Delete affiliate link:', message);
       toast.error(message);
     }
   };
@@ -415,17 +415,22 @@ const AffiliateDashboard = () => {
 
   const handleCopyLink = async (slug, code) => {
     try {
-      const backendUrl =
-        import.meta.env.VITE_API_URL ||
-        'http://localhost:5000';
+      
+ const frontendUrl =
+      import.meta.env.VITE_FRONTEND_URL ||
+      (import.meta.env.DEV ? 'http://localhost:3000' : '');
 
-      const url = `${backendUrl}/r/${slug}?ref=${code}`;
+    if (!frontendUrl) {
+      console.error('❌ RRONTEND_URL missing');
+      return;
+    }
+      const url = `${frontendUrl}/r/${slug}?ref=${code}`;
 
       await navigator.clipboard.writeText(url);
 
       toast.success('Affiliate link copied!');
     } catch (error) {
-      console.error('Copy failed:', error);
+      // console.error('Copy failed:', error);
       toast.error('Failed to copy link');
     }
   };
@@ -540,23 +545,23 @@ const AffiliateDashboard = () => {
         {/* ================================================== */}
 
         {showHistory && (
-  <AffiliateReferrals
-    title="Withdrawal History"
-    type="withdrawal"
-    fetchUrl="/affiliate/withdrawals"
-    onClose={() => setShowHistory(false)}
-    availableStatuses={[
-      { value: '', label: 'All' },
-      { value: 'pending', label: 'Pending' },
-      { value: 'approved', label: 'Approved' },
-      { value: 'processing', label: 'Processing' },
-      { value: 'completed', label: 'Completed' },
-      { value: 'failed', label: 'Failed' },
-      { value: 'cancelled', label: 'Cancelled' },
-      { value: 'rejected', label: 'Rejected' },
-    ]}
-  />
-)}
+          <AffiliateReferrals
+            title="Withdrawal History"
+            type="withdrawal"
+            fetchUrl="/affiliate/withdrawals"
+            onClose={() => setShowHistory(false)}
+            availableStatuses={[
+              { value: '', label: 'All' },
+              { value: 'pending', label: 'Pending' },
+              { value: 'approved', label: 'Approved' },
+              { value: 'processing', label: 'Processing' },
+              { value: 'completed', label: 'Completed' },
+              { value: 'failed', label: 'Failed' },
+              { value: 'cancelled', label: 'Cancelled' },
+              { value: 'rejected', label: 'Rejected' },
+            ]}
+          />
+        )}
 
 
         {/* ================================================== */}
@@ -579,23 +584,23 @@ const AffiliateDashboard = () => {
         {/* RECENT REFERRALS */}
         {/* ================================================== */}
 
-       {/* ================================================== */}
-{/* REFERRALS (full paginated) */}
-{/* ================================================== */}
+        {/* ================================================== */}
+        {/* REFERRALS (full paginated) */}
+        {/* ================================================== */}
 
-<AffiliateReferrals
-  title="Referrals"
-  type="referral"
-  fetchUrl="/affiliate/referrals"
-  availableStatuses={[
-    { value: '', label: 'All' },
-    { value: 'subscribed', label: 'Subscribed' },
-    { value: 'registered', label: 'Registered' },
-    { value: 'pending', label: 'Pending' },
-    { value: 'approved', label: 'Approved' },
-   
-  ]}
-/>
+        <AffiliateReferrals
+          title="Referrals"
+          type="referral"
+          fetchUrl="/affiliate/referrals"
+          availableStatuses={[
+            { value: '', label: 'All' },
+            { value: 'subscribed', label: 'Subscribed' },
+            { value: 'registered', label: 'Registered' },
+            { value: 'pending', label: 'Pending' },
+            { value: 'approved', label: 'Approved' },
+
+          ]}
+        />
 
 
         {/* ================================================== */}

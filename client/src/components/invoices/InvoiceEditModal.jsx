@@ -77,25 +77,110 @@ const InvoiceEditModal = ({ isOpen, onClose, invoice, onSuccess }) => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      await dispatch(
-        updateInvoice({
-          id: invoice._id,
-          data: formData,
-        })
-      ).unwrap();
-      toast.success('Invoice updated successfully');
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  if (!invoice?._id) {
+    toast.error("Invalid invoice");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const payload = {
+      status: formData?.status || "draft",
+
+      notes:
+        formData?.notes || "",
+
+      terms:
+        formData?.terms || "",
+
+      dueDate:
+        formData?.dueDate || null,
+
+      client: {
+        name:
+          formData?.client?.name || "",
+
+        email:
+          formData?.client?.email || "",
+
+        phone:
+          formData?.client?.phone || "",
+
+        address:
+          formData?.client?.address || "",
+
+        gst:
+          formData?.client?.gst || "",
+      },
+
+      items: Array.isArray(
+        formData?.items
+      )
+        ? formData.items.map((item) => ({
+            ...item,
+
+            quantity:
+              Number(item?.quantity) || 0,
+
+            rate:
+              Number(item?.rate) || 0,
+          }))
+        : [],
+    };
+
+    // console.log(
+    //   "📤 UPDATE INVOICE PAYLOAD:",
+    //   payload
+    // );
+
+    // console.log(
+    //   "🆔 INVOICE ID:",
+    //   invoice._id
+    // );
+
+    await dispatch(
+      updateInvoice({
+        id: invoice._id,
+        data: payload,
+      })
+    ).unwrap();
+
+    toast.success(
+      "Invoice updated successfully"
+    );
+
+    if (
+      typeof onSuccess === "function"
+    ) {
       onSuccess();
-      onClose();
-    } catch (error) {
-      toast.error(error || 'Failed to update invoice');
-    } finally {
-      setLoading(false);
     }
-  };
+
+    if (
+      typeof onClose === "function"
+    ) {
+      onClose();
+    }
+
+  } catch (error) {
+    // console.error(
+    //   "❌ UPDATE INVOICE ERROR:",
+    //   error
+    // );
+
+    toast.error(
+      error?.message ||
+      error?.response?.data?.message ||
+      "Failed to update invoice"
+    );
+
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (!isOpen || !invoice) return null;
 

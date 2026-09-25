@@ -81,7 +81,7 @@ const Sidebar = ({ onClose }) => {
         response.data?.data?.pendingWithdrawals || 0
       );
     } catch (error) {
-      console.error('Failed to fetch admin stats:', error);
+      // console.error('Failed to fetch admin stats:', error);
     }
   };
 

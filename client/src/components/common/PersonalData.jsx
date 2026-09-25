@@ -27,7 +27,7 @@ export const PersonalData = () => {
     dispatch(fetchInvoices({ limit: 5 }));
   }, [dispatch]);
 
-  console.log(invoices);
+ // console.log(invoices);
 
   if (!user) {
     return (

@@ -1,8 +1,9 @@
 import express from 'express';
-import { deleteEmail, 
-    getMyEmails, 
-    scheduleEmail,
-     sendInvoice,
+import {
+  deleteEmail,
+  getMyEmails,
+  scheduleEmail,
+  sendInvoice,
   sendPaymentReminder,
   sendOverdueAlert,
   sendPaymentConfirmation,
@@ -14,8 +15,8 @@ import { deleteEmail,
   sendCreditNote,
   getEmailStats,
   getEmailStatsSummary,
-  
- } from '../controllers/emailController.js';
+
+} from '../controllers/emailController.js';
 import { protect } from '../middleware/auth.js';
 import { upload } from '../config/multer.js';
 
@@ -27,10 +28,32 @@ router.post('/schedule', protect, scheduleEmail);
 router.get('/my-emails', protect, getMyEmails);
 router.delete('/:id', protect, deleteEmail);
 
-router.get('/stats',protect,  getEmailStats);
-router.get('/stats/summary',protect,  getEmailStatsSummary); 
+router.get('/stats', protect, getEmailStats);
+router.get('/stats/summary', protect, getEmailStatsSummary);
 // All email types
-router.post('/send-invoice', protect, upload .array('attachments', 5), sendInvoice);
+router.post(
+  "/send-invoice",
+  (req, res, next) => {
+    // console.log("🔥 SEND-INVOICE ROUTE HIT");
+    // console.log("Method:", req.method);
+    // console.log("Content-Type:", req.headers["content-type"]);
+    next();
+  },
+  protect,
+  (req, res, next) => {
+    // console.log("✅ PROTECT PASSED");
+    // console.log("User:", req.user?._id);
+    next();
+  },
+  upload.array("attachments", 5),
+  (req, res, next) => {
+    // console.log("✅ MULTER PASSED");
+    // console.log("Body:", req.body);
+    // console.log("Files:", req.files?.length || 0);
+    next();
+  },
+  sendInvoice
+);
 router.post('/send-reminder', protect, sendPaymentReminder);
 router.post('/send-overdue', protect, sendOverdueAlert);
 router.post('/send-confirmation', protect, sendPaymentConfirmation);

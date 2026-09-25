@@ -35,6 +35,7 @@ const AdminWithdrawals = () => {
     totalWithdrawals,
   } = useSelector((state) => state.withdrawals);
 
+  // console.log("withdrawals", withdrawals)
   const { user } = useSelector((state) => state.auth);
 
   const [filters, setFilters] = useState({ status: '' });

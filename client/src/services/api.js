@@ -2,18 +2,35 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-// Get API URL from environment or use default
-//const API_URL = import.meta.env.VITE_API_URL_API || 'http://localhost:5000/api';
-//const API_URL = https://invoice-saas-with-email.onrender.com
-const API_URL = "http://localhost:3000/api";
-// Create axios instance
-const api = axios.create({
-  baseURL: API_URL,
+
+// Ek hi jagah API URL define karo
+const getApiUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+
+  if (envUrl && envUrl.trim()) {
+    return envUrl.trim().replace(/\/+$/, '');
+  }
+
+  // Development fallback
+  if (import.meta.env.DEV) {
+    return 'http://localhost:5000/api';
+  }
+
+  throw new Error('❌ VITE_API_URL is missing in production');
+};
+
+export const API_URL = getApiUrl();
+
+export const api = axios.create({
+  baseURL: API_URL.replace(/\/+$/, ''),
   headers: {
     'Content-Type': 'application/json',
+    Accept: 'application/json',
   },
   timeout: 30000,
+  withCredentials: true,
 });
+
 
 // Request interceptor to add token
 api.interceptors.request.use(

@@ -44,7 +44,7 @@ const InvoiceDownloadButton = ({
       toast.success('Print dialog opened');
       onSuccess?.();
     } catch (err) {
-      console.error(err);
+      // console.error(err);
       toast.error('Failed to print');
     }
   };
@@ -98,7 +98,7 @@ const InvoiceDownloadButton = ({
       toast.success('PDF downloaded successfully!');
       onSuccess?.();
     } catch (err) {
-      console.error('PDF download failed:', err);
+      // console.error('PDF download failed:', err);
       toast.error('Failed to download PDF');
     } finally {
       setLoading(false);
@@ -157,7 +157,7 @@ const InvoiceDownloadButton = ({
         setLoading(false);
       }, 'image/png');
     } catch (err) {
-      console.error('Image download failed:', err);
+      // console.error('Image download failed:', err);
       toast.error('Failed to download image');
       setLoading(false);
     }

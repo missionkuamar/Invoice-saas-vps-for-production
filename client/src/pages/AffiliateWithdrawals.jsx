@@ -39,7 +39,19 @@ const AffiliateWithdrawals = () => {
   const [withdrawals, setWithdrawals] = useState([]);
   const [stats, setStats] = useState(null);
   const [withdrawStats, setWithdrawStats] = useState(null);
+
+  // console.log("withrawStats", withdrawStats)
   const [earnings, setEarnings] = useState(0);
+
+
+  const handleLimitChange = (newLimit) => {
+    setPagination((prev) => ({
+      ...prev,
+      page: 1,
+      limit: Number(newLimit),
+    }));
+  };
+
 
   // ============================================================
   // PAGINATION
@@ -47,7 +59,7 @@ const AffiliateWithdrawals = () => {
 
   const [pagination, setPagination] = useState({
     page: 1,
-    limit: 10,
+    limit: 5,
     total: 0,
     pages: 0,
   });
@@ -135,14 +147,14 @@ const AffiliateWithdrawals = () => {
         Number(totalEarnings) || 0
       );
     } catch (error) {
-      console.error(
-        'Failed to fetch earnings:',
-        error
-      );
+      // console.error(
+      //   'Failed to fetch earnings:',
+      //   error
+      // );
 
       toast.error(
         error.response?.data?.message ||
-          'Failed to load earnings'
+        'Failed to load earnings'
       );
     }
   }, []);
@@ -162,14 +174,14 @@ const AffiliateWithdrawals = () => {
         response?.data?.data || null
       );
     } catch (error) {
-      console.error(
-        'Failed to fetch withdrawal stats:',
-        error
-      );
+      // console.error(
+      //   'Failed to fetch withdrawal stats:',
+      //   error
+      // );
 
       toast.error(
         error.response?.data?.message ||
-          'Failed to load withdrawal stats'
+        'Failed to load withdrawal stats'
       );
     }
   }, []);
@@ -222,11 +234,11 @@ const AffiliateWithdrawals = () => {
             params,
           }
         );
-
+        // console.log("response",response);
         if (!response?.data?.success) {
           toast.error(
             response?.data?.message ||
-              'Failed to load withdrawals'
+            'Failed to load withdrawals'
           );
 
           return;
@@ -253,14 +265,14 @@ const AffiliateWithdrawals = () => {
             prev.limit,
         }));
       } catch (error) {
-        console.error(
-          'Fetch withdrawals error:',
-          error
-        );
+        // console.error(
+        //   'Fetch withdrawals error:',
+        //   error
+        // );
 
         toast.error(
           error.response?.data?.message ||
-            'Failed to load withdrawals'
+          'Failed to load withdrawals'
         );
       } finally {
         setLoading(false);
@@ -309,9 +321,7 @@ const AffiliateWithdrawals = () => {
   const handleWithdraw = async (e) => {
     e.preventDefault();
 
-    const amountNum = Number(
-      parseFloat(amount)
-    );
+    const amountNum = Number(parseFloat(amount));
 
     const MIN_WITHDRAWAL = 100;
     const MAX_WITHDRAWAL = 10000;
@@ -320,20 +330,13 @@ const AffiliateWithdrawals = () => {
     // VALIDATION
     // ----------------------------------------------------------
 
-    if (
-      !Number.isFinite(amountNum) ||
-      amountNum <= 0
-    ) {
-      toast.error(
-        'Please enter a valid withdrawal amount'
-      );
+    if (!Number.isFinite(amountNum) || amountNum <= 0) {
+      toast.error("Please enter a valid withdrawal amount");
       return;
     }
 
     if (amountNum < MIN_WITHDRAWAL) {
-      toast.error(
-        `Minimum withdrawal is ₹${MIN_WITHDRAWAL}`
-      );
+      toast.error(`Minimum withdrawal is ₹${MIN_WITHDRAWAL}`);
       return;
     }
 
@@ -345,10 +348,73 @@ const AffiliateWithdrawals = () => {
     }
 
     if (amountNum > earnings) {
-      toast.error(
-        'Insufficient earnings'
-      );
+      toast.error("Insufficient earnings");
       return;
+    }
+
+    // ----------------------------------------------------------
+    // NORMALIZE PAYMENT DETAILS
+    // ----------------------------------------------------------
+
+    const normalizedPaymentDetails = {
+      ...paymentDetails,
+
+      accountHolderName:
+        paymentDetails?.accountHolderName?.trim() || "",
+
+      bankName:
+        paymentDetails?.bankName?.trim() || "",
+
+      accountNumber:
+        paymentDetails?.accountNumber?.trim() || "",
+
+      // IMPORTANT:
+      // Frontend has ifscCode
+      // Backend expects ifsc
+      ifsc:
+        paymentDetails?.ifsc?.trim() ||
+        paymentDetails?.ifscCode?.trim() ||
+        "",
+
+      upiId:
+        paymentDetails?.upiId?.trim() || "",
+
+      upiName:
+        paymentDetails?.upiName?.trim() || "",
+
+      paypalEmail:
+        paymentDetails?.paypalEmail?.trim() || "",
+
+      paypalName:
+        paymentDetails?.paypalName?.trim() || "",
+    };
+
+    // ----------------------------------------------------------
+    // BANK VALIDATION
+    // ----------------------------------------------------------
+
+    if (paymentMethod === "bank") {
+      if (
+        !normalizedPaymentDetails.accountHolderName ||
+        !normalizedPaymentDetails.accountNumber ||
+        !normalizedPaymentDetails.ifsc
+      ) {
+        toast.error(
+          "Please enter Account Holder Name, Account Number and IFSC Code"
+        );
+        return;
+      }
+    }
+
+    // ----------------------------------------------------------
+    // UPI VALIDATION
+    // ----------------------------------------------------------
+
+    if (paymentMethod === "upi") {
+      if (!normalizedPaymentDetails.upiId) {
+        toast.error("Please enter your UPI ID");
+        return;
+      }
     }
 
     // ----------------------------------------------------------
@@ -361,24 +427,41 @@ const AffiliateWithdrawals = () => {
       const payload = {
         amount: amountNum,
         paymentMethod,
-        paymentDetails,
+        paymentDetails: normalizedPaymentDetails,
       };
 
+      // DEBUG
+      // console.log("=================================");
+      // console.log("💰 WITHDRAWAL REQUEST");
+      // console.log("Amount:", amountNum);
+      // console.log("Payment Method:", paymentMethod);
+      // console.log(
+      //   "Payment Details:",
+      //   normalizedPaymentDetails
+      // );
+      // console.log("Payload:", payload);
+      // console.log("=================================");
+
       const response = await api.post(
-        '/affiliate/withdraw',
+        "/affiliate/withdraw",
         payload
       );
+
+      // console.log(
+      //   "✅ WITHDRAWAL RESPONSE:",
+      //   response?.data
+      // );
 
       if (!response?.data?.success) {
         toast.error(
           response?.data?.message ||
-            'Failed to request withdrawal'
+          "Failed to request withdrawal"
         );
         return;
       }
 
       toast.success(
-        'Withdrawal request submitted! Admin will process it shortly.'
+        "Withdrawal request submitted! Admin will process it shortly."
       );
 
       // --------------------------------------------------------
@@ -386,7 +469,7 @@ const AffiliateWithdrawals = () => {
       // --------------------------------------------------------
 
       setShowWithdrawModal(false);
-      setAmount('');
+      setAmount("");
       resetPaymentDetails();
 
       // --------------------------------------------------------
@@ -394,16 +477,30 @@ const AffiliateWithdrawals = () => {
       // --------------------------------------------------------
 
       await refreshAllData();
+
     } catch (error) {
-      console.error(
-        'Withdrawal error:',
-        error
-      );
+
+      // console.error("=================================");
+      // console.error("❌ WITHDRAWAL ERROR");
+      // console.error(
+      //   "Status:",
+      //   error?.response?.status
+      // );
+      // console.error(
+      //   "Response:",
+      //   error?.response?.data
+      // );
+      // console.error(
+      //   "Message:",
+      //   error?.message
+      // );
+      // console.error("=================================");
 
       toast.error(
-        error.response?.data?.message ||
-          'Failed to request withdrawal'
+        error?.response?.data?.message ||
+        "Failed to request withdrawal"
       );
+
     } finally {
       setWithdrawLoading(false);
     }
@@ -432,7 +529,7 @@ const AffiliateWithdrawals = () => {
       if (!response?.data?.success) {
         toast.error(
           response?.data?.message ||
-            'Failed to cancel withdrawal'
+          'Failed to cancel withdrawal'
         );
         return;
       }
@@ -443,14 +540,14 @@ const AffiliateWithdrawals = () => {
 
       await refreshAllData();
     } catch (error) {
-      console.error(
-        'Cancel withdrawal error:',
-        error
-      );
+      // console.error(
+      //   'Cancel withdrawal error:',
+      //   error
+      // );
 
       toast.error(
         error.response?.data?.message ||
-          'Failed to cancel withdrawal'
+        'Failed to cancel withdrawal'
       );
     }
   };
@@ -669,6 +766,7 @@ const AffiliateWithdrawals = () => {
           <WithdrawalTable
             withdrawals={withdrawals}
             loading={loading}
+            onLimitChange={handleLimitChange}
             pagination={pagination}
             onPageChange={
               handlePageChange

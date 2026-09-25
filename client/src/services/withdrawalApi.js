@@ -1,16 +1,46 @@
 // frontend/src/services/withdrawalApi.js
-import axios from 'axios';
+
 import { get, post, put, del } from './api';
 
 // Get API URL from environment
-const API_URL = import.meta.env.VITE_API_URL_API || 'http://localhost:5000/api';
+import axios from "axios";
 
-// Create a separate axios instance for withdrawal endpoints
-const withdrawalAxios = axios.create({
-  baseURL: API_URL,
+import axios from 'axios';
+
+// Ek hi jagah API URL define karo
+const getApiUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+
+  if (envUrl && envUrl.trim()) {
+    return envUrl.trim().replace(/\/+$/, '');
+  }
+
+  // Development fallback
+  if (import.meta.env.DEV) {
+    return 'http://localhost:5000/api';
+  }
+
+  throw new Error('❌ VITE_API_URL is missing in production');
+};
+
+export const API_URL = getApiUrl();
+
+export const api = axios.create({
+  baseURL: API_URL.replace(/\/+$/, ''),
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
+  },
+  timeout: 30000,
+  withCredentials: true,
+});
+
+
+export const withdrawalAxios = axios.create({
+  baseURL: API_URL,
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
   },
   timeout: 30000,
   withCredentials: true,

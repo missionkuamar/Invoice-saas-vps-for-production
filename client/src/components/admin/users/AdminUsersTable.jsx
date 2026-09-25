@@ -26,7 +26,7 @@ const AdminUsersTable = ({
   const { theme } = useTheme();
 
 
-  console.log("user.picture", users)
+  //console.log("user.picture", users)
   // ---------------------------------------------------------
   // Status Badge
   // ---------------------------------------------------------

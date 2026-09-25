@@ -1,7 +1,7 @@
 import Invoice from '../models/Invoice.js';
 import User from '../models/User.js';
 import { generateInvoiceNumber } from '../utils/invoiceNumberGenerator.js';
-
+import mongoose from 'mongoose';
 // @desc    Create invoice
 // @route   POST /api/invoices
 // controllers/invoiceController.js
@@ -23,15 +23,15 @@ export const createInvoice = async (req, res) => {
       issueDate,
     } = req.body;
 
-    console.log(
-      'Request body creating invoice:',
-      client,
-      items,
-      dueDate,
-      notes,
-      terms,
-      status
-    );
+    // console.log(
+    //   'Request body creating invoice:',
+    //   client,
+    //   items,
+    //   dueDate,
+    //   notes,
+    //   terms,
+    //   status
+    // );
 
     // ============================================================
     // VALIDATION
@@ -117,58 +117,52 @@ export const createInvoice = async (req, res) => {
     // ============================================================
 
     let subtotal = 0;
+    let totalTax = 0;
 
     const itemsWithAmount = items.map((item) => {
+      const quantity = Number(item.quantity);
+      const rate = Number(item.rate);
+      const taxRate = Number(item.taxRate) || 0;
+      const discount = Number(item.discount) || 0;
 
-      const quantity =
-        Number(item.quantity);
-
-      const rate =
-        Number(item.rate);
-
-      if (
-        !Number.isFinite(quantity) ||
-        quantity <= 0
-      ) {
-        throw new Error(
-          'Invalid item quantity'
-        );
+      if (!Number.isFinite(quantity) || quantity <= 0) {
+        throw new Error('Invalid item quantity');
       }
 
-      if (
-        !Number.isFinite(rate) ||
-        rate < 0
-      ) {
-        throw new Error(
-          'Invalid item rate'
-        );
+      if (!Number.isFinite(rate) || rate < 0) {
+        throw new Error('Invalid item rate');
       }
 
-      const amount =
-        quantity * rate;
+      if (!Number.isFinite(taxRate) || taxRate < 0) {
+        throw new Error('Invalid tax rate');
+      }
+
+      const amount = quantity * rate;
+
+      // Item discount
+      const discountAmount = (amount * discount) / 100;
+
+      const taxableAmount = amount - discountAmount;
+
+      // Item tax
+      const itemTax = (taxableAmount * taxRate) / 100;
 
       subtotal += amount;
+      totalTax += itemTax;
 
       return {
         ...item,
-
         quantity,
-
         rate,
-
         amount,
+        taxRate,
+        discount,
+        taxAmount: itemTax,
       };
     });
 
-    // ============================================================
-    // TAX
-    // ============================================================
-
-    const tax =
-      subtotal * 0.18;
-
-    const total =
-      subtotal + tax;
+    const tax = totalTax;
+    const total = subtotal - 0 + tax;
 
     // ============================================================
     // INVOICE NUMBER
@@ -259,14 +253,14 @@ export const createInvoice = async (req, res) => {
     // RESPONSE
     // ============================================================
 
-    console.log("========== SUBSCRIPTION CHECK ==========");
-    console.log("Plan:", user.subscription.plan);
-    console.log("Status:", user.subscription.status);
-    console.log("Now:", new Date());
-    console.log("End Date:", user.subscription.endDate);
-    console.log("Period End:", user.subscription.currentPeriodEnd);
-    console.log("Can Create:", canCreate);
-    console.log("========================================");
+    // console.log("========== SUBSCRIPTION CHECK ==========");
+    // console.log("Plan:", user.subscription.plan);
+    // console.log("Status:", user.subscription.status);
+    // console.log("Now:", new Date());
+    // console.log("End Date:", user.subscription.endDate);
+    // console.log("Period End:", user.subscription.currentPeriodEnd);
+    // console.log("Can Create:", canCreate);
+    // console.log("========================================");
 
 
 
@@ -289,10 +283,10 @@ export const createInvoice = async (req, res) => {
 
   } catch (error) {
 
-    console.error(
-      'Create Invoice Error:',
-      error
-    );
+    // console.error(
+    //   'Create Invoice Error:',
+    //   error
+    // );
 
     return res.status(500).json({
 
@@ -505,64 +499,64 @@ export const getInvoices = async (req, res) => {
     // DATABASE QUERIES
     // ============================================================
 
-   const [
-  invoices,
-  total,
-  revenueResult,
-  clientsResult,
-] = await Promise.all([
-  // ============================================================
-  // GET PAGINATED INVOICES
-  // ============================================================
+    const [
+      invoices,
+      total,
+      revenueResult,
+      clientsResult,
+    ] = await Promise.all([
+      // ============================================================
+      // GET PAGINATED INVOICES
+      // ============================================================
 
-  Invoice.find(query)
-    .sort(sort)
-    .skip(skip)
-    .limit(limitNum)
-    .lean(),
+      Invoice.find(query)
+        .sort(sort)
+        .skip(skip)
+        .limit(limitNum)
+        .lean(),
 
-  // ============================================================
-  // TOTAL MATCHING INVOICES
-  // ============================================================
+      // ============================================================
+      // TOTAL MATCHING INVOICES
+      // ============================================================
 
-  Invoice.countDocuments(query),
+      Invoice.countDocuments(query),
 
-  // ============================================================
-  // TOTAL REVENUE
-  // ============================================================
+      // ============================================================
+      // TOTAL REVENUE
+      // ============================================================
 
-  Invoice.aggregate([
-    {
-      $match: query,
-    },
-    {
-      $group: {
-        _id: null,
-        totalRevenue: {
-          $sum: '$total',
+      Invoice.aggregate([
+        {
+          $match: query,
         },
-      },
-    },
-  ]),
+        {
+          $group: {
+            _id: null,
+            totalRevenue: {
+              $sum: '$total',
+            },
+          },
+        },
+      ]),
 
-  // ============================================================
-  // TOTAL UNIQUE CLIENTS
-  // ============================================================
+      // ============================================================
+      // TOTAL UNIQUE CLIENTS
+      // ============================================================
 
-  Invoice.aggregate([
-    {
-      $match: query,
-    },
-    {
-      $group: {
-        _id: '$client.name',
-      },
-    },
-    {
-      $count: 'totalClients',
-    },
-  ]),
-]);
+      Invoice.aggregate([
+        {
+          $match: query,
+        },
+        {
+          $group: {
+            _id: '$client.name',
+          },
+        },
+        {
+          $count: 'totalClients',
+        },
+      ]),
+    ]);
     // ============================================================
     // TOTAL REVENUE
     // ============================================================
@@ -594,7 +588,7 @@ export const getInvoices = async (req, res) => {
 
         // Total revenue matching current filters
         totalRevenue,
-totalClients,
+        totalClients,
         pagination: {
           page: pageNum,
           limit: limitNum,
@@ -634,10 +628,10 @@ totalClients,
 
   } catch (error) {
 
-    console.error(
-      'Get invoices error:',
-      error
-    );
+    // console.error(
+    //   'Get invoices error:',
+    //   error
+    // );
 
     return res.status(500).json({
       success: false,
@@ -680,58 +674,253 @@ export const getInvoice = async (req, res) => {
 // @route   PUT /api/invoices/:id
 export const updateInvoice = async (req, res) => {
   try {
-    let invoice = await Invoice.findOne({
-      _id: req.params.id,
+    const { id } = req.params;
+
+    // ============================================
+    // VALIDATE INVOICE ID
+    // ============================================
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid invoice ID",
+      });
+    }
+
+    // ============================================
+    // FIND INVOICE
+    // ============================================
+
+    const invoice = await Invoice.findOne({
+      _id: id,
       user: req.user._id,
     });
 
     if (!invoice) {
       return res.status(404).json({
         success: false,
-        message: 'Invoice not found',
+        message: "Invoice not found",
       });
     }
 
-    // Don't allow editing paid invoices
-    if (invoice.status === 'paid') {
+    // ============================================
+    // PAID INVOICE CHECK
+    // ============================================
+
+    if (invoice.status === "paid") {
       return res.status(400).json({
         success: false,
-        message: 'Cannot update a paid invoice',
+        message: "Cannot update a paid invoice",
       });
     }
 
-    const { client, items, dueDate, notes, terms, status } = req.body;
+    // ============================================
+    // GET BODY
+    // ============================================
 
-    // Recalculate amounts if items changed
-    if (items) {
+    const {
+      client,
+      items,
+      dueDate,
+      notes,
+      terms,
+      status,
+    } = req.body;
+
+    // ============================================
+    // UPDATE DATA OBJECT
+    // ============================================
+
+    const updateData = {};
+
+    // ============================================
+    // STATUS
+    // ============================================
+
+    if (status !== undefined) {
+      updateData.status = status;
+    }
+
+    // ============================================
+    // NOTES
+    // ============================================
+
+    if (notes !== undefined) {
+      updateData.notes = notes;
+    }
+
+    // ============================================
+    // TERMS
+    // ============================================
+
+    if (terms !== undefined) {
+      updateData.terms = terms;
+    }
+
+    // ============================================
+    // DUE DATE
+    // ============================================
+
+    if (dueDate !== undefined) {
+      if (dueDate === "") {
+        updateData.dueDate = null;
+      } else {
+        const parsedDate = new Date(dueDate);
+
+        if (Number.isNaN(parsedDate.getTime())) {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid due date",
+          });
+        }
+
+        updateData.dueDate = parsedDate;
+      }
+    }
+
+    // ============================================
+    // CLIENT
+    // ============================================
+
+    if (client !== undefined) {
+      if (
+        !client ||
+        typeof client !== "object"
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid client data",
+        });
+      }
+
+      updateData.client = {
+        name: client.name || "",
+        email: client.email || "",
+        phone: client.phone || "",
+        address: client.address || "",
+        gst: client.gst || "",
+      };
+    }
+
+    // ============================================
+    // ITEMS
+    // ============================================
+
+    if (items !== undefined) {
+      if (!Array.isArray(items)) {
+        return res.status(400).json({
+          success: false,
+          message: "Items must be an array",
+        });
+      }
+
       let subtotal = 0;
-      const itemsWithAmount = items.map(item => {
-        const amount = item.quantity * item.rate;
-        subtotal += amount;
-        return { ...item, amount };
-      });
-      const tax = subtotal * 0.18;
-      const total = subtotal + tax;
-      req.body.items = itemsWithAmount;
-      req.body.subtotal = subtotal;
-      req.body.tax = tax;
-      req.body.total = total;
+
+      const itemsWithAmount = items.map(
+        (item, index) => {
+          const quantity = Number(
+            item?.quantity
+          );
+
+          const rate = Number(
+            item?.rate
+          );
+
+          if (
+            !Number.isFinite(quantity) ||
+            !Number.isFinite(rate)
+          ) {
+            throw new Error(
+              `Invalid quantity or rate at item ${index + 1}`
+            );
+          }
+
+          if (quantity < 0 || rate < 0) {
+            throw new Error(
+              `Quantity and rate cannot be negative at item ${index + 1}`
+            );
+          }
+
+          const amount =
+            quantity * rate;
+
+          subtotal += amount;
+
+          return {
+            ...item,
+            quantity,
+            rate,
+            amount,
+          };
+        }
+      );
+
+      const tax =
+        subtotal * 0.18;
+
+      const total =
+        subtotal + tax;
+
+      updateData.items =
+        itemsWithAmount;
+
+      updateData.subtotal =
+        Number(subtotal.toFixed(2));
+
+      updateData.tax =
+        Number(tax.toFixed(2));
+
+      updateData.total =
+        Number(total.toFixed(2));
     }
 
-    invoice = await Invoice.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
+    // ============================================
+    // UPDATE
+    // ============================================
 
-    res.status(200).json({
+    const updatedInvoice =
+      await Invoice.findOneAndUpdate(
+        {
+          _id: id,
+          user: req.user._id,
+        },
+        {
+          $set: updateData,
+        },
+        {
+          new: true,
+          runValidators: true,
+        }
+      );
+
+    if (!updatedInvoice) {
+      return res.status(404).json({
+        success: false,
+        message: "Invoice not found",
+      });
+    }
+
+    // ============================================
+    // SUCCESS
+    // ============================================
+
+    return res.status(200).json({
       success: true,
-      data: invoice,
+      message: "Invoice updated successfully",
+      data: updatedInvoice,
     });
+
   } catch (error) {
-    res.status(500).json({
+    // console.error(
+    //   "❌ UPDATE INVOICE ERROR:",
+    //   error
+    // );
+
+    return res.status(400).json({
       success: false,
-      message: error.message,
+      message:
+        error?.message ||
+        "Failed to update invoice",
     });
   }
 };

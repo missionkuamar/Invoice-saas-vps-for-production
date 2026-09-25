@@ -25,7 +25,7 @@ const SubscriptionPlans = () => {
   useEffect(() => {
     // ✅ Page load pe dobara fetch karo agar summary nahi hai
     if (!summary) {
-      console.log('Summary is null — fetching again...');
+     // console.log('Summary is null — fetching again...');
       dispatch(fetchEmailStats());
     }
   }, [summary, dispatch]);
@@ -52,10 +52,10 @@ const SubscriptionPlans = () => {
       setPaymentError(null);
 
       const loadingToast = toast.loading('Initializing payment...');
-      console.log('Creating order for plan?.id', plan?.id);
+     // console.log('Creating order for plan?.id', plan?.id);
       const orderResult = await dispatch(createOrder(plan.id)).unwrap();
 
-      console.log('Order created:', orderResult);
+      //console.log('Order created:', orderResult);
 
       if (!orderResult || !orderResult.orderId) {
         throw new Error('Invalid order response');
@@ -99,7 +99,7 @@ const SubscriptionPlans = () => {
 
             const result = await dispatch(verifyPayment(verifyData)).unwrap();
 
-            console.log('Payment verified:', result);
+           // console.log('Payment verified:', result);
 
             toast.success('Payment successful! Your subscription is now active.', { id: loadingToast });
             setProcessingPlan(null);
@@ -112,7 +112,7 @@ const SubscriptionPlans = () => {
               }
             });
           } catch (error) {
-            console.error('Verification error:', error);
+            // console.error('Verification error:', error);
             toast.error('Payment verification failed. Please contact support.', { id: loadingToast });
             setPaymentError('Payment verification failed');
             setProcessingPlan(null);
@@ -147,7 +147,7 @@ const SubscriptionPlans = () => {
     }
   };
 
-  console.log("user ka data ", user)
+  //console.log("user ka data ", user)
   // Get plan icon
   const getPlanIcon = (planName) => {
     const icons = {

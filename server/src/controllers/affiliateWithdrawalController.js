@@ -24,10 +24,10 @@ export const adminGetWithdrawals = async (req, res) => {
   try {
     // console.log('📝 GET /api/admin/withdrawals called');
     // console.log('📝 Query params:', req.query);
-    
-    const { 
-      status, 
-      page = 1, 
+
+    const {
+      status,
+      page = 1,
       limit = 20,
       search,
       startDate,
@@ -40,14 +40,14 @@ export const adminGetWithdrawals = async (req, res) => {
     if (status && status !== '' && status !== 'all') {
       query.status = status;
     }
-    
+
     if (search) {
       query.$or = [
         { 'paymentDetails.userName': { $regex: search, $options: 'i' } },
         { 'paymentDetails.userEmail': { $regex: search, $options: 'i' } },
       ];
     }
-    
+
     if (startDate || endDate) {
       query.createdAt = {};
       if (startDate) query.createdAt.$gte = new Date(startDate);
@@ -88,7 +88,7 @@ export const adminGetWithdrawals = async (req, res) => {
       },
     });
   } catch (error) {
-   // console.error('❌ Admin get withdrawals error:', error);
+    // console.error('❌ Admin get withdrawals error:', error);
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to get withdrawals',
@@ -102,7 +102,7 @@ export const adminGetWithdrawalDetails = async (req, res) => {
   try {
     const { id } = req.params;
 
-   // console.log('📝 GET /api/admin/withdrawals/:id called with id:', id);
+    // console.log('📝 GET /api/admin/withdrawals/:id called with id:', id);
 
     // ✅ Validate ID
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -129,7 +129,7 @@ export const adminGetWithdrawalDetails = async (req, res) => {
       data: withdrawal,
     });
   } catch (error) {
-  //  console.error('❌ Admin get withdrawal details error:', error);
+    //  console.error('❌ Admin get withdrawal details error:', error);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -145,7 +145,7 @@ export const adminUpdateWithdrawal = async (req, res) => {
     const { status, transactionId, notes } = req.body;
     const adminId = req.user?._id || req.user?.id;
 
-   // console.log('📝 PUT /api/admin/withdrawals/:id called:', { id, status });
+    // console.log('📝 PUT /api/admin/withdrawals/:id called:', { id, status });
 
     // ✅ Validate ID
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -164,7 +164,7 @@ export const adminUpdateWithdrawal = async (req, res) => {
     }
 
     const previousStatus = withdrawal.status;
-    
+
     // Update status
     withdrawal.status = status;
     if (transactionId) withdrawal.transactionId = transactionId;
@@ -174,7 +174,7 @@ export const adminUpdateWithdrawal = async (req, res) => {
     if (status === 'processing') {
       withdrawal.processedAt = new Date();
     }
-    
+
     if (status === 'completed' || status === 'failed') {
       withdrawal.completedAt = new Date();
     }
@@ -217,10 +217,10 @@ export const adminUpdateWithdrawal = async (req, res) => {
           title: notificationTitle,
           message: notificationMessage,
           priority: 'high',
-          data: { 
-            withdrawalId: withdrawal._id, 
+          data: {
+            withdrawalId: withdrawal._id,
             transactionId,
-            status 
+            status
           },
         });
       }
@@ -320,7 +320,7 @@ export const adminBulkProcessWithdrawals = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Bulk process error:", error);
+    // console.error("Bulk process error:", error);
 
     return res.status(500).json({
       success: false,
@@ -568,7 +568,7 @@ export const requestWithdrawal = async (req, res) => {
   } catch (error) {
     await session.abortTransaction();
 
-    console.error("Withdrawal Error:", error);
+    // console.error("Withdrawal Error:", error);
 
     return res.status(500).json({
       success: false,
@@ -586,12 +586,24 @@ export const getWithdrawals = async (req, res) => {
   try {
     const userId = req.user?._id || req.user?.id;
 
-    const affiliate = await Affiliate.findOne({ user: userId });
+    // ==========================================================
+    // FIND AFFILIATE
+    // ==========================================================
+
+    const affiliate = await Affiliate.findOne({
+      user: userId,
+    }).select("_id");
+
     if (!affiliate) {
       return res.status(404).json({
         success: false,
+        message: "Affiliate not found",
       });
     }
+
+    // ==========================================================
+    // QUERY PARAMS
+    // ==========================================================
 
     const {
       status,
@@ -599,50 +611,171 @@ export const getWithdrawals = async (req, res) => {
       limit = 5,
     } = req.query;
 
-    const pageNum = Math.max(Number(page) || 1, 1);
-    const limitNum = Math.min(
-      Math.max(Number(limit) || 20, 1),
-      200
+    // ==========================================================
+    // PAGE VALIDATION
+    // ==========================================================
+
+    const pageNum = Math.max(
+      parseInt(page, 10) || 1,
+      1
     );
 
-    const query = { affiliate: affiliate._id };
-    if (status) query.status = status;
+    // ==========================================================
+    // ALLOWED ITEMS PER PAGE
+    // ==========================================================
 
-    const skip = (pageNum - 1) * limitNum;
+    const ALLOWED_LIMITS = [
+      5,
+      10,
+      20,
+      50,
+      100,
+      200,
+    ];
 
-    const [withdrawals, total] = await Promise.all([
-      AffiliateWithdrawal.find(query)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limitNum)
-        .lean(),
+    const requestedLimit = parseInt(limit, 10);
 
-      AffiliateWithdrawal.countDocuments(query),
-    ]);
+    const limitNum = ALLOWED_LIMITS.includes(
+      requestedLimit
+    )
+      ? requestedLimit
+      : 20;
+
+    // ==========================================================
+    // BUILD QUERY
+    // ==========================================================
+
+    const query = {
+      affiliate: affiliate._id,
+    };
+
+    if (status) {
+      query.status = status;
+    }
+
+    // ==========================================================
+    // TOTAL COUNT
+    // ==========================================================
+
+    const total = await AffiliateWithdrawal.countDocuments(
+      query
+    );
+
+    // ==========================================================
+    // TOTAL PAGES
+    // ==========================================================
 
     const totalPages = Math.max(
       1,
       Math.ceil(total / limitNum)
     );
 
-    res.status(200).json({
+    // ==========================================================
+    // SAFE PAGE
+    // ==========================================================
+
+    const currentPage = Math.min(
+      pageNum,
+      totalPages
+    );
+
+    // ==========================================================
+    // SKIP
+    // ==========================================================
+
+    const skip =
+      (currentPage - 1) * limitNum;
+
+    // ==========================================================
+    // FETCH ONLY REQUIRED RECORDS
+    // ==========================================================
+
+    const withdrawals =
+      await AffiliateWithdrawal.find(query)
+        .sort({
+          createdAt: -1,
+          _id: -1,
+        })
+        .skip(skip)
+        .limit(limitNum)
+        .lean();
+
+    // ==========================================================
+    // ITEM RANGE
+    // ==========================================================
+
+    const startItem =
+      total === 0
+        ? 0
+        : skip + 1;
+
+    const endItem =
+      total === 0
+        ? 0
+        : Math.min(
+          skip + withdrawals.length,
+          total
+        );
+
+    // ==========================================================
+    // PAGINATION RESPONSE
+    // ==========================================================
+
+    return res.status(200).json({
       success: true,
+
       data: {
         withdrawals,
+
         pagination: {
-          page: pageNum,
+          page: currentPage,
+
           limit: limitNum,
+
           total,
+
           pages: totalPages,
-          hasNextPage: pageNum < totalPages,
-          hasPreviousPage: pageNum > 1,
+
+          startItem,
+
+          endItem,
+
+          firstPage: 1,
+
+          lastPage: totalPages,
+
+          previousPage:
+            currentPage > 1
+              ? currentPage - 1
+              : null,
+
+          nextPage:
+            currentPage < totalPages
+              ? currentPage + 1
+              : null,
+
+          hasNextPage:
+            currentPage < totalPages,
+
+          hasPreviousPage:
+            currentPage > 1,
+
+          hasData: total > 0,
         },
       },
     });
+
   } catch (error) {
-    res.status(500).json({
+    // console.error(
+    //   "❌ Get Withdrawals Error:",
+    //   error
+    // );
+
+    return res.status(500).json({
       success: false,
-      message: error.message,
+      message:
+        error.message ||
+        "Failed to fetch withdrawals",
     });
   }
 };
@@ -719,7 +852,7 @@ export const getReferrals = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get referrals error:', error);
+    // console.error('Get referrals error:', error);
 
     return res.status(500).json({
       success: false,
@@ -734,9 +867,9 @@ export const cancelWithdrawal = async (req, res) => {
     const { id } = req.params;
     const userId = req.user?._id || req.user?.id;
 
-   // console.log('📝 Cancel withdrawal:', { id, userId });
+    // console.log('📝 Cancel withdrawal:', { id, userId });
 
-    const withdrawal = await AffiliateWithdrawal.findOne({ 
+    const withdrawal = await AffiliateWithdrawal.findOne({
       _id: id,
       user: userId,
       status: 'pending'
@@ -760,7 +893,7 @@ export const cancelWithdrawal = async (req, res) => {
     withdrawal.status = 'cancelled';
     await withdrawal.save();
 
-   // console.log('✅ Withdrawal cancelled:', id);
+    // console.log('✅ Withdrawal cancelled:', id);
 
     res.status(200).json({
       success: true,
@@ -768,7 +901,7 @@ export const cancelWithdrawal = async (req, res) => {
       data: withdrawal,
     });
   } catch (error) {
-   // console.error('❌ Cancel withdrawal error:', error);
+    // console.error('❌ Cancel withdrawal error:', error);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -819,8 +952,8 @@ const createWithdrawalNotification = async (withdrawal, user, affiliate) => {
     `;
 
     // Find all admins and super admins
-    const admins = await User.find({ 
-      role: { $in: ['admin', 'super_admin'] } 
+    const admins = await User.find({
+      role: { $in: ['admin', 'super_admin'] }
     });
 
     // Create notification for each admin
@@ -885,9 +1018,9 @@ const createWithdrawalNotification = async (withdrawal, user, affiliate) => {
       }
     }
 
-   // console.log(`✅ Notifications created for admins and user`);
+    // console.log(`✅ Notifications created for admins and user`);
   } catch (error) {
-   // console.error('Notification creation error:', error);
+    // console.error('Notification creation error:', error);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -906,12 +1039,12 @@ const createWithdrawalNotification = async (withdrawal, user, affiliate) => {
 export const getWithdrawalStats = async (req, res) => {
   try {
     const userId = req.user?._id || req.user?.id;
-    
+
     const affiliate = await Affiliate.findOne({ user: userId });
     if (!affiliate) {
       return res.status(404).json({
         success: false,
-      //  message: 'Not an affiliate member',
+        //  message: 'Not an affiliate member',
       });
     }
 
@@ -920,10 +1053,10 @@ export const getWithdrawalStats = async (req, res) => {
       {
         $group: {
           _id: null,
-          totalWithdrawn: { 
-            $sum: { 
-              $cond: [{ $eq: ['$status', 'completed'] }, '$amount', 0] 
-            } 
+          totalWithdrawn: {
+            $sum: {
+              $cond: [{ $eq: ['$status', 'completed'] }, '$amount', 0]
+            }
           },
           pendingWithdrawals: {
             $sum: {
@@ -956,7 +1089,7 @@ export const getWithdrawalStats = async (req, res) => {
       },
     });
   } catch (error) {
-   // console.error('Get withdrawal stats error:', error);
+    // console.error('Get withdrawal stats error:', error);
     res.status(500).json({
       success: false,
       message: error.message,

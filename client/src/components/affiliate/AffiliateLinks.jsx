@@ -178,7 +178,7 @@ const AffiliateLinks = ({
       return;
     }
 
-    console.log('New Limit', newLimit);
+   // console.log('New Limit', newLimit);
 
     onLimitChange?.(newLimit);
   };
@@ -207,6 +207,7 @@ const AffiliateLinks = ({
 
   const handleCopy = (link) => {
 
+    // console.log("link", link.slug);
     if (!link?.slug) {
       return;
     }

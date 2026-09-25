@@ -3,11 +3,11 @@ import Invoice from "../models/Invoice.js";
 // Create Invoice
 export const createInvoice = async (req, res) => {
   try {
-    console.log(req.user?._id);
-    const invoiceData = {
-      ...req.body,
-      userId: req.user._id
-    };
+    // console.log(req.user?._id);
+    // const invoiceData = {
+    //   ...req.body,
+    //   userId: req.user._id
+    // };
 
     // Calculate totals if not provided
     if (!invoiceData.subtotal) {

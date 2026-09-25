@@ -17,7 +17,7 @@ const AdminUsers = () => {
   const { theme } = useTheme();
   const { user } = useSelector((state) => state.auth);
   const [users, setUsers] = useState([]);
-  console.log("user", user)
+ // console.log("user", user)
   const [loading, setLoading] = useState(true);
 
   const [pagination, setPagination] = useState({

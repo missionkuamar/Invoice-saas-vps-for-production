@@ -115,7 +115,7 @@ const Register = () => {
 
     navigate("/dashboard");
   } catch (error) {
-    console.error("Registration Error:", error);
+    // console.error("Registration Error:", error);
 
     const errorMessage =
       error?.response?.data?.message || // Axios Backend Error

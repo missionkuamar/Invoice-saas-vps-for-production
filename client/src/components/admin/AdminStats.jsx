@@ -15,7 +15,7 @@ import { useTheme } from '../../themes/ThemeProvider';
 const AdminStats = ({ stats = {} }) => {
   const { theme } = useTheme();
 
-  console.log(stats)
+  //console.log(stats)
   const statCards = [
     {
       title: 'Total Users',

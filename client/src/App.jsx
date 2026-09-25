@@ -50,16 +50,50 @@ import TermsConditions from './components/homepage/contact/TermsConditions';
 import RefundPolicy from './components/homepage/contact/RefundPolicy';
 
 // ✅ Affiliate Redirect Component
+// ✅ Affiliate Redirect Component
 const AffiliateRedirect = () => {
   const { slug } = useParams();
+  const location = useLocation();
+
   useEffect(() => {
-    window.location.href = `http://localhost:5000/r/${slug}${window.location.search}`;
-  }, [slug]);
+    const params = new URLSearchParams(location.search);
+    const ref = params.get('ref');
+
+    // Save ref to localStorage
+    if (ref) {
+      try {
+        localStorage.setItem('affiliateRef', ref);
+      } catch (err) {
+        console.error('localStorage save failed:', err);
+      }
+    }
+
+    // Backend URL — ek hi variable use karo
+    const backendUrl =
+      import.meta.env.VITE_BACKEND_URL ||
+      (import.meta.env.DEV ? 'http://localhost:5000' : '');
+
+    if (!backendUrl) {
+      console.error('❌ VITE_BACKEND_URL missing');
+      return;
+    }
+
+    const redirectUrl = `${backendUrl}/r/${slug}${location.search}`;
+
+    const timer = setTimeout(() => {
+      window.location.href = redirectUrl;
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [slug, location.search]);
   return (
     <div className="flex justify-center items-center h-64">
       <div className="text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
         <p className="text-gray-600">Redirecting...</p>
+        <p className="text-xs text-gray-400 mt-2">
+          Check console for debug logs...
+        </p>
       </div>
     </div>
   );
@@ -81,6 +115,21 @@ function App() {
   const dispatch = useDispatch();
   const { token, loading, isAuthenticated } = useSelector((state) => state.auth);
   const [authChecked, setAuthChecked] = useState(false);
+
+
+  // ✅ Capture ref from ANY URL on app load
+  // useEffect(() => {
+  //   const params = new URLSearchParams(window.location.search);
+  //   const ref = params.get('ref');
+  //   if (ref) {
+  //     localStorage.setItem('affiliateRef', ref);
+  //     console.log('✅ Global ref captured:', ref);
+  //   }
+  // }, []);
+
+
+
+
 
   // ✅ Check auth on app mount - runs only once
   useEffect(() => {
@@ -120,20 +169,20 @@ function App() {
         path="/landing"
         element={isAuth ? <Navigate to="/dashboard" replace /> : <Home />}
       />
-<Route
-  path="/privacy-policy"
-  element={<PrivacyPolicy />}
-/>
+      <Route
+        path="/privacy-policy"
+        element={<PrivacyPolicy />}
+      />
 
-<Route
-  path="/terms"
-  element={<TermsConditions />}
-/>
+      <Route
+        path="/terms"
+        element={<TermsConditions />}
+      />
 
-<Route
-  path="/refund-policy"
-  element={<RefundPolicy />}
-/>
+      <Route
+        path="/refund-policy"
+        element={<RefundPolicy />}
+      />
       {/* Auth Routes */}
       <Route
         path="/login"
@@ -159,7 +208,7 @@ function App() {
       >
         {/* Dashboard */}
         <Route path="/dashboard" element={<Dashboard />} />
-<Route path='/personaldata' element={<PersonalData />} />
+        <Route path='/personaldata' element={<PersonalData />} />
         {/* Invoices */}
         <Route path="/invoices" element={<Invoices />} />
 

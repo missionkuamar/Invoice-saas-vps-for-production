@@ -18,6 +18,8 @@ import mongoose from "mongoose";
 import { checkEmailLimit } from '../middleware/emailLimit.js';
 import { incrementEmailCount } from '../helpers/emailHelper.js';
 import User from '../models/User.js';
+
+
 const processEmailWithLimit = async (userId, emailData) => {
   const user = await User.findById(userId);
   
@@ -39,6 +41,49 @@ const processEmailWithLimit = async (userId, emailData) => {
 // 1. Schedule Simple Email
 export const scheduleEmail = async (req, res) => {
   try {
+
+    // console.log('\n');
+    // console.log('============================================');
+    // console.log('📧 BACKEND: SCHEDULE EMAIL START');
+    // console.log('============================================');
+
+    // ============================================================
+    // REQUEST DEBUG
+    // ============================================================
+
+    // console.log('\n📥 REQUEST BODY:');
+    // console.log(req.body);
+
+    // console.log('\n📥 REQUEST BODY JSON:');
+    // console.log(
+    //   JSON.stringify(req.body, null, 2)
+    // );
+
+    // console.log('\n👤 AUTH USER:');
+    // console.log(req.user?._id);
+
+    // console.log('\n🌍 SERVER ENVIRONMENT:');
+    // console.log('NODE_ENV:', process.env.NODE_ENV);
+    // console.log('Server Date:', new Date());
+    // console.log(
+    //   'Server ISO:',
+    //   new Date().toISOString()
+    // );
+
+    // console.log(
+    //   'Server timezone:',
+    //   Intl.DateTimeFormat().resolvedOptions().timeZone
+    // );
+
+    // console.log(
+    //   'Server timezone offset:',
+    //   new Date().getTimezoneOffset()
+    // );
+
+    // ============================================================
+    // GET REQUEST DATA
+    // ============================================================
+
     const {
       toEmail,
       subject,
@@ -46,9 +91,23 @@ export const scheduleEmail = async (req, res) => {
       scheduleTime,
     } = req.body;
 
+    // console.log('\n📋 EXTRACTED DATA:');
+
+    // console.log('toEmail:', toEmail);
+    // console.log('subject:', subject);
+    // console.log('message:', message);
+    // console.log('scheduleTime:', scheduleTime);
+
+    // console.log(
+    //   'scheduleTime type:',
+    //   typeof scheduleTime
+    // );
+
     // ============================================================
     // VALIDATION
     // ============================================================
+
+    // console.log('\n🔍 VALIDATING REQUEST...');
 
     if (
       !toEmail ||
@@ -56,35 +115,133 @@ export const scheduleEmail = async (req, res) => {
       !message ||
       !scheduleTime
     ) {
+
+      // console.error(
+      //   '❌ VALIDATION FAILED'
+      // );
+
       return res.status(400).json({
         success: false,
-        message:
-          'All fields are required',
+        message: 'All fields are required',
       });
     }
 
+    // console.log('✅ Validation passed');
+
     // ============================================================
-    // VALIDATE SCHEDULE TIME
+    // DATE PARSING
     // ============================================================
+
+    // console.log('\n🕐 DATE PARSING DEBUG');
+    // console.log('Raw scheduleTime:', scheduleTime);
 
     const parsedScheduleTime =
       new Date(scheduleTime);
+
+    // console.log(
+    //   'Parsed Date object:',
+    //   parsedScheduleTime
+    // );
+
+    // console.log(
+    //   'Parsed ISO:',
+    //   parsedScheduleTime.toISOString()
+    // );
+
+    // console.log(
+    //   'Parsed local:',
+    //   parsedScheduleTime.toString()
+    // );
+
+    // console.log(
+    //   'Parsed locale:',
+    //   parsedScheduleTime.toLocaleString()
+    // );
+
+    // console.log(
+    //   'Parsed timestamp:',
+    //   parsedScheduleTime.getTime()
+    // );
+
+    // console.log(
+    //   'Current server time:',
+    //   new Date()
+    // );
+
+    // console.log(
+    //   'Current server ISO:',
+    //   new Date().toISOString()
+    // );
+
+    // ============================================================
+    // TIME DIFFERENCE
+    // ============================================================
+
+    const now = new Date();
+
+    const differenceMs =
+      parsedScheduleTime.getTime() -
+      now.getTime();
+
+    const differenceMinutes =
+      differenceMs / (1000 * 60);
+
+    // console.log('\n⏱️ SCHEDULE TIME DIFFERENCE:');
+
+    // console.log(
+    //   'Difference milliseconds:',
+    //   differenceMs
+    // );
+
+    // console.log(
+    //   'Difference minutes:',
+    //   differenceMinutes
+    // );
+
+    // console.log(
+    //   'Difference hours:',
+    //   differenceMinutes / 60
+    // );
+
+    if (differenceMs < 0) {
+      console.warn(
+        '⚠️ WARNING: Scheduled time is already in the PAST!'
+      );
+    } else {
+      // console.log(
+      //   '✅ Scheduled time is in the FUTURE'
+      // );
+    }
+
+    // ============================================================
+    // INVALID DATE CHECK
+    // ============================================================
 
     if (
       Number.isNaN(
         parsedScheduleTime.getTime()
       )
     ) {
+
+      // console.error(
+      //   '❌ INVALID SCHEDULE TIME'
+      // );
+
       return res.status(400).json({
         success: false,
-        message:
-          'Invalid schedule time',
+        message: 'Invalid schedule time',
       });
     }
+
+    // console.log(
+    //   '✅ Schedule time is valid'
+    // );
 
     // ============================================================
     // USER FETCH
     // ============================================================
+
+    // console.log('\n👤 FETCHING USER...');
 
     const user =
       await User.findById(
@@ -92,22 +249,50 @@ export const scheduleEmail = async (req, res) => {
       );
 
     if (!user) {
+
+      // console.error(
+      //   '❌ USER NOT FOUND'
+      // );
+
       return res.status(404).json({
         success: false,
-        message:
-          'User not found',
+        message: 'User not found',
       });
     }
+
+    // console.log(
+    //   '✅ User found:',
+    //   user._id
+    // );
 
     // ============================================================
     // EMAIL CREDIT CHECK
     // ============================================================
-    //
-    // canSendEmail() async hai.
-    //
+
+    // console.log('\n📊 EMAIL CREDIT CHECK');
 
     const canSend =
       await user.canSendEmail();
+
+    // console.log(
+    //   'Can send email:',
+    //   canSend
+    // );
+
+    // console.log(
+    //   'Plan:',
+    //   user.subscription?.plan
+    // );
+
+    // console.log(
+    //   'Email limit:',
+    //   user.subscription?.limits?.emails?.total
+    // );
+
+    // console.log(
+    //   'Email used:',
+    //   user.subscription?.usage?.emails
+    // );
 
     if (!canSend) {
 
@@ -128,15 +313,17 @@ export const scheduleEmail = async (req, res) => {
           emailLimit - emailUsed
         );
 
-      return res.status(403).json({
+      // console.error(
+      //   '❌ EMAIL CREDIT LIMIT EXCEEDED'
+      // );
 
+      return res.status(403).json({
         success: false,
 
         message:
           `Email limit exceeded. You have used ${emailUsed} out of ${emailLimit} emails. Please upgrade your plan.`,
 
         data: {
-
           plan:
             user.subscription.plan,
 
@@ -155,15 +342,31 @@ export const scheduleEmail = async (req, res) => {
           endDate:
             user.subscription
               .currentPeriodEnd,
-
         },
-
       });
     }
 
+    // console.log(
+    //   '✅ Email credit available'
+    // );
+
     // ============================================================
-    // CREATE SCHEDULED EMAIL
+    // CREATE DATABASE DOCUMENT
     // ============================================================
+
+    // console.log(
+    //   '\n💾 CREATING SCHEDULED EMAIL...'
+    // );
+
+    // console.log(
+    //   'scheduleTime BEFORE MongoDB:',
+    //   parsedScheduleTime
+    // );
+
+    // console.log(
+    //   'scheduleTime ISO BEFORE MongoDB:',
+    //   parsedScheduleTime.toISOString()
+    // );
 
     const scheduledEmail =
       await ScheduledEmail.create({
@@ -183,13 +386,54 @@ export const scheduleEmail = async (req, res) => {
       });
 
     // ============================================================
+    // DATABASE RESULT
+    // ============================================================
+
+    // console.log(
+    //   '\n✅ DATABASE DOCUMENT CREATED'
+    // );
+
+    // console.log(
+    //   'MongoDB document:',
+    //   scheduledEmail
+    // );
+
+    // console.log(
+    //   'MongoDB _id:',
+    //   scheduledEmail._id
+    // );
+
+    // console.log(
+    //   'MongoDB scheduleTime:',
+    //   scheduledEmail.scheduleTime
+    // );
+
+    // console.log(
+    //   'MongoDB scheduleTime ISO:',
+    //   scheduledEmail.scheduleTime.toISOString()
+    // );
+
+    // console.log(
+    //   'MongoDB scheduleTime local:',
+    //   scheduledEmail.scheduleTime.toString()
+    // );
+
+    // ============================================================
     // INCREMENT EMAIL USAGE
     // ============================================================
 
+    // console.log(
+    //   '\n📈 INCREMENTING EMAIL USAGE...'
+    // );
+
     await user.incrementEmailCount();
 
+    // console.log(
+    //   '✅ Email usage incremented'
+    // );
+
     // ============================================================
-    // GET UPDATED STATS
+    // UPDATED STATS
     // ============================================================
 
     const emailLimit =
@@ -209,11 +453,40 @@ export const scheduleEmail = async (req, res) => {
         emailLimit - emailUsed
       );
 
-    // ============================================================
-    // RESPONSE
+    const emailStats = {
+
+      remaining:
+        emailRemaining,
+
+      used:
+        emailUsed,
+
+      limit:
+        emailLimit,
+
+      plan:
+        user.subscription.plan,
+
+      startDate:
+        user.subscription
+          .currentPeriodStart,
+
+      endDate:
+        user.subscription
+          .currentPeriodEnd,
+    };
+
+    // console.log(
+    //   '\n📊 UPDATED EMAIL STATS:'
+    // );
+
+    // console.log(emailStats);
+
+    // // ============================================================
+    // FINAL RESPONSE
     // ============================================================
 
-    return res.status(201).json({
+    const responseData = {
 
       success: true,
 
@@ -223,38 +496,72 @@ export const scheduleEmail = async (req, res) => {
       data:
         scheduledEmail,
 
-      emailStats: {
+      emailStats,
 
-        remaining:
-          emailRemaining,
+    };
 
-        used:
-          emailUsed,
+    // console.log(
+    //   '\n📤 FINAL API RESPONSE:'
+    // );
 
-        limit:
-          emailLimit,
+    // console.log(
+    //   JSON.stringify(
+    //     responseData,
+    //     null,
+    //     2
+    //   )
+    // );
 
-        plan:
-          user.subscription.plan,
+    // console.log(
+    //   '\n============================================'
+    // );
 
-        startDate:
-          user.subscription
-            .currentPeriodStart,
+    // console.log(
+    //   '📧 BACKEND: SCHEDULE EMAIL END'
+    // );
 
-        endDate:
-          user.subscription
-            .currentPeriodEnd,
+    // console.log(
+    //   '============================================'
+    // );
 
-      },
-
-    });
+    return res.status(201).json(
+      responseData
+    );
 
   } catch (error) {
 
-    console.error(
-      'Schedule Email Error:',
-      error
-    );
+    // console.error('\n');
+    // console.error(
+    //   '============================================'
+    // );
+
+    // console.error(
+    //   '❌ BACKEND SCHEDULE EMAIL ERROR'
+    // );
+
+    // console.error(
+    //   '============================================'
+    // );
+
+    // console.error(
+    //   'Error message:',
+    //   error.message
+    // );
+
+    // console.error(
+    //   'Error name:',
+    //   error.name
+    // );
+
+    // console.error(
+    //   'Error stack:',
+    //   error.stack
+    // );
+
+    // console.error(
+    //   'Request body:',
+    //   req.body
+    // );
 
     return res.status(500).json({
 
@@ -270,78 +577,325 @@ export const scheduleEmail = async (req, res) => {
 
 // 2. Send Invoice
 export const sendInvoice = async (req, res) => {
-  try {
-    const { invoiceId, scheduleTime, attachments = [] } = req.body;
+  const requestId = `INV-${Date.now()}-${Math.random()
+    .toString(36)
+    .substring(2, 8)}`;
 
-    // Validate invoice id
-    if (!invoiceId || !mongoose.Types.ObjectId.isValid(invoiceId)) {
+  // console.log("\n");
+  // console.log("====================================================");
+  // console.log("📧 SEND INVOICE REQUEST START");
+  // console.log("====================================================");
+  // console.log("🆔 Request ID:", requestId);
+  // console.log("⏰ Server Time:", new Date().toISOString());
+  // console.log("🌍 Server Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+  // console.log("👤 User ID:", req.user?._id);
+  // console.log("📦 Request Body:", {
+  //   ...req.body,
+  //   // Don't print potentially sensitive attachment contents
+  //   attachments: Array.isArray(req.body?.attachments)
+  //     ? `Array(${req.body.attachments.length})`
+  //     : req.body?.attachments,
+  // });
+
+  try {
+    // ============================================
+    // 1. GET REQUEST DATA
+    // ============================================
+
+    const {
+      invoiceId,
+      scheduleTime,
+      attachments = [],
+    } = req.body;
+
+    // console.log("\n📥 STEP 1 - REQUEST DATA");
+    // console.log("--------------------------------------------");
+    // console.log("📌 Invoice ID:", invoiceId);
+    // console.log("📌 Schedule Time:", scheduleTime);
+    // console.log(
+    //   "📌 Attachments Count:",
+    //   Array.isArray(attachments) ? attachments.length : "Invalid"
+    // );
+
+    // ============================================
+    // 2. VALIDATE INVOICE ID
+    // ============================================
+
+    // console.log("\n🔍 STEP 2 - VALIDATING INVOICE ID");
+
+    if (!invoiceId) {
+      // console.error("❌ Invoice ID missing");
+
       return res.status(400).json({
         success: false,
-        message: "Invalid invoice id",
+        message: "Invoice id is required",
+        requestId,
       });
     }
 
-    // Find invoice belonging to logged in user
+    if (!mongoose.Types.ObjectId.isValid(invoiceId)) {
+      // console.error("❌ Invalid Invoice ID:", invoiceId);
+
+      return res.status(400).json({
+        success: false,
+        message: "Invalid invoice id",
+        requestId,
+      });
+    }
+
+    // console.log("✅ Invoice ID valid");
+
+    // ============================================
+    // 3. FIND INVOICE
+    // ============================================
+
+    // console.log("\n🔍 STEP 3 - FINDING INVOICE");
+
     const invoice = await Invoice.findOne({
       _id: invoiceId,
       user: req.user._id,
     });
 
     if (!invoice) {
+      // console.error("❌ Invoice not found");
+      // console.error("📌 Invoice ID:", invoiceId);
+      // console.error("👤 User ID:", req.user._id);
+
       return res.status(404).json({
         success: false,
         message: "Invoice not found",
+        requestId,
       });
     }
 
-    // Client email required
+    // console.log("✅ Invoice found");
+    // console.log("📌 Invoice Number:", invoice.invoiceNumber);
+    // console.log("📌 Invoice Status:", invoice.status);
+    // console.log("📌 Client Name:", invoice.client?.name);
+    // console.log("📌 Client Email:", invoice.client?.email);
+
+    // ============================================
+    // 4. CLIENT EMAIL VALIDATION
+    // ============================================
+
+    // console.log("\n📧 STEP 4 - VALIDATING CLIENT EMAIL");
+
     if (!invoice.client?.email) {
+      // console.error("❌ Client email missing");
+      // console.error("📌 Invoice:", invoice.invoiceNumber);
+
       return res.status(400).json({
         success: false,
         message: "Client email is required",
+        requestId,
       });
     }
 
-    // Check email limit
+    // console.log("✅ Client email available");
+
+    // ============================================
+    // 5. GET USER
+    // ============================================
+
+    // console.log("\n👤 STEP 5 - FETCHING USER");
+
     const user = await User.findById(req.user._id);
+
+    if (!user) {
+      // console.error("❌ User not found");
+      // console.error("👤 User ID:", req.user._id);
+
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+        requestId,
+      });
+    }
+
+    // console.log("✅ User found");
+    // console.log("📌 User ID:", user._id);
+    // console.log("📌 User Email:", user.email);
+    // console.log("📌 Plan:", user.subscription?.plan);
+    // console.log(
+    //   "📌 Email Used:",
+    //   user.subscription?.limits?.used
+    // );
+    // console.log(
+    //   "📌 Email Monthly Limit:",
+    //   user.subscription?.limits?.monthly
+    // );
+
+    // ============================================
+    // 6. CHECK EMAIL LIMIT
+    // ============================================
+
+    // console.log("\n📊 STEP 6 - CHECKING EMAIL LIMIT");
+
     const canSend = await user.canSendEmail();
-    
+
+    // console.log("📊 Can Send Email:", canSend);
+
     if (!canSend) {
+      // console.error("❌ EMAIL LIMIT EXCEEDED");
+
+      // console.error("📌 Plan:", user.subscription?.plan);
+      // console.error(
+        // "📌 Used:",
+        // user.subscription?.limits?.used
+      // );
+      // console.error(
+      //   "📌 Limit:",
+      //   user.subscription?.limits?.monthly
+      // );
+
       return res.status(403).json({
         success: false,
         message: `Email limit exceeded. You have used ${user.subscription.limits.used} out of ${user.subscription.limits.monthly} emails.`,
+        requestId,
         data: {
           plan: user.subscription.plan,
           limit: user.subscription.limits.monthly,
           used: user.subscription.limits.used,
           remaining: user.getRemainingEmails(),
-        }
+        },
       });
     }
 
-    // Validate schedule time
-    const scheduledAt = scheduleTime
-      ? new Date(scheduleTime)
-      : new Date();
+    // console.log("✅ Email limit available");
+    // console.log(
+    //   "📊 Remaining:",
+    //   user.getRemainingEmails()
+    // );
 
-    if (isNaN(scheduledAt.getTime())) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid schedule time",
-      });
+    // ============================================
+    // 7. VALIDATE SCHEDULE TIME
+    // ============================================
+
+    // console.log("\n🕐 STEP 7 - VALIDATING SCHEDULE TIME");
+
+    let scheduledAt;
+
+    if (scheduleTime) {
+      // console.log("📥 Received Schedule Time:", scheduleTime);
+
+      scheduledAt = new Date(scheduleTime);
+
+      // console.log(
+      //   "📅 Parsed Date:",
+      //   scheduledAt.toString()
+      // );
+
+      // console.log(
+      //   "🌍 UTC Date:",
+      //   scheduledAt.toISOString()
+      // );
+
+      // console.log(
+      //   "🔢 Timestamp:",
+      //   scheduledAt.getTime()
+      // );
+
+      if (isNaN(scheduledAt.getTime())) {
+        // console.error("❌ INVALID SCHEDULE TIME");
+        // console.error("📥 Received:", scheduleTime);
+
+        return res.status(400).json({
+          success: false,
+          message: "Invalid schedule time",
+          requestId,
+        });
+      }
+
+      // Prevent scheduling in the past
+      if (scheduledAt.getTime() <= Date.now()) {
+        // console.error("❌ SCHEDULE TIME IS IN THE PAST");
+
+        // console.error(
+        //   "📅 Scheduled:",
+        //   scheduledAt.toISOString()
+        // );
+
+        // console.error(
+        //   "⏰ Current:",
+        //   new Date().toISOString()
+        // );
+
+        return res.status(400).json({
+          success: false,
+          message: "Schedule time must be in the future",
+          requestId,
+          data: {
+            scheduleTime: scheduledAt.toISOString(),
+            currentTime: new Date().toISOString(),
+          },
+        });
+      }
+
+      // console.log("✅ Schedule time is valid");
+      // console.log(
+      //   "⏰ Final UTC:",
+      //   scheduledAt.toISOString()
+      // );
+
+    } else {
+      scheduledAt = new Date();
+
+      // console.log(
+      //   "⚡ No schedule time provided."
+      // );
+
+      // console.log(
+      //   "📤 Email will be queued immediately."
+      // );
+
+      // console.log(
+      //   "⏰ Current UTC:",
+      //   scheduledAt.toISOString()
+      // );
     }
 
-    // Generate PDF
+    // ============================================
+    // 8. GENERATE PDF
+    // ============================================
+
+    // console.log("\n📄 STEP 8 - GENERATING INVOICE PDF");
+
+    // console.log(
+    //   "📌 Invoice:",
+    //   invoice.invoiceNumber
+    // );
+
+    const pdfStartTime = Date.now();
+
     const pdfPath = await generateInvoicePDF(invoice);
 
+    const pdfDuration = Date.now() - pdfStartTime;
+
+    // console.log(
+    //   "⏱️ PDF Generation Time:",
+    //   `${pdfDuration}ms`
+    // );
+
+    // console.log("📄 PDF Path:", pdfPath);
+
     if (!pdfPath) {
+      // console.error("❌ PDF GENERATION FAILED");
+
       return res.status(500).json({
         success: false,
         message: "Failed to generate invoice PDF",
+        requestId,
       });
     }
 
-    // Default attachment (Invoice PDF)
+    // console.log("✅ PDF generated successfully");
+
+    // ============================================
+    // 9. CREATE ATTACHMENTS
+    // ============================================
+
+    // console.log("\n📎 STEP 9 - PREPARING ATTACHMENTS");
+
     const emailAttachments = [
       {
         filename: `Invoice-${invoice.invoiceNumber}.pdf`,
@@ -350,49 +904,213 @@ export const sendInvoice = async (req, res) => {
       },
     ];
 
-    // Additional attachments
+    // console.log("📎 Default Invoice PDF added");
+
     if (Array.isArray(attachments) && attachments.length > 0) {
+      // console.log(
+      //   "📎 Adding additional attachments:",
+      //   attachments.length
+      // );
+
       emailAttachments.push(...attachments);
     }
 
-    // Schedule email
+    // console.log(
+    //   "📎 Total Attachments:",
+    //   emailAttachments.length
+    // );
+
+    // ============================================
+    // 10. CREATE SCHEDULED EMAIL
+    // ============================================
+
+    // console.log("\n💾 STEP 10 - CREATING SCHEDULED EMAIL");
+
     const scheduledEmail = await ScheduledEmail.create({
       userId: req.user._id,
+
       toEmail: invoice.client.email,
-      subject: `Invoice #${invoice.invoiceNumber} from ${req.user.name || "Your Company"}`,
+
+      subject: `Invoice #${invoice.invoiceNumber} from ${
+        req.user.name || "Your Company"
+      }`,
+
       message: getInvoiceEmailHTML(invoice),
+
       scheduleTime: scheduledAt,
+
       attachments: emailAttachments,
+
       emailType: "invoice",
+
       invoiceId: invoice._id,
     });
 
-    // Increment email count
+    // console.log("✅ Scheduled email created");
+
+    // console.log("📌 Scheduled Email ID:", scheduledEmail._id);
+    // console.log("📌 Email Type:", scheduledEmail.emailType);
+    // console.log("📌 To:", scheduledEmail.toEmail);
+
+    // console.log(
+    //   "📌 Schedule Time:",
+    //   scheduledEmail.scheduleTime
+    // );
+
+  //   console.log(
+  //     "🌍 Schedule Time UTC:",
+  //     scheduledEmail.scheduleTime?.toISOString()
+  //  );
+
+    // ============================================
+    // 11. INCREMENT EMAIL COUNT
+    // ============================================
+
+    // console.log("\n📊 STEP 11 - INCREMENTING EMAIL COUNT");
+
+    const previousEmailUsed =
+      user.subscription?.limits?.used;
+
     await user.incrementEmailCount();
 
-    // Update invoice status
+    // console.log(
+    //   "📊 Previous Used:",
+    //   previousEmailUsed
+    // );
+
+    // console.log(
+    //   "📊 New Used:",
+    //   user.subscription?.limits?.used
+    // );
+
+    // console.log(
+    //   "📊 Remaining:",
+    //   user.getRemainingEmails()
+    // );
+
+    // ============================================
+    // 12. UPDATE INVOICE STATUS
+    // ============================================
+
+    // console.log("\n🧾 STEP 12 - UPDATING INVOICE STATUS");
+
+    const previousInvoiceStatus = invoice.status;
+
     invoice.status = "sent";
+
     await invoice.save();
+
+    // console.log(
+    //   "📌 Previous Status:",
+    //   previousInvoiceStatus
+    // );
+
+    // console.log(
+    //   "📌 New Status:",
+    //   invoice.status
+    // );
+
+    // console.log("✅ Invoice updated");
+
+    // ============================================
+    // 13. SUCCESS RESPONSE
+    // ============================================
+
+    // console.log("\n");
+    // console.log("====================================================");
+    // console.log("✅ SEND INVOICE SUCCESS");
+    // console.log("====================================================");
+
+    // console.log("🆔 Request ID:", requestId);
+    // console.log("📌 Invoice:", invoice.invoiceNumber);
+    // console.log("📌 Scheduled Email:", scheduledEmail._id);
+    // console.log("📧 To:", scheduledEmail.toEmail);
+    // console.log(
+    //   "⏰ Schedule:",
+    //   scheduledEmail.scheduleTime?.toISOString()
+    // );
 
     return res.status(201).json({
       success: true,
+
       message: scheduleTime
         ? "Invoice scheduled successfully"
         : "Invoice queued successfully",
+
+      requestId,
+
       data: scheduledEmail,
+
       emailStats: {
         remaining: user.getRemainingEmails(),
         used: user.subscription.limits.used,
         limit: user.subscription.limits.monthly,
         plan: user.subscription.plan,
-      }
+      },
     });
+
   } catch (error) {
-    console.error("Send Invoice Error:", error);
+
+    // ============================================
+    // GLOBAL ERROR HANDLER
+    // ============================================
+
+    // console.error("\n");
+    // console.error("====================================================");
+    // console.error("❌ SEND INVOICE FAILED");
+    // console.error("====================================================");
+
+    // console.error("🆔 Request ID:", requestId);
+    // console.error("⏰ Time:", new Date().toISOString());
+
+    // console.error("❌ Error Name:", error.name);
+    // console.error("❌ Error Message:", error.message);
+    // console.error("❌ Error Code:", error.code);
+    // console.error("❌ Error Stack:", error.stack);
+
+    // MongoDB specific information
+    if (error.name === "ValidationError") {
+      // console.error("📛 Mongoose Validation Error");
+
+      if (error.errors) {
+        Object.keys(error.errors).forEach((field) => {
+          // console.error(
+          //   `❌ ${field}:`,
+          //   error.errors[field].message
+          // );
+        });
+      }
+    }
+
+    if (error.name === "CastError") {
+      // console.error("📛 Mongoose Cast Error");
+      // console.error("📌 Path:", error.path);
+      // console.error("📌 Value:", error.value);
+    }
+
+    if (error.code === 11000) {
+      // console.error("📛 MongoDB Duplicate Key Error");
+      // console.error("📌 Key:", error.keyValue);
+    }
+
+    // console.error("📦 Request Body:", {
+    //   invoiceId: req.body?.invoiceId,
+    //   scheduleTime: req.body?.scheduleTime,
+    //   attachmentsCount: Array.isArray(req.body?.attachments)
+    //     ? req.body.attachments.length
+    //     : 0,
+    // });
+
+    // console.error("👤 User ID:", req.user?._id);
+
+    // console.error("====================================================");
+    // console.error("❌ END ERROR");
+    // console.error("====================================================");
 
     return res.status(500).json({
       success: false,
       message: error.message || "Something went wrong",
+      requestId,
     });
   }
 };
@@ -488,7 +1206,7 @@ export const sendPaymentReminder = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("Payment Reminder Error:", error);
+    // console.error("Payment Reminder Error:", error);
     return res.status(500).json({
       success: false,
       message: error.message || "Something went wrong",
@@ -586,7 +1304,7 @@ export const sendOverdueAlert = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("Overdue Alert Error:", error);
+    // console.error("Overdue Alert Error:", error);
     return res.status(500).json({
       success: false,
       message: error.message || "Something went wrong",
@@ -635,11 +1353,11 @@ export const sendPaymentConfirmation = async (req, res) => {
     // Check email limit
     const user = await User.findById(req.user._id);
     const canSend = await user.canSendEmail();
-    
+    // console.log("user", user )
     if (!canSend) {
       return res.status(403).json({
         success: false,
-        message: `Email limit exceeded. You have used ${user.subscription.limits.used} out of ${user.subscription.limits.monthly} emails.`,
+        message: `Email limit exceeded. You have used ${user.subscription.limits.usage?.emails} out of ${user.subscription.limits.monthly} emails.`,
         data: {
           plan: user.subscription.plan,
           limit: user.subscription.limits.monthly,
@@ -686,7 +1404,7 @@ export const sendPaymentConfirmation = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("Payment Confirmation Error:", error);
+    // console.error("Payment Confirmation Error:", error);
     return res.status(500).json({
       success: false,
       message: error.message || "Something went wrong.",
@@ -786,7 +1504,7 @@ export const sendCancellation = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("Cancellation Email Error:", error);
+    // console.error("Cancellation Email Error:", error);
     return res.status(500).json({
       success: false,
       message: error.message || "Something went wrong.",
@@ -796,70 +1514,70 @@ export const sendCancellation = async (req, res) => {
 
 // 7. Invoice Updated/Revised 📝
 export const sendRevisedInvoice = async (req, res) => {
-  console.log("\n================== sendRevisedInvoice ==================");
-  console.log("📥 Request Body:", JSON.stringify(req.body, null, 2));
-  console.log("👤 User:", req.user?._id);
+  // console.log("\n================== sendRevisedInvoice ==================");
+  // console.log("📥 Request Body:", JSON.stringify(req.body, null, 2));
+  // console.log("👤 User:", req.user?._id);
 
   try {
     const { invoiceId, changes = [], scheduleTime } = req.body;
 
-    console.log("📌 Invoice ID:", invoiceId);
-    console.log("📌 Changes:", changes);
-    console.log("📌 Changes Type:", typeof changes);
-    console.log("📌 Is Array:", Array.isArray(changes));
-    console.log("📌 Schedule Time:", scheduleTime);
+    // console.log("📌 Invoice ID:", invoiceId);
+    // console.log("📌 Changes:", changes);
+    // console.log("📌 Changes Type:", typeof changes);
+    // console.log("📌 Is Array:", Array.isArray(changes));
+    // console.log("📌 Schedule Time:", scheduleTime);
 
     // Validate Invoice ID
     if (!invoiceId || !mongoose.Types.ObjectId.isValid(invoiceId)) {
-      console.log("❌ Invalid Invoice ID");
+     // console.log("❌ Invalid Invoice ID");
       return res.status(400).json({
         success: false,
         message: "Invalid invoice id",
       });
     }
 
-    console.log("🔍 Finding Invoice...");
+   // console.log("🔍 Finding Invoice...");
 
     const invoice = await Invoice.findOne({
       _id: invoiceId,
       user: req.user._id,
     });
 
-    console.log("📄 Invoice:", invoice);
+  //  console.log("📄 Invoice:", invoice);
 
     if (!invoice) {
-      console.log("❌ Invoice Not Found");
+     // console.log("❌ Invoice Not Found");
       return res.status(404).json({
         success: false,
         message: "Invoice not found",
       });
     }
 
-    console.log("📧 Client:", invoice.client);
+   // console.log("📧 Client:", invoice.client);
 
     if (!invoice.client?.email) {
-      console.log("❌ Client Email Missing");
+  //    console.log("❌ Client Email Missing");
       return res.status(400).json({
         success: false,
         message: "Client email not found",
       });
     }
 
-    console.log("📌 Invoice Status:", invoice.status);
+    ///console.log("📌 Invoice Status:", invoice.status);
 
     if (invoice.status === "cancelled") {
-      console.log("❌ Invoice Cancelled");
+     // console.log("❌ Invoice Cancelled");
       return res.status(400).json({
         success: false,
         message: "Cancelled invoices cannot be revised.",
       });
     }
 
-    console.log("👤 Finding User...");
+   // console.log("👤 Finding User...");
 
     const user = await User.findById(req.user._id);
 
-    console.log("👤 User Found:", !!user);
+   // console.log("👤 User Found:", !!user);
 
     if (!user) {
       return res.status(404).json({
@@ -868,15 +1586,15 @@ export const sendRevisedInvoice = async (req, res) => {
       });
     }
 
-    console.log("📬 Checking Email Limit...");
+    //console.log("📬 Checking Email Limit...");
 
     const canSend = await user.canSendEmail();
 
-    console.log("📬 Can Send:", canSend);
-    console.log("📬 Remaining:", user.getRemainingEmails());
+   // console.log("📬 Can Send:", canSend);
+   // console.log("📬 Remaining:", user.getRemainingEmails());
 
     if (!canSend) {
-      console.log("❌ Email Limit Exceeded");
+     // console.log("❌ Email Limit Exceeded");
 
       return res.status(403).json({
         success: false,
@@ -888,10 +1606,10 @@ export const sendRevisedInvoice = async (req, res) => {
       ? new Date(scheduleTime)
       : new Date();
 
-    console.log("⏰ Scheduled At:", scheduledAt);
+   // console.log("⏰ Scheduled At:", scheduledAt);
 
     if (isNaN(scheduledAt.getTime())) {
-      console.log("❌ Invalid Schedule Time");
+     // console.log("❌ Invalid Schedule Time");
 
       return res.status(400).json({
         success: false,
@@ -899,30 +1617,30 @@ export const sendRevisedInvoice = async (req, res) => {
       });
     }
 
-    console.log("\n================ TEMPLATE DEBUG ================");
+    //console.log("\n================ TEMPLATE DEBUG ================");
 
-    console.log("Changes Raw:", changes);
-    console.log("Changes Type:", typeof changes);
-    console.log("Is Array:", Array.isArray(changes));
+    // console.log("Changes Raw:", changes);
+    // console.log("Changes Type:", typeof changes);
+    // console.log("Is Array:", Array.isArray(changes));
 
     if (Array.isArray(changes)) {
-      console.log("Array Length:", changes.length);
+     // console.log("Array Length:", changes.length);
 
       changes.forEach((item, index) => {
-        console.log(`changes[${index}] =>`, item);
+      //  console.log(`changes[${index}] =>`, item);
       });
     } else {
-      console.log("❌ changes is NOT an array");
+      // console.log("❌ changes is NOT an array");
     }
 
-    console.log("Generating HTML...");
+    // console.log("Generating HTML...");
 
     const html = getRevisedEmailHTML(invoice, changes);
 
-    console.log("✅ HTML Generated");
-    console.log("HTML Length:", html.length);
+    // console.log("✅ HTML Generated");
+    // console.log("HTML Length:", html.length);
 
-    console.log("Creating Scheduled Email...");
+    // console.log("Creating Scheduled Email...");
 
     const scheduledEmail = await ScheduledEmail.create({
       userId: req.user._id,
@@ -934,16 +1652,16 @@ export const sendRevisedInvoice = async (req, res) => {
       invoiceId: invoice._id,
     });
 
-    console.log("✅ Scheduled Email Created");
-    console.log(scheduledEmail);
+    // console.log("✅ Scheduled Email Created");
+   ////////////// console.log(scheduledEmail);
 
-    console.log("Increment Email Count...");
+    // console.log("Increment Email Count...");
 
     await user.incrementEmailCount();
 
-    console.log("✅ Email Count Updated");
+    // console.log("✅ Email Count Updated");
 
-    console.log("================ SUCCESS ================\n");
+    // console.log("================ SUCCESS ================\n");
 
     return res.status(201).json({
       success: true,
@@ -952,18 +1670,18 @@ export const sendRevisedInvoice = async (req, res) => {
     });
 
   } catch (error) {
-    console.log("\n================ ERROR ================");
-    console.error(error);
-    console.error(error.stack);
+    // console.log("\n================ ERROR ================");
+    // console.error(error);
+    // console.error(error.stack);
 
     if (req.body) {
-      console.log("Request Body:", JSON.stringify(req.body, null, 2));
-      console.log("Changes:", req.body.changes);
-      console.log("Changes Type:", typeof req.body.changes);
-      console.log("Is Array:", Array.isArray(req.body.changes));
+      // console.log("Request Body:", JSON.stringify(req.body, null, 2));
+      // console.log("Changes:", req.body.changes);
+      // console.log("Changes Type:", typeof req.body.changes);
+      // console.log("Is Array:", Array.isArray(req.body.changes));
     }
 
-    console.log("=======================================\n");
+    // console.log("=======================================\n");
 
     return res.status(500).json({
       success: false,
@@ -1066,7 +1784,7 @@ export const sendBulkInvoices = async (req, res) => {
         invoice.status = "sent";
         await invoice.save();
       } catch (err) {
-        console.error(err);
+        // console.error(err);
         failedInvoices.push({
           invoiceId: item.invoiceId,
           reason: err.message,
@@ -1089,7 +1807,7 @@ export const sendBulkInvoices = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("Bulk Invoice Error:", error);
+    // console.error("Bulk Invoice Error:", error);
     return res.status(500).json({
       success: false,
       message: error.message || "Something went wrong.",
@@ -1195,7 +1913,7 @@ export const sendRecurringInvoice = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("Recurring Invoice Error:", error);
+    // console.error("Recurring Invoice Error:", error);
     return res.status(500).json({
       success: false,
       message: error.message || "Something went wrong.",
@@ -1292,7 +2010,7 @@ export const sendProformaInvoice = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("Proforma Invoice Error:", error);
+    // console.error("Proforma Invoice Error:", error);
     return res.status(500).json({
       success: false,
       message: error.message || "Something went wrong.",
@@ -1403,7 +2121,7 @@ export const sendCreditNote = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("Credit Note Error:", error);
+    // console.error("Credit Note Error:", error);
     return res.status(500).json({
       success: false,
       message: error.message || "Something went wrong.",
@@ -1417,7 +2135,7 @@ export const sendCreditNote = async (req, res) => {
 export const getEmailStatsSummary = async (req, res) => {
   try {
     const userId = req.user._id;
-console.log("userId : " ,userId)
+//console.log("userId : " ,userId)
     // Get counts by status
     const totalEmails = await ScheduledEmail.countDocuments({ userId });
     const pendingEmails = await ScheduledEmail.countDocuments({ 
@@ -1488,7 +2206,7 @@ console.log("userId : " ,userId)
     });
 
   } catch (error) {
-    console.error('Get Email Stats Error:', error);
+    // console.error('Get Email Stats Error:', error);
     res.status(500).json({ 
       success: false, 
       message: error.message 
@@ -1520,7 +2238,7 @@ export const getEmailStats = async (req, res) => {
       data: stats,
     });
   } catch (error) {
-    console.error('Get Email Stats Error:', error);
+    // console.error('Get Email Stats Error:', error);
     res.status(500).json({ 
       success: false, 
       message: error.message 
@@ -1633,7 +2351,7 @@ export const getMyEmails = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Get My Emails Error:', error);
+    // console.error('Get My Emails Error:', error);
     res.status(500).json({ 
       success: false, 
       message: error.message 

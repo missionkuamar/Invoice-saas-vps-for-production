@@ -6,7 +6,7 @@ import AffiliateWithdrawal from '../models/AffiliateWithdrawal.js';
 import Notification from '../models/Notification.js';
 import User from '../models/User.js';
 import { v4 as uuidv4 } from 'uuid';
- import mongoose from 'mongoose';
+import mongoose from 'mongoose';
 // ==================== AFFILIATE PROGRAM ====================
 
 // @desc    Join affiliate program
@@ -41,7 +41,7 @@ export const joinAffiliateProgram = async (req, res) => {
     res.status(500).json({
       success: false,
       message: error.message,
-     
+
     });
   }
 };
@@ -94,11 +94,11 @@ export const getAffiliateDashboard = async (req, res) => {
 
     const linkSkip = (linkPage - 1) * linkLimit;
 
-    console.log('Affiliate Pagination Request:', {
-      linkPage,
-      linkLimit,
-      linkSkip,
-    });
+    // console.log('Affiliate Pagination Request:', {
+    //   linkPage,
+    //   linkLimit,
+    //   linkSkip,
+    // });
 
     // ==========================================
     // START OF CURRENT MONTH
@@ -269,15 +269,15 @@ export const getAffiliateDashboard = async (req, res) => {
     // DEBUG
     // ==========================================
 
-    console.log(
-      'Affiliate Dashboard Pagination:',
-      data.linkPagination
-    );
+    // console.log(
+    //   'Affiliate Dashboard Pagination:',
+    //   data.linkPagination
+    // );
 
-    console.log(
-      'Links returned:',
-      data.links.length
-    );
+    // console.log(
+    //   'Links returned:',
+    //   data.links.length
+    // );
 
     // ==========================================
     // RESPONSE
@@ -288,10 +288,10 @@ export const getAffiliateDashboard = async (req, res) => {
       data,
     });
   } catch (error) {
-    console.error(
-      'Affiliate dashboard error:',
-      error
-    );
+    // console.error(
+    //   'Affiliate dashboard error:',
+    //   error
+    // );
 
     return res.status(500).json({
       success: false,
@@ -339,6 +339,7 @@ export const createAffiliateLink = async (req, res) => {
     });
 
     // Generate full link URL
+    //const baseUrl =  'https://www.invoicehub.fun'
     const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     const linkUrl = `${baseUrl}/r/${link.slug}?ref=${affiliate.affiliateCode}`;
 
@@ -436,6 +437,7 @@ export const trackAffiliateClick = async (req, res) => {
     }
 
     // Otherwise, redirect to frontend
+    //const frontendUrl   = 'https://www.invoicehub.fun';
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     return res.redirect(`${frontendUrl}${destination}`);
   } catch (error) {

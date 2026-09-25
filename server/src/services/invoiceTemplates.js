@@ -1267,14 +1267,14 @@ export const getRevisedEmailHTML = (
   changes = []
 ) => {
 
-    console.log("Raw Changes:", changes);
+  //  console.log("Raw Changes:", changes);
 
   // Convert to array if needed
   if (!Array.isArray(changes)) {
     changes = changes ? [changes] : [];
   }
 
-  console.log("Normalized Changes:", changes);
+ // console.log("Normalized Changes:", changes);
   
   const currency = invoice.currency || "₹";
 

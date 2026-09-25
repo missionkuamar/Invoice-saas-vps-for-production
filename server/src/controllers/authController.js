@@ -26,7 +26,7 @@ const verifyGoogleToken = async (credential) => {
       idToken: credential,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
-    
+
     const payload = ticket.getPayload();
     return {
       googleId: payload.sub,
@@ -36,7 +36,7 @@ const verifyGoogleToken = async (credential) => {
       emailVerified: payload.email_verified
     };
   } catch (error) {
-    console.error('Google token verification failed:', error);
+    // console.error('Google token verification failed:', error);
     throw new Error('Invalid Google token');
   }
 };
@@ -55,17 +55,62 @@ const generateUsername = (email) => {
 // @route   POST /api/auth/google
 export const googleAuthCallback = async (req, res) => {
   try {
+    // ============================================================
+    // 🔍 DEBUG: Request Received
+    // ============================================================
+    // console.group('🚀 GOOGLE AUTH CALLBACK START');
+    // console.log('📍 Request URL:', req.originalUrl);
+    // console.log('📍 Method:', req.method);
+    // console.log('📍 IP:', req.ip);
+    // console.log('📍 Headers:', {
+    //   'content-type': req.headers['content-type'],
+    //   'user-agent': req.headers['user-agent']?.substring(0, 50) + '...',
+    //   referer: req.headers.referer,
+    //   origin: req.headers.origin,
+    //   cookie: req.headers.cookie ? 'YES (present)' : 'NO',
+    // });
+    // console.log('📍 Cookies present?', !!req.headers.cookie);
+    // console.log('📍 Session ID:', req.sessionID);
+    // console.log('📍 Session exists?', !!req.session);
+    // console.log('📍 Session affiliateReferral:', req.session?.affiliateReferral);
+    // console.groupEnd();
+
+    // ============================================================
+    // 🔍 DEBUG: Request Body
+    // ============================================================
     const { credential, ref } = req.body;
 
+    // console.group('📥 Request Body');
+    // console.log('📥 Full body:', req.body);
+    // console.log('📥 Credential present?', !!credential);
+    // console.log('📥 Credential length:', credential?.length || 0);
+    // console.log('📥 Credential preview:', credential?.substring(0, 30) + '...');
+    // console.log('📥 *** REF FROM BODY ***:', ref);
+    // console.log('📥 ref type:', typeof ref);
+    // console.log('📥 ref is empty?', !ref);
+    // console.log('📥 ref length:', ref?.length || 0);
+    // console.groupEnd();
+
     if (!credential) {
+      // console.error('❌ No credential provided!');
       return res.status(400).json({
         success: false,
         message: 'Google credential is required',
       });
     }
 
-    // Verify the Google token
+    // ============================================================
+    // 🔍 DEBUG: Verify Google Token
+    // ============================================================
+    // console.log('🔐 Verifying Google token...');
     const googleUser = await verifyGoogleToken(credential);
+    
+    // console.group('👤 Google User Info');
+    // console.log('👤 Email:', googleUser.email);
+    // console.log('👤 Name:', googleUser.name);
+    // console.log('👤 Google ID:', googleUser.googleId);
+    // console.log('👤 Email verified:', googleUser.emailVerified);
+    // console.groupEnd();
 
     // Check if user exists by email
     let user = await User.findOne({ email: googleUser.email });
@@ -73,7 +118,12 @@ export const googleAuthCallback = async (req, res) => {
 
     if (user) {
       // ============ LOGIN EXISTING USER ============
-      console.log(`✅ Existing user logged in: ${user.email}`);
+      // console.group('✅ Existing User Login');
+      // console.log('✅ User email:', user.email);
+      // console.log('✅ User ID:', user._id);
+      // console.log('✅ Referred user already?', user.referredBy || 'No');
+      // console.log('⚠️ NOTE: Existing user → Affiliate tracking SKIPPED');
+      // console.groupEnd();
 
       user.lastLogin = Date.now();
       user.name = googleUser.name;
@@ -88,7 +138,12 @@ export const googleAuthCallback = async (req, res) => {
       await user.save();
     } else {
       // ============ REGISTER NEW USER ============
-      console.log(`✅ New user registering with Google: ${googleUser.email}`);
+      // console.group('🆕 New User Registration');
+      // console.log('🆕 New user email:', googleUser.email);
+      // console.log('🆕 New user name:', googleUser.name);
+      // console.log('⚠️ Ref received for this new user:', ref || '(EMPTY)');
+      // console.groupEnd();
+
       isNewUser = true;
 
       // Generate unique username
@@ -99,7 +154,7 @@ export const googleAuthCallback = async (req, res) => {
         usernameExists = await User.findOne({ username });
       }
 
-      // Create new user (same defaults as register controller)
+      // Create new user
       user = await User.create({
         googleId: googleUser.googleId,
         email: googleUser.email,
@@ -117,53 +172,146 @@ export const googleAuthCallback = async (req, res) => {
         lastLogin: Date.now(),
       });
 
-      // ============ AFFILIATE TRACKING (same as register) ============
+      // console.log('✅ New user created:', user._id, '| Username:', username);
+
+      // ============================================================
+      // ============ AFFILIATE TRACKING ============
+      // // ============================================================
+      // console.group('🔗 AFFILIATE TRACKING START');
+      // console.log('🔗 ref from body:', ref || '(EMPTY)');
+      // console.log('🔗 session.affiliateReferral:', req.session?.affiliateReferral || '(EMPTY)');
+      // console.groupEnd();
+
       let affiliateReferral = null;
       let affiliateCode = ref || '';
 
+      // ------------------------------------------------------------
       // 1. Check session
+      // ------------------------------------------------------------
+      // console.log('1️⃣ Checking session...');
       if (req.session?.affiliateReferral) {
+        // console.group('1️⃣ Session Referral Found');
         const { referralId, affiliateId } = req.session.affiliateReferral;
+        // console.log('  referralId:', referralId);
+        // console.log('  affiliateId:', affiliateId);
+        
         const referral = await AffiliateReferral.findById(referralId);
         if (referral) {
+          // console.log('  ✅ Referral found in DB:', referral._id);
           referral.referredUser = user._id;
           referral.status = 'registered';
           await referral.save();
+          // console.log('  ✅ Referral updated (status: registered)');
 
           const affiliate = await Affiliate.findById(affiliateId);
           if (affiliate) {
             affiliate.totalReferrals += 1;
             await affiliate.save();
+            // console.log('  ✅ Affiliate totalReferrals updated');
           }
           affiliateReferral = referral;
           delete req.session.affiliateReferral;
           await req.session.save();
+          // console.log('  ✅ Session cleared');
+        } else {
+          // console.log('  ❌ Referral not found in DB');
         }
+        // console.groupEnd();
+      } else {
+        // console.log('1️⃣ ❌ No session referral');
       }
 
+      // ------------------------------------------------------------
       // 2. Check ref from body
+      // ------------------------------------------------------------
+      // console.log('2️⃣ Checking ref from body...');
+      // console.log('2️⃣ ref value:', ref || '(EMPTY)');
+      // console.log('2️⃣ Condition (ref && !affiliateReferral):', !!(ref && !affiliateReferral));
+      
       if (ref && !affiliateReferral) {
+        // console.group('2️⃣ Body Ref Check');
+        // console.log('  🔍 Searching affiliate with code:', ref);
+
         const affiliate = await Affiliate.findOne({
           affiliateCode: ref,
           status: 'active',
         });
+
         if (affiliate) {
-          affiliateReferral = await AffiliateReferral.create({
+          // console.log('  ✅ Affiliate FOUND:', affiliate.affiliateCode);
+          // console.log('  ✅ Affiliate ID:', affiliate._id);
+          // console.log('  ✅ Affiliate status:', affiliate.status);
+          // console.log('  ✅ Current totalReferrals:', affiliate.totalReferrals);
+
+          // ✅ FIRST: Check if there's a recent "clicked" referral for this affiliate
+          // console.log('  🔍 Checking for recent "clicked" referral...');
+          
+          const existingClickReferral = await AffiliateReferral.findOne({
             affiliate: affiliate._id,
-            referredUser: user._id,
-            status: 'registered',
-          });
+            referredUser: null,
+            status: 'clicked',
+            createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+          }).sort({ createdAt: -1 });
+
+          if (existingClickReferral) {
+            // Update existing click referral (prevents duplicates)
+            // console.log('  ✅ Found existing click referral:', existingClickReferral._id);
+            // console.log('  ✅ Created at:', existingClickReferral.createdAt);
+            // console.log('  ✅ Updating referral (status: clicked → registered)');
+            
+            existingClickReferral.referredUser = user._id;
+            existingClickReferral.status = 'registered';
+            await existingClickReferral.save();
+            affiliateReferral = existingClickReferral;
+
+            // console.log('  ✅ Updated existing referral:', existingClickReferral._id);
+          } else {
+            // Create new referral (no click found)
+            // console.log('  ⚠️ No existing click referral found');
+            // console.log('  ✅ Creating new referral...');
+            
+            affiliateReferral = await AffiliateReferral.create({
+              affiliate: affiliate._id,
+              referredUser: user._id,
+              status: 'registered',
+            });
+
+            // console.log('  ✅ Created new referral:', affiliateReferral._id);
+          }
+
           affiliate.totalReferrals += 1;
           await affiliate.save();
+          // console.log('  ✅ Affiliate totalReferrals updated to:', affiliate.totalReferrals);
+        } else {
+          // console.log('  ❌ Affiliate NOT FOUND for ref:', ref);
+          // console.log('  ❌ Checking all affiliates...');
+          
+          const allAffiliates = await Affiliate.find({}).select('affiliateCode status');
+          // console.log('  📋 All affiliates in DB:', allAffiliates.map(a => ({
+          //   code: a.affiliateCode,
+          //   status: a.status,
+          // })));
         }
+        // console.groupEnd();
+      } else {
+        // console.log('2️⃣ ❌ Skipping body ref check');
+        // if (!ref) console.log('   Reason: ref is empty');
+        // if (affiliateReferral) console.log('   Reason: already have referral from session');
       }
 
+      // ------------------------------------------------------------
       // 3. Check ref from query
+      // ------------------------------------------------------------
+      // console.log('3️⃣ Checking ref from query...');
       if (req.query.ref && !affiliateReferral) {
+        // console.group('3️⃣ Query Ref Check');
+        // console.log('  🔍 req.query.ref:', req.query.ref);
+        
         const affiliate = await Affiliate.findOne({
           affiliateCode: req.query.ref,
           status: 'active',
         });
+        
         if (affiliate) {
           affiliateReferral = await AffiliateReferral.create({
             affiliate: affiliate._id,
@@ -172,12 +320,21 @@ export const googleAuthCallback = async (req, res) => {
           });
           affiliate.totalReferrals += 1;
           await affiliate.save();
+          // console.log('  ✅ Referral created from query ref');
         }
+        // console.groupEnd();
+      } else {
+        // console.log('3️⃣ ❌ No query ref or already handled');
       }
 
+      // ------------------------------------------------------------
       // 4. Check referer header
+      // ------------------------------------------------------------
+      // console.log('4️⃣ Checking referer header...');
       if (!affiliateReferral) {
         const referer = req.headers.referer || '';
+        // console.log('4️⃣ Referer header:', referer);
+        
         if (referer.includes('ref=')) {
           const refMatch = referer.match(/ref=([^&]+)/);
           if (refMatch && refMatch[1]) {
@@ -193,32 +350,40 @@ export const googleAuthCallback = async (req, res) => {
               });
               affiliate.totalReferrals += 1;
               await affiliate.save();
+              // console.log('4️⃣ ✅ Referral created from referer');
             }
           }
         }
       }
 
-      // 5. Last resort - pending referral
-      // ye code kese kese kaam ka nhi hai
-      // if (!affiliateReferral) {
-      //   const pendingReferral = await AffiliateReferral.findOne({
-      //     referredUser: null,
-      //     status: 'clicked',
-      //   }).sort({ createdAt: -1 });
-
-      //   if (pendingReferral) {
-      //     pendingReferral.referredUser = user._id;
-      //     pendingReferral.status = 'registered';
-      //     await pendingReferral.save();
-      //     affiliateReferral = pendingReferral;
-      //   }
-      // }
+      // ------------------------------------------------------------
+      // FINAL: Affiliate Tracking Summary
+      // ------------------------------------------------------------
+      // console.group('🔗 AFFILIATE TRACKING RESULT');
+      if (affiliateReferral) {
+        // console.log('✅ SUCCESS! Referral created/updated');
+        // console.log('   Referral ID:', affiliateReferral._id);
+        // console.log('   Status:', affiliateReferral.status);
+        // console.log('   referredUser:', affiliateReferral.referredUser);
+        // console.log('   affiliate:', affiliateReferral.affiliate);
+      } else {
+        // console.log('❌ FAILED! No referral created');
+        // console.log('   Possible reasons:');
+        // console.log('   - ref was empty in request body');
+        // console.log('   - No matching affiliate found');
+        // console.log('   - Affiliate status not "active"');
+      }
+      console.groupEnd();
     }
 
-    // ============ GENERATE TOKEN (same for both cases) ============
+    // ============ GENERATE TOKEN ============
     const token = generateToken(user._id);
 
-    // ============ SAME RESPONSE SHAPE AS login/register ============
+    // console.log('✅ Google auth completed. isNewUser:', isNewUser);
+    // console.log('✅ User ID:', user._id);
+    // console.log('✅ Returning token...');
+
+    // ============ RESPONSE ============
     return res.status(isNewUser ? 201 : 200).json({
       success: true,
       message: isNewUser ? 'Registration successful' : 'Login successful',
@@ -236,7 +401,11 @@ export const googleAuthCallback = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Google auth error:', error);
+    // console.group('❌ GOOGLE AUTH ERROR');
+    // console.error('❌ Error:', error);
+    // console.error('❌ Error message:', error.message);
+    // console.error('❌ Error stack:', error.stack);
+    // console.groupEnd();
 
     if (error.code === 11000) {
       return res.status(400).json({
@@ -348,7 +517,7 @@ export const register = async (req, res) => {
       },
     });
 
- //   console.log(`✅ User registered: ${email} (ID: ${user._id})`);
+    //   console.log(`✅ User registered: ${email} (ID: ${user._id})`);
 
     // ============ AFFILIATE TRACKING - ULTIMATE FIX ============
     let affiliateReferral = null;
@@ -357,8 +526,8 @@ export const register = async (req, res) => {
     // ✅ 1. Check session first (from clicking affiliate link)
     if (req.session?.affiliateReferral) {
       const { referralId, affiliateId } = req.session.affiliateReferral;
-      
-    //  console.log('📝 Session found:', { referralId, affiliateId });
+
+      //  console.log('📝 Session found:', { referralId, affiliateId });
 
       const referral = await AffiliateReferral.findById(referralId);
       if (referral) {
@@ -370,7 +539,7 @@ export const register = async (req, res) => {
         if (affiliate) {
           affiliate.totalReferrals += 1;
           await affiliate.save();
-         // console.log(`✅ Session referral linked: ${affiliate.affiliateCode}`);
+          // console.log(`✅ Session referral linked: ${affiliate.affiliateCode}`);
         }
 
         affiliateReferral = referral;
@@ -381,78 +550,78 @@ export const register = async (req, res) => {
 
     // ✅ 2. Check ref from body
     if (ref && !affiliateReferral) {
-    //  console.log('📝 Ref from body:', ref);
-      const affiliate = await Affiliate.findOne({ 
+      //  console.log('📝 Ref from body:', ref);
+      const affiliate = await Affiliate.findOne({
         affiliateCode: ref,
-        status: 'active' 
+        status: 'active'
       });
-      
+
       if (affiliate) {
         const newReferral = await AffiliateReferral.create({
           affiliate: affiliate._id,
           referredUser: user._id,
           status: 'registered',
         });
-        
+
         affiliate.totalReferrals += 1;
         await affiliate.save();
         affiliateReferral = newReferral;
-       // console.log(`✅ Ref from body linked: ${ref}`);
+        // console.log(`✅ Ref from body linked: ${ref}`);
       }
     }
 
     // ✅ 3. Check ref from query (URL parameter)
     if (req.query.ref && !affiliateReferral) {
       const queryRef = req.query.ref;
-     // console.log('📝 Ref from query:', queryRef);
-      
-      const affiliate = await Affiliate.findOne({ 
+      // console.log('📝 Ref from query:', queryRef);
+
+      const affiliate = await Affiliate.findOne({
         affiliateCode: queryRef,
-        status: 'active' 
+        status: 'active'
       });
-      
+
       if (affiliate) {
         const newReferral = await AffiliateReferral.create({
           affiliate: affiliate._id,
           referredUser: user._id,
           status: 'registered',
         });
-        
+
         affiliate.totalReferrals += 1;
         await affiliate.save();
         affiliateReferral = newReferral;
-       // console.log(`✅ Ref from query linked: ${queryRef}`);
+        // console.log(`✅ Ref from query linked: ${queryRef}`);
       }
     }
 
     // ✅ 4. ULTIMATE FIX - Check referer header (if user came from affiliate link)
     if (!affiliateReferral) {
       const referer = req.headers.referer || '';
-    //  console.log('📝 Checking referer:', referer);
-      
+      //  console.log('📝 Checking referer:', referer);
+
       // Check if referer contains ref parameter
       if (referer.includes('ref=')) {
         const refMatch = referer.match(/ref=([^&]+)/);
         if (refMatch && refMatch[1]) {
           const refererRef = refMatch[1];
-       //   console.log('📝 Ref from referer:', refererRef);
-          
-          const affiliate = await Affiliate.findOne({ 
+          //   console.log('📝 Ref from referer:', refererRef);
+
+          const affiliate = await Affiliate.findOne({
             affiliateCode: refererRef,
-            status: 'active' 
+            status: 'active'
           });
-          
+
           if (affiliate) {
             const newReferral = await AffiliateReferral.create({
               affiliate: affiliate._id,
               referredUser: user._id,
               status: 'registered',
             });
-            
+
             affiliate.totalReferrals += 1;
             await affiliate.save();
             affiliateReferral = newReferral;
-          //  console.log(`✅ Ref from referer linked: ${refererRef}`);
+            //  console.log(`✅ Ref from referer linked: ${refererRef}`);
           }
         }
       }
@@ -495,7 +664,7 @@ export const register = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Register error:', error);
+    // console.error('Register error:', error);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -512,7 +681,7 @@ export const getProfile = async (req, res) => {
       data: user,
     });
   } catch (error) {
-   // console.error('Get profile error:', error);
+    // console.error('Get profile error:', error);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -552,7 +721,7 @@ export const updateProfile = async (req, res) => {
       },
     });
   } catch (error) {
-   // console.error('Update profile error:', error);
+    // console.error('Update profile error:', error);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -632,7 +801,7 @@ export const getUsers = async (req, res) => {
       data: users,
     });
   } catch (error) {
-  //  console.error('Get users error:', error);
+    //  console.error('Get users error:', error);
     res.status(500).json({
       success: false,
       message: error.message,
@@ -686,7 +855,7 @@ export const updateUserRole = async (req, res) => {
       },
     });
   } catch (error) {
- //   console.error('Update user role error:', error);
+    //   console.error('Update user role error:', error);
     res.status(500).json({
       success: false,
       message: error.message,

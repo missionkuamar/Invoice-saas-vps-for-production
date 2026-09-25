@@ -122,7 +122,7 @@ export const plans = [
   {
     id: 'enterprise',
     name: 'Enterprise',
-    price: 1999,
+    price: 1199,
 
     invoiceLimit: 1000,
     emailLimit: 1000,
@@ -181,23 +181,23 @@ export const getPlan = (planId) => {
 
 export const createOrder = async (req, res) => {
   try {
-    console.log('\n========================================');
-    console.log('🚀 CREATE ORDER START');
-    console.log('========================================');
+    // console.log('\n========================================');
+    // console.log('🚀 CREATE ORDER START');
+    // console.log('========================================');
 
     const {
       plan,
     } = req.body;
 
-    console.log(
-      '📥 Request body:',
-      req.body
-    );
+    // console.log(
+    //   '📥 Request body:',
+    //   req.body
+    // );
 
-    console.log(
-      '📦 Requested plan:',
-      plan
-    );
+    // console.log(
+    //   '📦 Requested plan:',
+    //   plan
+    // );
 
     // ========================================================
     // USER ID
@@ -207,10 +207,10 @@ export const createOrder = async (req, res) => {
       req.user?._id ||
       req.user?.id;
 
-    console.log(
-      '👤 User ID:',
-      userId
-    );
+    // console.log(
+    //   '👤 User ID:',
+    //   userId
+    // );
 
     if (!userId) {
       return res.status(401).json({
@@ -235,19 +235,19 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    console.log(
-      '👤 User found:',
-      {
-        id: user._id,
-        email: user.email,
-        currentPlan:
-          user.subscription?.plan ||
-          'free',
-        subscriptionStatus:
-          user.subscription?.status ||
-          'inactive',
-      }
-    );
+    // console.log(
+    //   '👤 User found:',
+    //   {
+    //     id: user._id,
+    //     email: user.email,
+    //     currentPlan:
+    //       user.subscription?.plan ||
+    //       'free',
+    //     subscriptionStatus:
+    //       user.subscription?.status ||
+    //       'inactive',
+    //   }
+    // );
 
     // ========================================================
     // FIND PLAN
@@ -256,10 +256,10 @@ export const createOrder = async (req, res) => {
     const selectedPlan =
       findPlanById(plan);
 
-    console.log(
-      '📋 Selected plan:',
-      selectedPlan
-    );
+    // console.log(
+    //   '📋 Selected plan:',
+    //   selectedPlan
+    // );
 
     if (!selectedPlan) {
       return res.status(400).json({
@@ -329,14 +329,14 @@ export const createOrder = async (req, res) => {
       },
     };
 
-    console.log(
-      '💳 Razorpay order options:',
-      JSON.stringify(
-        options,
-        null,
-        2
-      )
-    );
+    // console.log(
+    //   '💳 Razorpay order options:',
+    //   JSON.stringify(
+    //     options,
+    //     null,
+    //     2
+    //   )
+    // );
 
     // ========================================================
     // CREATE ORDER
@@ -347,10 +347,10 @@ export const createOrder = async (req, res) => {
         options
       );
 
-    console.log(
-      '✅ Razorpay order created:',
-      order.id
-    );
+    // console.log(
+    //   '✅ Razorpay order created:',
+    //   order.id
+    // );
 
     // ========================================================
     // RESPONSE
@@ -380,10 +380,10 @@ export const createOrder = async (req, res) => {
       currentPlan,
     };
 
-    console.log(
-      '📤 Sending order data:',
-      responseData
-    );
+    // console.log(
+    //   '📤 Sending order data:',
+    //   responseData
+    // );
 
     return res.status(200).json({
       success: true,
@@ -392,10 +392,10 @@ export const createOrder = async (req, res) => {
 
   } catch (error) {
 
-    console.error(
-      '❌ CREATE ORDER ERROR:',
-      error
-    );
+    // console.error(
+    //   '❌ CREATE ORDER ERROR:',
+    //   error
+    // );
 
     return res.status(500).json({
       success: false,
@@ -419,9 +419,9 @@ export const createOrder = async (req, res) => {
 
 export const verifyPayment = async (req, res) => {
   try {
-    console.log('\n========================================');
-    console.log('🔐 VERIFY PAYMENT START');
-    console.log('========================================');
+    // console.log('\n========================================');
+    // console.log('🔐 VERIFY PAYMENT START');
+    // console.log('========================================');
 
     // ========================================================
     // REQUEST DATA
@@ -438,13 +438,13 @@ export const verifyPayment = async (req, res) => {
       req.user?._id ||
       req.user?.id;
 
-    console.log('📥 Verify payment request:', {
-      orderId,
-      paymentId,
-      signature,
-      plan,
-      userId,
-    });
+    // console.log('📥 Verify payment request:', {
+    //   orderId,
+    //   paymentId,
+    //   signature,
+    //   plan,
+    //   userId,
+    // });
 
     // ========================================================
     // VALIDATION
@@ -491,7 +491,7 @@ export const verifyPayment = async (req, res) => {
 
     const selectedPlan = findPlanById(plan);
 
-    console.log('📋 Selected plan:', selectedPlan);
+  //  console.log('📋 Selected plan:', selectedPlan);
 
     if (!selectedPlan) {
       return res.status(400).json({
@@ -513,14 +513,14 @@ export const verifyPayment = async (req, res) => {
       });
     }
 
-    console.log('👤 User found:', {
-      id: user._id,
-      email: user.email,
-      currentPlan:
-        user.subscription?.plan || 'free',
-      subscriptionStatus:
-        user.subscription?.status || 'inactive',
-    });
+    // console.log('👤 User found:', {
+    //   id: user._id,
+    //   email: user.email,
+    //   currentPlan:
+    //     user.subscription?.plan || 'free',
+    //   subscriptionStatus:
+    //     user.subscription?.status || 'inactive',
+    // });
 
     // ========================================================
     // CURRENT / PREVIOUS PLAN
@@ -541,7 +541,7 @@ export const verifyPayment = async (req, res) => {
         hasActiveSubscription
       );
 
-    console.log('📊 Transaction type:', transactionType);
+  //  console.log('📊 Transaction type:', transactionType);
 
     // ========================================================
     // VERIFY RAZORPAY SIGNATURE
@@ -562,7 +562,7 @@ export const verifyPayment = async (req, res) => {
     const isSignatureValid =
       expectedSignature === signature;
 
-    console.log('🔐 Signature valid:', isSignatureValid);
+   // console.log('🔐 Signature valid:', isSignatureValid);
 
     if (!isSignatureValid) {
       return res.status(400).json({
@@ -579,13 +579,13 @@ export const verifyPayment = async (req, res) => {
     const razorpayOrder =
       await razorpay.orders.fetch(orderId);
 
-    console.log('🧾 Razorpay order:', {
-      id: razorpayOrder.id,
-      amount: razorpayOrder.amount,
-      currency: razorpayOrder.currency,
-      status: razorpayOrder.status,
-      notes: razorpayOrder.notes,
-    });
+    // console.log('🧾 Razorpay order:', {
+    //   id: razorpayOrder.id,
+    //   amount: razorpayOrder.amount,
+    //   currency: razorpayOrder.currency,
+    //   status: razorpayOrder.status,
+    //   notes: razorpayOrder.notes,
+    // });
 
     // ========================================================
     // VERIFY ORDER USER
@@ -645,10 +645,10 @@ export const verifyPayment = async (req, res) => {
       );
 
     if (alreadyProcessed) {
-      console.log(
-        '⚠️ Payment already processed:',
-        paymentId
-      );
+      // console.log(
+      //   '⚠️ Payment already processed:',
+      //   paymentId
+      // );
 
       return res.status(200).json({
         success: true,
@@ -685,12 +685,14 @@ export const verifyPayment = async (req, res) => {
     endDate.setDate(
       endDate.getDate() +
       selectedPlan.durationDays
-    );
+    );   
 
 
     // only for tesing purpose 5 minutes ke lye 
     // const endDate = new Date(startDate);
-    // //endDate.setMinutes(endDate.getMinutes() + 5);
+    // endDate.setMinutes(endDate.getMinutes() + 5);
+
+    
     // ========================================================
     // PLAN CREDITS
     // ========================================================
@@ -706,7 +708,7 @@ export const verifyPayment = async (req, res) => {
       });
     }
 
-    console.log('🎟️ Credits:', credits);
+    //console.log('🎟️ Credits:', credits);
 
     // ========================================================
     // CREATE / UPDATE USER SUBSCRIPTION
@@ -844,9 +846,9 @@ export const verifyPayment = async (req, res) => {
 
     await user.save();
 
-    console.log(
-      '✅ User subscription saved successfully'
-    );
+    // console.log(
+    //   '✅ User subscription saved successfully'
+    // );
 
     // ========================================================
     // SAVE SUBSCRIPTION DOCUMENT
@@ -897,17 +899,17 @@ export const verifyPayment = async (req, res) => {
           transactionType,
         });
 
-      console.log(
-        '✅ Subscription document created:',
-        subscription._id
-      );
+      // console.log(
+      //   '✅ Subscription document created:',
+      //   subscription._id
+      // );
 
     } catch (subscriptionError) {
 
-      console.error(
-        '⚠️ Subscription document save error:',
-        subscriptionError.message
-      );
+      // console.error(
+      //   '⚠️ Subscription document save error:',
+      //   subscriptionError.message
+      // );
 
       // Don't fail successful payment
       // because user subscription is already saved.
@@ -927,9 +929,9 @@ export const verifyPayment = async (req, res) => {
     };
 
     try {
-      console.log(
-        '\n💰 AFFILIATE COMMISSION CHECK'
-      );
+      // console.log(
+      //   '\n💰 AFFILIATE COMMISSION CHECK'
+      // );
 
       // ======================================================
       // FIND REFERRAL
@@ -944,16 +946,16 @@ export const verifyPayment = async (req, res) => {
 
       if (!referral) {
 
-        console.log(
-          'ℹ️ No affiliate referral found'
-        );
+        // console.log(
+        //   'ℹ️ No affiliate referral found'
+        // );
 
       } else {
 
-        console.log(
-          '🔗 Referral found:',
-          referral._id
-        );
+        // console.log(
+        //   '🔗 Referral found:',
+        //   referral._id
+        // );
 
         // ====================================================
         // FIND AFFILIATE
@@ -966,10 +968,10 @@ export const verifyPayment = async (req, res) => {
 
         if (!affiliate) {
 
-          console.log(
-            '⚠️ Affiliate not found:',
-            referral.affiliate
-          );
+          // console.log(
+          //   '⚠️ Affiliate not found:',
+          //   referral.affiliate
+          // );
 
           affiliateData.message =
             'Affiliate not found';
@@ -978,10 +980,10 @@ export const verifyPayment = async (req, res) => {
           affiliate.status !== 'active'
         ) {
 
-          console.log(
-            '⚠️ Affiliate is not active:',
-            affiliate.status
-          );
+          // console.log(
+          //   '⚠️ Affiliate is not active:',
+          //   affiliate.status
+          // );
 
           affiliateData.message =
             'Affiliate is not active';
@@ -1014,10 +1016,10 @@ export const verifyPayment = async (req, res) => {
 
           if (alreadyCreditedForPayment) {
 
-            console.log(
-              '⚠️ Affiliate commission already credited for payment:',
-              paymentId
-            );
+            // console.log(
+            //   '⚠️ Affiliate commission already credited for payment:',
+            //   paymentId
+            // );
 
             affiliateData.message =
               'Affiliate commission already credited';
@@ -1045,9 +1047,9 @@ export const verifyPayment = async (req, res) => {
 
             if (!shouldPayCommission) {
 
-              console.log(
-                'ℹ️ One-time affiliate commission already paid'
-              );
+              // console.log(
+              //   'ℹ️ One-time affiliate commission already paid'
+              // );
 
               affiliateData = {
                 earned: false,
@@ -1084,25 +1086,25 @@ export const verifyPayment = async (req, res) => {
                   ).toFixed(2)
                 );
 
-              console.log(
-                '💰 Commission:',
-                {
-                  plan:
-                    selectedPlan.id,
+              // console.log(
+              //   '💰 Commission:',
+              //   {
+              //     plan:
+              //       selectedPlan.id,
 
-                  amount:
-                    selectedPlan.price,
+              //     amount:
+              //       selectedPlan.price,
 
-                  rate:
-                    commissionRate,
+              //     rate:
+              //       commissionRate,
 
-                  commission:
-                    commissionAmount,
+              //     commission:
+              //       commissionAmount,
 
-                  type:
-                    commissionType,
-                }
-              );
+              //     type:
+              //       commissionType,
+              //   }
+              // );
 
               // ==============================================
               // UPDATE REFERRAL
@@ -1157,9 +1159,9 @@ export const verifyPayment = async (req, res) => {
 
               await referral.save();
 
-              console.log(
-                '✅ Referral commission data saved'
-              );
+              // console.log(
+              //   '✅ Referral commission data saved'
+              // );
 
               // ==============================================
               // UPDATE AFFILIATE
@@ -1236,9 +1238,9 @@ export const verifyPayment = async (req, res) => {
 
               await affiliate.save();
 
-              console.log(
-                '✅ Affiliate earnings updated'
-              );
+              // console.log(
+              //   '✅ Affiliate earnings updated'
+              // );
 
               // ==============================================
               // AFFILIATE RESPONSE DATA
@@ -1283,10 +1285,10 @@ export const verifyPayment = async (req, res) => {
 
     } catch (affiliateError) {
 
-      console.error(
-        '❌ Affiliate commission error:',
-        affiliateError
-      );
+      // console.error(
+      //   '❌ Affiliate commission error:',
+      //   affiliateError
+      // );
 
       // IMPORTANT:
       // Affiliate failure should NOT
@@ -1333,41 +1335,41 @@ export const verifyPayment = async (req, res) => {
     // FINAL LOG
     // ========================================================
 
-    console.log(
-      '\n========================================'
-    );
+    // console.log(
+    //   '\n========================================'
+    // );
 
-    console.log(
-      '✅ PAYMENT VERIFIED SUCCESSFULLY'
-    );
+    // console.log(
+    //   '✅ PAYMENT VERIFIED SUCCESSFULLY'
+    // );
 
-    console.log(
-      '📊 Subscription:',
-      {
-        plan:
-          selectedPlan.id,
+    // console.log(
+    //   '📊 Subscription:',
+    //   {
+    //     plan:
+    //       selectedPlan.id,
 
-        transactionType,
+    //     transactionType,
 
-        previousPlan,
+    //     previousPlan,
 
-        startDate,
+    //     startDate,
 
-        endDate,
+    //     endDate,
 
-        amount:
-          selectedPlan.price,
-      }
-    );
+    //     amount:
+    //       selectedPlan.price,
+    //   }
+    // );
 
-    console.log(
-      '💰 Affiliate:',
-      affiliateData
-    );
+    // console.log(
+    //   '💰 Affiliate:',
+    //   affiliateData
+    // );
 
-    console.log(
-      '========================================\n'
-    );
+    // console.log(
+    //   '========================================\n'
+    // );
 
     // ========================================================
     // FINAL RESPONSE
@@ -1412,15 +1414,15 @@ export const verifyPayment = async (req, res) => {
 
   } catch (error) {
 
-    console.error(
-      '\n❌ VERIFY PAYMENT ERROR:',
-      error
-    );
+    // console.error(
+    //   '\n❌ VERIFY PAYMENT ERROR:',
+    //   error
+    // );
 
-    console.error(
-      'Stack:',
-      error.stack
-    );
+    // console.error(
+    //   'Stack:',
+    //   error.stack
+    // );
 
     return res.status(500).json({
       success: false,
@@ -1477,10 +1479,10 @@ export const cancelSubscription =
 
     } catch (error) {
 
-      console.error(
-        'Cancel subscription error:',
-        error
-      );
+      // console.error(
+      //   'Cancel subscription error:',
+      //   error
+      // );
 
       return res.status(500).json({
         success: false,
@@ -1530,10 +1532,10 @@ export const getCurrentSubscription =
 
     } catch (error) {
 
-      console.error(
-        'Get subscription error:',
-        error
-      );
+      // console.error(
+      //   'Get subscription error:',
+      //   error
+      // );
 
       return res.status(500).json({
         success: false,

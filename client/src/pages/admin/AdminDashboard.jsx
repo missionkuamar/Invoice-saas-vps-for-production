@@ -56,7 +56,7 @@ const AdminDashboard = () => {
       setError('');
 
       const response = await api.get('/admin/stats');
-console.log("state wala hia ", response)
+///console.log("state wala hia ", response)
       if (!response.data?.success) {
         throw new Error(
           response.data?.message ||
@@ -90,7 +90,7 @@ console.log("state wala hia ", response)
           : [],
       });
     } catch (error) {
-      console.error('Admin dashboard error:', error);
+      // console.error('Admin dashboard error:', error);
 
       const message =
         error.response?.data?.message ||
