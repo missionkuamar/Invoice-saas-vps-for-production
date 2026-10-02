@@ -178,7 +178,7 @@ const AffiliateLinks = ({
       return;
     }
 
-   // console.log('New Limit', newLimit);
+    // console.log('New Limit', newLimit);
 
     onLimitChange?.(newLimit);
   };
@@ -192,8 +192,8 @@ const AffiliateLinks = ({
     total === 0
       ? 0
       : (currentPage - 1) *
-          currentLimit +
-        1;
+      currentLimit +
+      1;
 
   const endItem = Math.min(
     currentPage * currentLimit,
@@ -205,41 +205,6 @@ const AffiliateLinks = ({
   // COPY LINK
   // ============================================================
 
-  // const handleCopy = (link) => {
-
-  //   // console.log("link", link.slug);
-  //   if (!link?.slug) {
-  //     return;
-  //   }
-
-  //   onCopyLink?.(
-  //     link.slug,
-  //     affiliateCode
-  //   );
-  // };
-
-   /// development mai frontend ka url ta hai  or production mai backend ia url aye ga 
-    const handleCopy = async (slug, code) => {
-      try {
-        
-   const backendUrl =
-    import.meta.env.VITE_BACKEND_URL ||
-    (import.meta.env.DEV ? 'http://localhost:5000' : '');
-  
-  if (!backendUrl) {
-    console.error('❌ VITE_BACKEND_URL missing');
-    return;
-  }
-        const url = `${backendUrl}/r/${slug}?ref=${code}`;
-  
-        await navigator.clipboard.writeText(url);
-  
-        toast.success('Affiliate link copied!');
-      } catch (error) {
-        // console.error('Copy failed:', error);
-        toast.error('Failed to copy link');
-      }
-    };
 
   // ============================================================
   // EMPTY STATE
@@ -548,7 +513,7 @@ const AffiliateLinks = ({
                   </th>
 
 
-                 
+
 
 
 
@@ -717,7 +682,7 @@ const AffiliateLinks = ({
                       </td>
 
 
-                      
+
 
 
                       {/* STATUS */}
@@ -740,13 +705,12 @@ const AffiliateLinks = ({
                             text-xs
                             font-medium
 
-                            ${
-                              link.status === 'active'
-                                ? `
+                            ${link.status === 'active'
+                              ? `
                                   bg-green-500/10
                                   text-green-500
                                 `
-                                : `
+                              : `
                                   bg-red-500/10
                                   text-red-500
                                 `
@@ -796,7 +760,7 @@ const AffiliateLinks = ({
 
                           <button
                             type="button"
-                            onClick={() => handleCopy(link)}
+                            onClick={() => onCopyLink(link.slug, affiliateCode)}
                             className={`
                               ${baseButtonClass}
                               w-9
@@ -995,13 +959,12 @@ const AffiliateLinks = ({
                   border
                   ${theme.colors.border}
 
-                  ${
-                    !hasPrevious
-                      ? `
+                  ${!hasPrevious
+                    ? `
                         opacity-30
                         cursor-not-allowed
                       `
-                      : `
+                    : `
                         ${theme.colors.hover}
                         hover:scale-105
                       `
@@ -1031,13 +994,12 @@ const AffiliateLinks = ({
                   border
                   ${theme.colors.border}
 
-                  ${
-                    !hasPrevious
-                      ? `
+                  ${!hasPrevious
+                    ? `
                         opacity-30
                         cursor-not-allowed
                       `
-                      : `
+                    : `
                         ${theme.colors.hover}
                         hover:scale-105
                       `
@@ -1107,14 +1069,13 @@ const AffiliateLinks = ({
                         text-sm
                         font-medium
 
-                        ${
-                          active
-                            ? `
+                        ${active
+                          ? `
                               ${theme.colors.button}
                               text-white
                               shadow-sm
                             `
-                            : `
+                          : `
                               ${theme.colors.text}
                               ${theme.colors.hover}
                             `
@@ -1148,13 +1109,12 @@ const AffiliateLinks = ({
                   border
                   ${theme.colors.border}
 
-                  ${
-                    hasNext
-                      ? `
+                  ${hasNext
+                    ? `
                         ${theme.colors.hover}
                         hover:scale-105
                       `
-                      : `
+                    : `
                         opacity-30
                         cursor-not-allowed
                       `
@@ -1184,13 +1144,12 @@ const AffiliateLinks = ({
                   border
                   ${theme.colors.border}
 
-                  ${
-                    !hasNext
-                      ? `
+                  ${!hasNext
+                    ? `
                         opacity-30
                         cursor-not-allowed
                       `
-                      : `
+                    : `
                         ${theme.colors.hover}
                         hover:scale-105
                       `

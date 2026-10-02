@@ -414,27 +414,27 @@ const AffiliateDashboard = () => {
   // ============================================================
 
   /// development mai frontend ka url ta hai  or production mai backend ia url aye ga 
-  const handleCopyLink = async (slug, code) => {
-    try {
-      
- const backendUrl =
-  import.meta.env.VITE_BACKEND_URL ||
-  (import.meta.env.DEV ? 'http://localhost:5000' : '');
+const handleCopyLink = async (slug, code) => {
+  try {
+    const backendUrl =
+      import.meta.env.VITE_BACKEND_URL ||
+      (import.meta.env.DEV ? 'http://localhost:5000' : '');
 
-if (!backendUrl) {
-  console.error('❌ VITE_BACKEND_URL missing');
-  return;
-}
-      const url = `${backendUrl}/r/${slug}?ref=${code}`;
-
-      await navigator.clipboard.writeText(url);
-
-      toast.success('Affiliate link copied!');
-    } catch (error) {
-      // console.error('Copy failed:', error);
-      toast.error('Failed to copy link');
+    if (!backendUrl) {
+      console.error('❌ VITE_BACKEND_URL missing');
+      return;
     }
-  };
+
+    const url = `${backendUrl}/r/${slug}?ref=${code}`;
+
+    await navigator.clipboard.writeText(url);
+
+    toast.success('Affiliate link copied!');
+  } catch (error) {
+    console.error('Copy failed:', error);
+    toast.error('Failed to copy link');
+  }
+};
 
 
   // ============================================================
