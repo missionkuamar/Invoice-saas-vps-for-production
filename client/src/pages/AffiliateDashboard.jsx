@@ -430,13 +430,16 @@ const AffiliateDashboard = () => {
         return;
       }
 
-      const backendUrl = import.meta.env.VITE_BACKEND_URL;
+      // ================================
+      // PRODUCTION BACKEND URL
+      // ================================
+      const backendUrl = 'https://api.invoicehub.fun';
 
-      if (!backendUrl) {
-        console.error('❌ VITE_BACKEND_URL is missing');
-        toast.error('Backend URL is not configured');
-        return;
-      }
+      // ================================
+      // LOCAL TESTING
+      // Uncomment this when testing locally
+      // const backendUrl = 'http://localhost:5000';
+      // ================================
 
       const cleanBackendUrl = backendUrl.replace(/\/$/, '');
 
@@ -456,7 +459,6 @@ const AffiliateDashboard = () => {
       toast.error('Failed to copy affiliate link');
     }
   };
-
 
   // ============================================================
   // LOADING
