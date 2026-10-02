@@ -433,7 +433,7 @@ const AffiliateDashboard = () => {
       // ================================
       // PRODUCTION BACKEND URL
       // ================================
-      const backendUrl = 'https://api.invoicehub.fun';
+       const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
       // ================================
       // LOCAL TESTING
