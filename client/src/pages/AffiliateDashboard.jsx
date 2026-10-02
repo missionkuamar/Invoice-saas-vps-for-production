@@ -413,28 +413,49 @@ const AffiliateDashboard = () => {
   // COPY AFFILIATE LINK
   // ============================================================
 
-  /// development mai frontend ka url ta hai  or production mai backend ia url aye ga 
-const handleCopyLink = async (slug, code) => {
-  try {
-    const backendUrl =
-      import.meta.env.VITE_BACKEND_URL ||
-      (import.meta.env.DEV ? 'http://localhost:5000' : '');
+  /// development mai frontend ka url ta hai  or production mai backend ia url aye ga
+  // ============================================================
+  // COPY AFFILIATE LINK
+  // ============================================================
 
-    if (!backendUrl) {
-      console.error('❌ VITE_BACKEND_URL missing');
-      return;
+  const handleCopyLink = async (slug, code) => {
+    try {
+      if (!slug) {
+        toast.error('Affiliate slug is missing');
+        return;
+      }
+
+      if (!code) {
+        toast.error('Affiliate code is missing');
+        return;
+      }
+
+      const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
+      if (!backendUrl) {
+        console.error('❌ VITE_BACKEND_URL is missing');
+        toast.error('Backend URL is not configured');
+        return;
+      }
+
+      const cleanBackendUrl = backendUrl.replace(/\/$/, '');
+
+      const url =
+        `${cleanBackendUrl}/r/` +
+        `${encodeURIComponent(slug)}` +
+        `?ref=${encodeURIComponent(code)}`;
+
+      console.log('✅ Affiliate URL:', url);
+
+      await navigator.clipboard.writeText(url);
+
+      toast.success('Affiliate link copied!');
+    } catch (error) {
+      console.error('❌ Copy affiliate link failed:', error);
+
+      toast.error('Failed to copy affiliate link');
     }
-
-    const url = `${backendUrl}/r/${slug}?ref=${code}`;
-
-    await navigator.clipboard.writeText(url);
-
-    toast.success('Affiliate link copied!');
-  } catch (error) {
-    console.error('Copy failed:', error);
-    toast.error('Failed to copy link');
-  }
-};
+  };
 
 
   // ============================================================

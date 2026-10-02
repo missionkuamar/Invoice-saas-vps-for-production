@@ -204,7 +204,28 @@ const AffiliateLinks = ({
   // ============================================================
   // COPY LINK
   // ============================================================
+  /// development mai frontend ka url ta hai  or production mai backend ia url aye ga 
+  const handleCopy = async (slug, code) => {
+    try {
 
+      const backendUrl =
+        import.meta.env.VITE_BACKEND_URL ||
+        (import.meta.env.DEV ? 'http://localhost:5000' : '');
+
+      if (!backendUrl) {
+        console.error('❌ VITE_BACKEND_URL missing');
+        return;
+      }
+      const url = `${backendUrl}/r/${slug}?ref=${code}`;
+
+      await navigator.clipboard.writeText(url);
+
+      toast.success('Affiliate link copied!');
+    } catch (error) {
+      // console.error('Copy failed:', error);
+      toast.error('Failed to copy link');
+    }
+  };
 
   // ============================================================
   // EMPTY STATE
@@ -760,26 +781,29 @@ const AffiliateLinks = ({
 
                           <button
                             type="button"
-                            onClick={() => onCopyLink(link.slug, affiliateCode)}
+                            onClick={() =>
+                              onCopyLink?.(
+                                link.slug,
+                                affiliateCode
+                              )
+                            }
                             className={`
-                              ${baseButtonClass}
-                              w-9
-                              h-9
-                              ${theme.colors.hover}
-                              ${theme.colors.text}
-                              hover:scale-105
-                            `}
+    ${baseButtonClass}
+    w-9
+    h-9
+    ${theme.colors.hover}
+    ${theme.colors.text}
+    hover:scale-105
+  `}
                             title="Copy affiliate link"
                             aria-label="Copy affiliate link"
                           >
-
                             <FaCopy
                               className="
-                                text-sm
-                                opacity-70
-                              "
+      text-sm
+      opacity-70
+    "
                             />
-
                           </button>
 
 
