@@ -416,15 +416,15 @@ const AffiliateDashboard = () => {
   const handleCopyLink = async (slug, code) => {
     try {
       
- const frontendUrl =
-      import.meta.env.VITE_FRONTEND_URL ||
-      (import.meta.env.DEV ? 'http://localhost:3000' : '');
+ const backendUrl =
+  import.meta.env.VITE_BACKEND_URL ||
+  (import.meta.env.DEV ? 'http://localhost:5000' : '');
 
-    if (!frontendUrl) {
-      console.error('❌ RRONTEND_URL missing');
-      return;
-    }
-      const url = `${frontendUrl}/r/${slug}?ref=${code}`;
+if (!backendUrl) {
+  console.error('❌ VITE_BACKEND_URL missing');
+  return;
+}
+      const url = `${backendUrl}/r/${slug}?ref=${code}`;
 
       await navigator.clipboard.writeText(url);
 
