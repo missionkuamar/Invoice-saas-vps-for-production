@@ -1,27 +1,28 @@
-version: '3.8'
+
 
 services:
   server:
     build: ./server
     container_name: invoice-server
-    restart: always
+    
     ports:
       - "5000:5000"
     env_file:
       - ./server/.env
-    volumes:
-      - uploads-data:/app/uploads
+    restart: unless-stopped
+    
     networks:
       - invoice-net
 
   client:
     build: ./client
     container_name: invoice-client
-    restart: always
+    
     ports:
-      - "8080:80"
+      - "5174:3000"
     depends_on:
       - server
+    restart: unless-stopped
     networks:
       - invoice-net
 
