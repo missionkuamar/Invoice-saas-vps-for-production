@@ -413,6 +413,7 @@ const AffiliateDashboard = () => {
   // COPY AFFILIATE LINK
   // ============================================================
 
+  /// development mai frontend ka url ta hai  or production mai backend ia url aye ga 
   const handleCopyLink = async (slug, code) => {
     try {
       

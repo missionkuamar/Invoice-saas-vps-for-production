@@ -205,19 +205,41 @@ const AffiliateLinks = ({
   // COPY LINK
   // ============================================================
 
-  const handleCopy = (link) => {
+  // const handleCopy = (link) => {
 
-    // console.log("link", link.slug);
-    if (!link?.slug) {
-      return;
-    }
+  //   // console.log("link", link.slug);
+  //   if (!link?.slug) {
+  //     return;
+  //   }
 
-    onCopyLink?.(
-      link.slug,
-      affiliateCode
-    );
-  };
+  //   onCopyLink?.(
+  //     link.slug,
+  //     affiliateCode
+  //   );
+  // };
 
+   /// development mai frontend ka url ta hai  or production mai backend ia url aye ga 
+    const handleCopy = async (slug, code) => {
+      try {
+        
+   const backendUrl =
+    import.meta.env.VITE_BACKEND_URL ||
+    (import.meta.env.DEV ? 'http://localhost:5000' : '');
+  
+  if (!backendUrl) {
+    console.error('❌ VITE_BACKEND_URL missing');
+    return;
+  }
+        const url = `${backendUrl}/r/${slug}?ref=${code}`;
+  
+        await navigator.clipboard.writeText(url);
+  
+        toast.success('Affiliate link copied!');
+      } catch (error) {
+        // console.error('Copy failed:', error);
+        toast.error('Failed to copy link');
+      }
+    };
 
   // ============================================================
   // EMPTY STATE
