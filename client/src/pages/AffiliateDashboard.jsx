@@ -429,28 +429,37 @@ const AffiliateDashboard = () => {
       toast.error("Affiliate code is missing");
       return;
     }
+const backendUrl = "https://api.invoicehub.fun";
+   // const frontendUrl = "http://localhost:5000";
 
-    // ================================
-    // PRODUCTION BACKEND URL
-    // ================================
-    const backendUrl = "https://api.invoicehub.fun";
-
-    const cleanBackendUrl = backendUrl.replace(/\/$/, "");
+    const cleanFrontendUrl =
+      backendUrl.replace(/\/$/, "");
 
     const url =
-      `${cleanBackendUrl}/r/` +
+      `${cleanFrontendUrl}/r/` +
       `${encodeURIComponent(slug)}` +
       `?ref=${encodeURIComponent(code)}`;
 
-    console.log("✅ Affiliate URL:", url);
+    console.log("================================");
+    console.log("🔗 AFFILIATE LINK CREATED");
+    console.log("Slug:", slug);
+    console.log("Affiliate Code:", code);
+    console.log("Frontend URL:", frontendUrl);
+    console.log("Final URL:", url);
+    console.log("================================");
 
     await navigator.clipboard.writeText(url);
 
     toast.success("Affiliate link copied!");
   } catch (error) {
-    console.error("❌ Copy affiliate link failed:", error);
+    console.error(
+      "❌ Copy affiliate link failed:",
+      error
+    );
 
-    toast.error("Failed to copy affiliate link");
+    toast.error(
+      "Failed to copy affiliate link"
+    );
   }
 };
 

@@ -339,8 +339,8 @@ export const createAffiliateLink = async (req, res) => {
     });
 
     // Generate full link URL
-    //const baseUrl =  'https://www.invoicehub.fun'
-    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const baseUrl =   'https://invoicehub.fun' || 'https://www.invoicehub.fun'
+   // const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     const linkUrl = `${baseUrl}/r/${link.slug}?ref=${affiliate.affiliateCode}`;
 
     res.status(201).json({
@@ -364,86 +364,463 @@ export const createAffiliateLink = async (req, res) => {
 // @desc    Track affiliate click and redirect
 // @route   GET /r/:slug
 export const trackAffiliateClick = async (req, res) => {
+  console.log("\n");
+  console.log("======================================================");
+  console.log("🚀 TRACK AFFILIATE CLICK - START");
+  console.log("======================================================");
+
   try {
+    // =====================================================
+    // STEP 1: REQUEST INFORMATION
+    // =====================================================
+
+    console.log("\n📥 STEP 1: REQUEST INFORMATION");
+
     const { slug } = req.params;
     const { ref } = req.query;
-    const ip = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for'] || 'unknown';
-    const userAgent = req.headers['user-agent'] || 'unknown';
-    const referrer = req.headers.referer || 'direct';
 
-    // console.log(`🔗 Affiliate click: /r/${slug} | ref: ${ref} | ip: ${ip}`);
+    const ip =
+      req.ip ||
+      req.connection?.remoteAddress ||
+      req.headers["x-forwarded-for"] ||
+      "unknown";
 
-    // Find the link
-    const link = await AffiliateLink.findOne({ slug });
-    if (!link) {
-      //   console.log(`❌ Link not found: ${slug}`);
-      return res.redirect('/');
+    const userAgent =
+      req.headers["user-agent"] || "unknown";
+
+    const referrer =
+      req.headers.referer || "direct";
+
+    console.log("📍 Request URL:", req.originalUrl);
+    console.log("📍 Method:", req.method);
+    console.log("📍 Slug:", slug);
+    console.log("📍 Ref:", ref);
+    console.log("📍 IP:", ip);
+    console.log("📍 User Agent:", userAgent);
+    console.log("📍 Browser Referrer:", referrer);
+
+    // =====================================================
+    // STEP 2: SESSION INFORMATION
+    // =====================================================
+
+    console.log("\n🍪 STEP 2: SESSION INFORMATION");
+
+    console.log(
+      "Session ID:",
+      req.sessionID || "NO SESSION ID"
+    );
+
+    console.log(
+      "Session exists:",
+      !!req.session
+    );
+
+    console.log(
+      "Existing affiliateReferral:",
+      req.session?.affiliateReferral || "NONE"
+    );
+
+    // =====================================================
+    // STEP 3: VALIDATE SLUG
+    // =====================================================
+
+    console.log("\n🔍 STEP 3: VALIDATING SLUG");
+
+    if (!slug) {
+      console.error("❌ Slug is missing");
+
+      return res.redirect("/");
     }
 
-    // Find affiliate
+    console.log("✅ Slug received:", slug);
+
+    // =====================================================
+    // STEP 4: VALIDATE REF
+    // =====================================================
+
+    console.log("\n🎯 STEP 4: VALIDATING REF");
+
+    if (!ref) {
+      console.error("❌ REF IS MISSING");
+
+      console.log(
+        "⚠️ Expected URL format:"
+      );
+
+      console.log(
+        "http://localhost:5000/r/SLUG?ref=AFFILIATE_CODE"
+      );
+
+      return res.redirect("/");
+    }
+
+    console.log("✅ Ref received:", ref);
+
+    // =====================================================
+    // STEP 5: FIND AFFILIATE LINK
+    // =====================================================
+
+    console.log("\n🔎 STEP 5: FINDING AFFILIATE LINK");
+
+    console.log(
+      "Searching AffiliateLink with slug:",
+      slug
+    );
+
+    const link = await AffiliateLink.findOne({
+      slug,
+    });
+
+    if (!link) {
+      console.error(
+        "❌ AFFILIATE LINK NOT FOUND"
+      );
+
+      console.error(
+        "❌ Requested slug:",
+        slug
+      );
+
+      return res.redirect("/");
+    }
+
+    console.log("✅ AFFILIATE LINK FOUND");
+
+    console.log("Link ID:", link._id);
+    console.log("Link slug:", link.slug);
+    console.log("Link affiliate:", link.affiliate);
+    console.log(
+      "Link destination:",
+      link.destination || "/"
+    );
+    console.log(
+      "Current link clicks:",
+      link.clicks
+    );
+
+    // =====================================================
+    // STEP 6: FIND AFFILIATE
+    // =====================================================
+
+    console.log("\n👤 STEP 6: FINDING AFFILIATE");
+
+    console.log(
+      "Searching affiliate using:"
+    );
+
+    console.log({
+      affiliateId: link.affiliate,
+      affiliateCode: ref,
+    });
+
     const affiliate = await Affiliate.findOne({
       _id: link.affiliate,
-      affiliateCode: ref
+      affiliateCode: ref,
     });
 
     if (!affiliate) {
-      // console.log(`❌ Affiliate not found: ${ref}`);
-      return res.redirect('/');
+      console.error(
+        "❌ AFFILIATE NOT FOUND"
+      );
+
+      console.error(
+        "❌ Affiliate ID:",
+        link.affiliate
+      );
+
+      console.error(
+        "❌ Affiliate Code:",
+        ref
+      );
+
+      return res.redirect("/");
     }
 
-    // console.log(`✅ Affiliate found: ${affiliate.affiliateCode} (${affiliate.user})`);
+    console.log("✅ AFFILIATE FOUND");
 
-    // Track click
+    console.log("Affiliate ID:", affiliate._id);
+    console.log(
+      "Affiliate Code:",
+      affiliate.affiliateCode
+    );
+    console.log(
+      "Affiliate User:",
+      affiliate.user
+    );
+    console.log(
+      "Affiliate Status:",
+      affiliate.status
+    );
+    console.log(
+      "Total Clicks BEFORE:",
+      affiliate.totalClicks
+    );
+
+    // =====================================================
+    // STEP 7: UPDATE LINK CLICK
+    // =====================================================
+
+    console.log("\n📈 STEP 7: UPDATING LINK CLICK");
+
+    console.log(
+      "Clicks BEFORE:",
+      link.clicks
+    );
+
     link.clicks += 1;
+
     await link.save();
 
+    console.log(
+      "Clicks AFTER:",
+      link.clicks
+    );
+
+    console.log(
+      "✅ AffiliateLink click saved"
+    );
+
+    // =====================================================
+    // STEP 8: UPDATE AFFILIATE CLICK
+    // =====================================================
+
+    console.log("\n📊 STEP 8: UPDATING AFFILIATE CLICK");
+
     affiliate.totalClicks += 1;
+
     await affiliate.save();
 
-    // Create referral record
+    console.log(
+      "Total clicks AFTER:",
+      affiliate.totalClicks
+    );
+
+    console.log(
+      "✅ Affiliate totalClicks saved"
+    );
+
+    // =====================================================
+    // STEP 9: CREATE REFERRAL
+    // =====================================================
+
+    console.log("\n📝 STEP 9: CREATING AFFILIATE REFERRAL");
+
     const referral = await AffiliateReferral.create({
       affiliate: affiliate._id,
       affiliateLink: link._id,
-      ip: ip,
-      userAgent: userAgent,
-      referrer: referrer,
-      status: 'clicked',
+      ip,
+      userAgent,
+      referrer,
+      status: "clicked",
     });
 
-    // console.log(`✅ Referral created: ${referral._id}`);
+    console.log(
+      "✅ REFERRAL CREATED"
+    );
 
-    // Store in session for later
+    console.log(
+      "Referral ID:",
+      referral._id
+    );
+
+    console.log(
+      "Referral Affiliate:",
+      referral.affiliate
+    );
+
+    console.log(
+      "Referral Link:",
+      referral.affiliateLink
+    );
+
+    console.log(
+      "Referral Status:",
+      referral.status
+    );
+
+    // =====================================================
+    // STEP 10: SAVE REFERRAL IN SESSION
+    // =====================================================
+
+    console.log("\n🍪 STEP 10: SAVING REFERRAL TO SESSION");
+
     req.session.affiliateReferral = {
       referralId: referral._id,
       affiliateId: affiliate._id,
       linkId: link._id,
     };
 
-    // Save session before redirect
+    console.log(
+      "Session affiliateReferral BEFORE save:"
+    );
+
+    console.log(
+      req.session.affiliateReferral
+    );
+
+    // =====================================================
+    // STEP 11: SAVE SESSION
+    // =====================================================
+
+    console.log("\n💾 STEP 11: SAVING SESSION");
+
     await new Promise((resolve) => {
       req.session.save((err) => {
-        if (err) console.error('Session save error:', err);
+        if (err) {
+          console.error(
+            "❌ SESSION SAVE ERROR:",
+            err
+          );
+        } else {
+          console.log(
+            "✅ SESSION SAVED SUCCESSFULLY"
+          );
+
+          console.log(
+            "Session ID:",
+            req.sessionID
+          );
+
+          console.log(
+            "Session affiliateReferral:",
+            req.session.affiliateReferral
+          );
+        }
+
         resolve();
       });
     });
 
-    // Redirect to destination
-    const destination = link.destination || '/';
-    //  console.log(`🔄 Redirecting to: ${destination}`);
+    // =====================================================
+    // STEP 12: DESTINATION
+    // =====================================================
 
-    // If destination is a full URL, redirect there
-    if (destination.startsWith('http://') || destination.startsWith('https://')) {
+    console.log("\n🔄 STEP 12: PREPARING REDIRECT");
+
+    const destination =
+      link.destination || "/";
+
+    console.log(
+      "Destination:",
+      destination
+    );
+
+    // =====================================================
+    // STEP 13: FULL URL REDIRECT
+    // =====================================================
+
+    if (
+      destination.startsWith("http://") ||
+      destination.startsWith("https://")
+    ) {
+      console.log(
+        "🌐 Full URL destination detected"
+      );
+
+      console.log(
+        "➡️ Redirecting to:",
+        destination
+      );
+
+      console.log(
+        "======================================================"
+      );
+
       return res.redirect(destination);
     }
 
-    // Otherwise, redirect to frontend
-    //const frontendUrl   = 'https://www.invoicehub.fun';
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    return res.redirect(`${frontendUrl}${destination}`);
+    // =====================================================
+    // STEP 14: FRONTEND REDIRECT
+    // =====================================================
+
+    const frontendUrl =
+      process.env.FRONTEND_URL ||
+      "http://localhost:3000";
+
+    const finalRedirect =
+      `${frontendUrl}${destination}`;
+
+    console.log(
+      "🌐 Frontend URL:",
+      frontendUrl
+    );
+
+    console.log(
+      "➡️ Final redirect:",
+      finalRedirect
+    );
+
+    console.log(
+      "======================================================"
+    );
+
+    console.log(
+      "✅ TRACK AFFILIATE CLICK - SUCCESS"
+    );
+
+    console.log(
+      "======================================================\n"
+    );
+
+    return res.redirect(finalRedirect);
+
   } catch (error) {
-    // console.error('Track affiliate click error:', error);
-    // Redirect to home on error
-    res.redirect('/');
+
+    // =====================================================
+    // ERROR
+    // =====================================================
+
+    console.error("\n");
+    console.error(
+      "======================================================"
+    );
+    console.error(
+      "❌ TRACK AFFILIATE CLICK - ERROR"
+    );
+    console.error(
+      "======================================================"
+    );
+
+    console.error(
+      "Error message:",
+      error.message
+    );
+
+    console.error(
+      "Error name:",
+      error.name
+    );
+
+    console.error(
+      "Error stack:",
+      error.stack
+    );
+
+    console.error(
+      "Request URL:",
+      req.originalUrl
+    );
+
+    console.error(
+      "Request params:",
+      req.params
+    );
+
+    console.error(
+      "Request query:",
+      req.query
+    );
+
+    console.error(
+      "Session:",
+      req.session
+    );
+
+    console.error(
+      "======================================================\n"
+    );
+
+    return res.redirect("/");
   }
 };
 

@@ -22,7 +22,7 @@ const Login = () => {
       await dispatch(loginWithGoogle(credentialResponse)).unwrap();
       navigate('/dashboard');
     } catch (error) {
-      // console.error('Google login error:', error);
+       console.error('Google login error:', error);
     } finally {
       setIsLoggingIn(false);
     }

@@ -118,16 +118,83 @@ app.get('/r/:slug', async (req, res) => {
     const { slug } = req.params;
     const { ref } = req.query;
 
-    //  console.log(`🔗 Affiliate redirect: /r/${slug}?ref=${ref}`);
+    console.log("\n");
+    console.log("==============================================");
+    console.log("🌐 GET /r/:slug HIT");
+    console.log("==============================================");
 
-    // Import the controller function dynamically
-    const { trackAffiliateClick } = await import('./controllers/affiliateController.js');
+    console.log("📍 Full URL:", req.originalUrl);
+    console.log("📍 Method:", req.method);
+    console.log("📍 Slug:", slug);
+    console.log("📍 Ref:", ref);
+    console.log("📍 IP:", req.ip);
+    console.log(
+      "📍 User-Agent:",
+      req.headers["user-agent"]
+    );
 
-    // Call the controller with the request and response
+    console.log(
+      "🍪 Session ID:",
+      req.sessionID || "NO SESSION"
+    );
+
+    console.log(
+      "🍪 Session affiliateReferral:",
+      req.session?.affiliateReferral || "NONE"
+    );
+
+    console.log(
+      "📦 Importing trackAffiliateClick..."
+    );
+
+    const {
+      trackAffiliateClick
+    } = await import(
+      './controllers/affiliateController.js'
+    );
+
+    console.log(
+      "✅ trackAffiliateClick imported"
+    );
+
+    console.log(
+      "🚀 Calling trackAffiliateClick..."
+    );
+
     return trackAffiliateClick(req, res);
+
   } catch (error) {
-    //  console.error('Affiliate redirect error:', error);
-    res.redirect('/');
+
+    console.error(
+      "\n❌ AFFILIATE ROUTE ERROR"
+    );
+
+    console.error(
+      "Message:",
+      error.message
+    );
+
+    console.error(
+      "Stack:",
+      error.stack
+    );
+
+    console.error(
+      "URL:",
+      req.originalUrl
+    );
+
+    console.error(
+      "Params:",
+      req.params
+    );
+
+    console.error(
+      "Query:",
+      req.query
+    );
+
+    return res.redirect('/');
   }
 });
 

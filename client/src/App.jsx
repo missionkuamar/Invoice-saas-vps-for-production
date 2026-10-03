@@ -52,55 +52,62 @@ import AffiliateDashboard from './pages/AffiliateDashboard.jsx';
 
 // ✅ Affiliate Redirect Component
 // ✅ Affiliate Redirect Component
-const AffiliateRedirect = () => {
+
+export const AffiliateRedirect = () => {
   const { slug } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const ref = params.get('ref');
+    const ref = params.get("ref");
 
-    // Save ref to localStorage
+    console.log("================================");
+    console.log("🔗 AFFILIATE REDIRECT");
+    console.log("📍 Current URL:", window.location.href);
+    console.log("📍 Slug:", slug);
+    console.log("🎯 Ref:", ref);
+    console.log("================================");
+
     if (ref) {
       try {
-        localStorage.setItem('affiliateRef', ref);
-      } catch (err) {
-        console.error('localStorage save failed:', err);
+        localStorage.setItem("affiliateRef", ref);
+
+        console.log(
+          "✅ affiliateRef saved:",
+          localStorage.getItem("affiliateRef")
+        );
+      } catch (error) {
+        console.error(
+          "❌ Failed to save affiliateRef:",
+          error
+        );
       }
+    } else {
+      console.warn("⚠️ No ref found in affiliate URL");
     }
 
-    // Backend URL — ek hi variable use karo
-    // const backendUrl =
-    //   import.meta.env.VITE_BACKEND_URL ||
-    //   (import.meta.env.DEV ? 'http://localhost:5000' : '');
+    // Directly login page par bhejo
+    navigate("/login", { replace: true });
+  }, [slug, location.search, navigate]);
 
-    // if (!backendUrl) {
-    //   console.error('❌ VITE_BACKEND_URL missing');
-    //   return;
-    // }
-
-     const backendUrl = "https://api.invoicehub.fun"; 
-     
-    const redirectUrl = `${backendUrl}/r/${slug}${location.search}`;
-
-    const timer = setTimeout(() => {
-      window.location.href = redirectUrl;
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [slug, location.search]);
   return (
     <div className="flex justify-center items-center h-64">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
-        <p className="text-gray-600">Redirecting...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4" />
+
+        <p className="text-gray-600">
+          Redirecting...
+        </p>
+
         <p className="text-xs text-gray-400 mt-2">
-          Check console for debug logs...
+          Saving affiliate referral...
         </p>
       </div>
     </div>
   );
 };
+
 
 // ✅ Protected Route Component
 const ProtectedRoute = ({ children }) => {
