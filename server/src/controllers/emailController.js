@@ -576,66 +576,20 @@ export const scheduleEmail = async (req, res) => {
 };
 
 // 2. Send Invoice
+// Send Invoice - HTML email only
 export const sendInvoice = async (req, res) => {
-  const requestId = `INV-${Date.now()}-${Math.random()
+  const requestId = `SEND-${Date.now()}-${Math.random()
     .toString(36)
-    .substring(2, 8)}`;
-
-  // console.log("\n");
-  // console.log("====================================================");
-  // console.log("📧 SEND INVOICE REQUEST START");
-  // console.log("====================================================");
-  // console.log("🆔 Request ID:", requestId);
-  // console.log("⏰ Server Time:", new Date().toISOString());
-  // console.log("🌍 Server Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
-  // console.log("👤 User ID:", req.user?._id);
-  // console.log("📦 Request Body:", {
-  //   ...req.body,
-  //   // Don't print potentially sensitive attachment contents
-  //   attachments: Array.isArray(req.body?.attachments)
-  //     ? `Array(${req.body.attachments.length})`
-  //     : req.body?.attachments,
-  // });
+    .substr(2, 6)}`;
 
   try {
-    // ============================================
-    // 1. GET REQUEST DATA
-    // ============================================
-
-    const {
-      invoiceId,
-      scheduleTime,
-      attachments = [],
-    } = req.body;
-
-    // console.log("\n📥 STEP 1 - REQUEST DATA");
-    // console.log("--------------------------------------------");
-    // console.log("📌 Invoice ID:", invoiceId);
-    // console.log("📌 Schedule Time:", scheduleTime);
-    // console.log(
-    //   "📌 Attachments Count:",
-    //   Array.isArray(attachments) ? attachments.length : "Invalid"
-    // );
+    const { invoiceId, scheduleTime } = req.body;
 
     // ============================================
-    // 2. VALIDATE INVOICE ID
+    // 1. VALIDATE INVOICE ID
     // ============================================
 
-    // console.log("\n🔍 STEP 2 - VALIDATING INVOICE ID");
-
-    if (!invoiceId) {
-      // console.error("❌ Invoice ID missing");
-
-      return res.status(400).json({
-        success: false,
-        message: "Invoice id is required",
-        requestId,
-      });
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(invoiceId)) {
-      // console.error("❌ Invalid Invoice ID:", invoiceId);
-
+    if (!invoiceId || !mongoose.Types.ObjectId.isValid(invoiceId)) {
       return res.status(400).json({
         success: false,
         message: "Invalid invoice id",
@@ -643,13 +597,9 @@ export const sendInvoice = async (req, res) => {
       });
     }
 
-    // console.log("✅ Invoice ID valid");
-
     // ============================================
-    // 3. FIND INVOICE
+    // 2. FIND INVOICE
     // ============================================
-
-    // console.log("\n🔍 STEP 3 - FINDING INVOICE");
 
     const invoice = await Invoice.findOne({
       _id: invoiceId,
@@ -657,10 +607,6 @@ export const sendInvoice = async (req, res) => {
     });
 
     if (!invoice) {
-      // console.error("❌ Invoice not found");
-      // console.error("📌 Invoice ID:", invoiceId);
-      // console.error("👤 User ID:", req.user._id);
-
       return res.status(404).json({
         success: false,
         message: "Invoice not found",
@@ -668,43 +614,25 @@ export const sendInvoice = async (req, res) => {
       });
     }
 
-    // console.log("✅ Invoice found");
-    // console.log("📌 Invoice Number:", invoice.invoiceNumber);
-    // console.log("📌 Invoice Status:", invoice.status);
-    // console.log("📌 Client Name:", invoice.client?.name);
-    // console.log("📌 Client Email:", invoice.client?.email);
-
     // ============================================
-    // 4. CLIENT EMAIL VALIDATION
+    // 3. CHECK CLIENT EMAIL
     // ============================================
-
-    // console.log("\n📧 STEP 4 - VALIDATING CLIENT EMAIL");
 
     if (!invoice.client?.email) {
-      // console.error("❌ Client email missing");
-      // console.error("📌 Invoice:", invoice.invoiceNumber);
-
       return res.status(400).json({
         success: false,
-        message: "Client email is required",
+        message: "Client email not found",
         requestId,
       });
     }
 
-    // console.log("✅ Client email available");
-
     // ============================================
-    // 5. GET USER
+    // 4. GET USER
     // ============================================
-
-    // console.log("\n👤 STEP 5 - FETCHING USER");
 
     const user = await User.findById(req.user._id);
 
     if (!user) {
-      // console.error("❌ User not found");
-      // console.error("👤 User ID:", req.user._id);
-
       return res.status(404).json({
         success: false,
         message: "User not found",
@@ -712,46 +640,22 @@ export const sendInvoice = async (req, res) => {
       });
     }
 
-    // console.log("✅ User found");
-    // console.log("📌 User ID:", user._id);
-    // console.log("📌 User Email:", user.email);
-    // console.log("📌 Plan:", user.subscription?.plan);
-    // console.log(
-    //   "📌 Email Used:",
-    //   user.subscription?.limits?.used
-    // );
-    // console.log(
-    //   "📌 Email Monthly Limit:",
-    //   user.subscription?.limits?.monthly
-    // );
-
     // ============================================
-    // 6. CHECK EMAIL LIMIT
+    // 5. CHECK EMAIL LIMIT
     // ============================================
-
-    // console.log("\n📊 STEP 6 - CHECKING EMAIL LIMIT");
 
     const canSend = await user.canSendEmail();
 
-    // console.log("📊 Can Send Email:", canSend);
-
     if (!canSend) {
-      // console.error("❌ EMAIL LIMIT EXCEEDED");
-
-      // console.error("📌 Plan:", user.subscription?.plan);
-      // console.error(
-        // "📌 Used:",
-        // user.subscription?.limits?.used
-      // );
-      // console.error(
-      //   "📌 Limit:",
-      //   user.subscription?.limits?.monthly
-      // );
-
       return res.status(403).json({
         success: false,
-        message: `Email limit exceeded. You have used ${user.subscription.limits.used} out of ${user.subscription.limits.monthly} emails.`,
+        message: `Email limit exceeded. You have used ${
+          user.subscription.limits.used
+        } out of ${
+          user.subscription.limits.monthly
+        } emails.`,
         requestId,
+
         data: {
           plan: user.subscription.plan,
           limit: user.subscription.limits.monthly,
@@ -761,170 +665,31 @@ export const sendInvoice = async (req, res) => {
       });
     }
 
-    // console.log("✅ Email limit available");
-    // console.log(
-    //   "📊 Remaining:",
-    //   user.getRemainingEmails()
-    // );
-
     // ============================================
-    // 7. VALIDATE SCHEDULE TIME
+    // 6. VALIDATE SCHEDULE TIME
     // ============================================
 
-    // console.log("\n🕐 STEP 7 - VALIDATING SCHEDULE TIME");
+    const scheduledAt = scheduleTime
+      ? new Date(scheduleTime)
+      : new Date();
 
-    let scheduledAt;
-
-    if (scheduleTime) {
-      // console.log("📥 Received Schedule Time:", scheduleTime);
-
-      scheduledAt = new Date(scheduleTime);
-
-      // console.log(
-      //   "📅 Parsed Date:",
-      //   scheduledAt.toString()
-      // );
-
-      // console.log(
-      //   "🌍 UTC Date:",
-      //   scheduledAt.toISOString()
-      // );
-
-      // console.log(
-      //   "🔢 Timestamp:",
-      //   scheduledAt.getTime()
-      // );
-
-      if (isNaN(scheduledAt.getTime())) {
-        // console.error("❌ INVALID SCHEDULE TIME");
-        // console.error("📥 Received:", scheduleTime);
-
-        return res.status(400).json({
-          success: false,
-          message: "Invalid schedule time",
-          requestId,
-        });
-      }
-
-      // Prevent scheduling in the past
-      if (scheduledAt.getTime() <= Date.now()) {
-        // console.error("❌ SCHEDULE TIME IS IN THE PAST");
-
-        // console.error(
-        //   "📅 Scheduled:",
-        //   scheduledAt.toISOString()
-        // );
-
-        // console.error(
-        //   "⏰ Current:",
-        //   new Date().toISOString()
-        // );
-
-        return res.status(400).json({
-          success: false,
-          message: "Schedule time must be in the future",
-          requestId,
-          data: {
-            scheduleTime: scheduledAt.toISOString(),
-            currentTime: new Date().toISOString(),
-          },
-        });
-      }
-
-      // console.log("✅ Schedule time is valid");
-      // console.log(
-      //   "⏰ Final UTC:",
-      //   scheduledAt.toISOString()
-      // );
-
-    } else {
-      scheduledAt = new Date();
-
-      // console.log(
-      //   "⚡ No schedule time provided."
-      // );
-
-      // console.log(
-      //   "📤 Email will be queued immediately."
-      // );
-
-      // console.log(
-      //   "⏰ Current UTC:",
-      //   scheduledAt.toISOString()
-      // );
-    }
-
-    // ============================================
-    // 8. GENERATE PDF
-    // ============================================
-
-    // console.log("\n📄 STEP 8 - GENERATING INVOICE PDF");
-
-    // console.log(
-    //   "📌 Invoice:",
-    //   invoice.invoiceNumber
-    // );
-
-    const pdfStartTime = Date.now();
-
-    const pdfPath = await generateInvoicePDF(invoice);
-
-    const pdfDuration = Date.now() - pdfStartTime;
-
-    // console.log(
-    //   "⏱️ PDF Generation Time:",
-    //   `${pdfDuration}ms`
-    // );
-
-    // console.log("📄 PDF Path:", pdfPath);
-
-    if (!pdfPath) {
-      // console.error("❌ PDF GENERATION FAILED");
-
-      return res.status(500).json({
+    if (isNaN(scheduledAt.getTime())) {
+      return res.status(400).json({
         success: false,
-        message: "Failed to generate invoice PDF",
+        message: "Invalid schedule time",
         requestId,
       });
     }
 
-    // console.log("✅ PDF generated successfully");
-
     // ============================================
-    // 9. CREATE ATTACHMENTS
+    // 7. GENERATE HTML EMAIL
     // ============================================
 
-    // console.log("\n📎 STEP 9 - PREPARING ATTACHMENTS");
-
-    const emailAttachments = [
-      {
-        filename: `Invoice-${invoice.invoiceNumber}.pdf`,
-        path: pdfPath,
-        contentType: "application/pdf",
-      },
-    ];
-
-    // console.log("📎 Default Invoice PDF added");
-
-    if (Array.isArray(attachments) && attachments.length > 0) {
-      // console.log(
-      //   "📎 Adding additional attachments:",
-      //   attachments.length
-      // );
-
-      emailAttachments.push(...attachments);
-    }
-
-    // console.log(
-    //   "📎 Total Attachments:",
-    //   emailAttachments.length
-    // );
+    const emailHTML = getInvoiceEmailHTML(invoice);
 
     // ============================================
-    // 10. CREATE SCHEDULED EMAIL
+    // 8. CREATE SCHEDULED EMAIL
     // ============================================
-
-    // console.log("\n💾 STEP 10 - CREATING SCHEDULED EMAIL");
 
     const scheduledEmail = await ScheduledEmail.create({
       userId: req.user._id,
@@ -935,109 +700,29 @@ export const sendInvoice = async (req, res) => {
         req.user.name || "Your Company"
       }`,
 
-      message: getInvoiceEmailHTML(invoice),
+      message: emailHTML,
 
       scheduleTime: scheduledAt,
-
-      attachments: emailAttachments,
 
       emailType: "invoice",
 
       invoiceId: invoice._id,
     });
 
-    // console.log("✅ Scheduled email created");
-
-    // console.log("📌 Scheduled Email ID:", scheduledEmail._id);
-    // console.log("📌 Email Type:", scheduledEmail.emailType);
-    // console.log("📌 To:", scheduledEmail.toEmail);
-
-    // console.log(
-    //   "📌 Schedule Time:",
-    //   scheduledEmail.scheduleTime
-    // );
-
-  //   console.log(
-  //     "🌍 Schedule Time UTC:",
-  //     scheduledEmail.scheduleTime?.toISOString()
-  //  );
-
     // ============================================
-    // 11. INCREMENT EMAIL COUNT
+    // 9. INCREMENT EMAIL COUNT
     // ============================================
-
-    // console.log("\n📊 STEP 11 - INCREMENTING EMAIL COUNT");
-
-    const previousEmailUsed =
-      user.subscription?.limits?.used;
 
     await user.incrementEmailCount();
 
-    // console.log(
-    //   "📊 Previous Used:",
-    //   previousEmailUsed
-    // );
-
-    // console.log(
-    //   "📊 New Used:",
-    //   user.subscription?.limits?.used
-    // );
-
-    // console.log(
-    //   "📊 Remaining:",
-    //   user.getRemainingEmails()
-    // );
-
     // ============================================
-    // 12. UPDATE INVOICE STATUS
+    // 10. SUCCESS RESPONSE
     // ============================================
-
-    // console.log("\n🧾 STEP 12 - UPDATING INVOICE STATUS");
-
-    const previousInvoiceStatus = invoice.status;
-
-    invoice.status = "sent";
-
-    await invoice.save();
-
-    // console.log(
-    //   "📌 Previous Status:",
-    //   previousInvoiceStatus
-    // );
-
-    // console.log(
-    //   "📌 New Status:",
-    //   invoice.status
-    // );
-
-    // console.log("✅ Invoice updated");
-
-    // ============================================
-    // 13. SUCCESS RESPONSE
-    // ============================================
-
-    // console.log("\n");
-    // console.log("====================================================");
-    // console.log("✅ SEND INVOICE SUCCESS");
-    // console.log("====================================================");
-
-    // console.log("🆔 Request ID:", requestId);
-    // console.log("📌 Invoice:", invoice.invoiceNumber);
-    // console.log("📌 Scheduled Email:", scheduledEmail._id);
-    // console.log("📧 To:", scheduledEmail.toEmail);
-    // console.log(
-    //   "⏰ Schedule:",
-    //   scheduledEmail.scheduleTime?.toISOString()
-    // );
 
     return res.status(201).json({
       success: true,
 
-      message: scheduleTime
-        ? "Invoice scheduled successfully"
-        : "Invoice queued successfully",
-
-      requestId,
+      message: "Invoice email scheduled successfully",
 
       data: scheduledEmail,
 
@@ -1047,65 +732,11 @@ export const sendInvoice = async (req, res) => {
         limit: user.subscription.limits.monthly,
         plan: user.subscription.plan,
       },
+
+      requestId,
     });
-
   } catch (error) {
-
-    // ============================================
-    // GLOBAL ERROR HANDLER
-    // ============================================
-
-    // console.error("\n");
-    // console.error("====================================================");
-    // console.error("❌ SEND INVOICE FAILED");
-    // console.error("====================================================");
-
-    // console.error("🆔 Request ID:", requestId);
-    // console.error("⏰ Time:", new Date().toISOString());
-
-    // console.error("❌ Error Name:", error.name);
-    // console.error("❌ Error Message:", error.message);
-    // console.error("❌ Error Code:", error.code);
-    // console.error("❌ Error Stack:", error.stack);
-
-    // MongoDB specific information
-    if (error.name === "ValidationError") {
-      // console.error("📛 Mongoose Validation Error");
-
-      if (error.errors) {
-        Object.keys(error.errors).forEach((field) => {
-          // console.error(
-          //   `❌ ${field}:`,
-          //   error.errors[field].message
-          // );
-        });
-      }
-    }
-
-    if (error.name === "CastError") {
-      // console.error("📛 Mongoose Cast Error");
-      // console.error("📌 Path:", error.path);
-      // console.error("📌 Value:", error.value);
-    }
-
-    if (error.code === 11000) {
-      // console.error("📛 MongoDB Duplicate Key Error");
-      // console.error("📌 Key:", error.keyValue);
-    }
-
-    // console.error("📦 Request Body:", {
-    //   invoiceId: req.body?.invoiceId,
-    //   scheduleTime: req.body?.scheduleTime,
-    //   attachmentsCount: Array.isArray(req.body?.attachments)
-    //     ? req.body.attachments.length
-    //     : 0,
-    // });
-
-    // console.error("👤 User ID:", req.user?._id);
-
-    // console.error("====================================================");
-    // console.error("❌ END ERROR");
-    // console.error("====================================================");
+    console.error("Send Invoice Error:", error);
 
     return res.status(500).json({
       success: false,

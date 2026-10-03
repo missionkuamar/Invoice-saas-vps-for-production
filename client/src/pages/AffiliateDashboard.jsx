@@ -418,47 +418,41 @@ const AffiliateDashboard = () => {
   // COPY AFFILIATE LINK
   // ============================================================
 
-  const handleCopyLink = async (slug, code) => {
-    try {
-      if (!slug) {
-        toast.error('Affiliate slug is missing');
-        return;
-      }
-
-      if (!code) {
-        toast.error('Affiliate code is missing');
-        return;
-      }
-
-      // ================================
-      // PRODUCTION BACKEND URL
-      // ================================
-       const backendUrl = import.meta.env.VITE_BACKEND_URL;
-
-      // ================================
-      // LOCAL TESTING
-      // Uncomment this when testing locally
-      // const backendUrl = 'http://localhost:5000';
-      // ================================
-
-      const cleanBackendUrl = backendUrl.replace(/\/$/, '');
-
-      const url =
-        `${cleanBackendUrl}/r/` +
-        `${encodeURIComponent(slug)}` +
-        `?ref=${encodeURIComponent(code)}`;
-
-      console.log('✅ Affiliate URL:', url);
-
-      await navigator.clipboard.writeText(url);
-
-      toast.success('Affiliate link copied!');
-    } catch (error) {
-      console.error('❌ Copy affiliate link failed:', error);
-
-      toast.error('Failed to copy affiliate link');
+ const handleCopyLink = async (slug, code) => {
+  try {
+    if (!slug) {
+      toast.error("Affiliate slug is missing");
+      return;
     }
-  };
+
+    if (!code) {
+      toast.error("Affiliate code is missing");
+      return;
+    }
+
+    // ================================
+    // PRODUCTION BACKEND URL
+    // ================================
+    const backendUrl = "https://api.invoicehub.fun";
+
+    const cleanBackendUrl = backendUrl.replace(/\/$/, "");
+
+    const url =
+      `${cleanBackendUrl}/r/` +
+      `${encodeURIComponent(slug)}` +
+      `?ref=${encodeURIComponent(code)}`;
+
+    console.log("✅ Affiliate URL:", url);
+
+    await navigator.clipboard.writeText(url);
+
+    toast.success("Affiliate link copied!");
+  } catch (error) {
+    console.error("❌ Copy affiliate link failed:", error);
+
+    toast.error("Failed to copy affiliate link");
+  }
+};
 
   // ============================================================
   // LOADING
