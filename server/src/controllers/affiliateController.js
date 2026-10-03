@@ -364,17 +364,17 @@ export const createAffiliateLink = async (req, res) => {
 // @desc    Track affiliate click and redirect
 // @route   GET /r/:slug
 export const trackAffiliateClick = async (req, res) => {
-  console.log("\n");
-  console.log("======================================================");
-  console.log("🚀 TRACK AFFILIATE CLICK - START");
-  console.log("======================================================");
+  // console.log("\n");
+  // console.log("======================================================");
+  // console.log("🚀 TRACK AFFILIATE CLICK - START");
+  // console.log("======================================================");
 
   try {
     // =====================================================
     // STEP 1: REQUEST INFORMATION
     // =====================================================
 
-    console.log("\n📥 STEP 1: REQUEST INFORMATION");
+    // console.log("\n📥 STEP 1: REQUEST INFORMATION");
 
     const { slug } = req.params;
     const { ref } = req.query;
@@ -391,40 +391,40 @@ export const trackAffiliateClick = async (req, res) => {
     const referrer =
       req.headers.referer || "direct";
 
-    console.log("📍 Request URL:", req.originalUrl);
-    console.log("📍 Method:", req.method);
-    console.log("📍 Slug:", slug);
-    console.log("📍 Ref:", ref);
-    console.log("📍 IP:", ip);
-    console.log("📍 User Agent:", userAgent);
-    console.log("📍 Browser Referrer:", referrer);
+    // console.log("📍 Request URL:", req.originalUrl);
+    // console.log("📍 Method:", req.method);
+    // console.log("📍 Slug:", slug);
+    // console.log("📍 Ref:", ref);
+    // console.log("📍 IP:", ip);
+    // console.log("📍 User Agent:", userAgent);
+    // console.log("📍 Browser Referrer:", referrer);
 
     // =====================================================
     // STEP 2: SESSION INFORMATION
     // =====================================================
 
-    console.log("\n🍪 STEP 2: SESSION INFORMATION");
+    // console.log("\n🍪 STEP 2: SESSION INFORMATION");
 
-    console.log(
-      "Session ID:",
-      req.sessionID || "NO SESSION ID"
-    );
+    // console.log(
+    //   "Session ID:",
+    //   req.sessionID || "NO SESSION ID"
+    // );
 
-    console.log(
-      "Session exists:",
-      !!req.session
-    );
+    // console.log(
+    //   "Session exists:",
+    //   !!req.session
+    // );
 
-    console.log(
-      "Existing affiliateReferral:",
-      req.session?.affiliateReferral || "NONE"
-    );
+    // console.log(
+    //   "Existing affiliateReferral:",
+    //   req.session?.affiliateReferral || "NONE"
+    // );
 
     // =====================================================
     // STEP 3: VALIDATE SLUG
     // =====================================================
 
-    console.log("\n🔍 STEP 3: VALIDATING SLUG");
+    // console.log("\n🔍 STEP 3: VALIDATING SLUG");
 
     if (!slug) {
       console.error("❌ Slug is missing");
@@ -432,40 +432,40 @@ export const trackAffiliateClick = async (req, res) => {
       return res.redirect("/");
     }
 
-    console.log("✅ Slug received:", slug);
+    // console.log("✅ Slug received:", slug);
 
     // =====================================================
     // STEP 4: VALIDATE REF
     // =====================================================
 
-    console.log("\n🎯 STEP 4: VALIDATING REF");
+    // console.log("\n🎯 STEP 4: VALIDATING REF");
 
     if (!ref) {
       console.error("❌ REF IS MISSING");
 
-      console.log(
-        "⚠️ Expected URL format:"
-      );
+      // console.log(
+      //   "⚠️ Expected URL format:"
+      // );
 
-      console.log(
-        "http://localhost:5000/r/SLUG?ref=AFFILIATE_CODE"
-      );
+      // console.log(
+      //   "http://localhost:5000/r/SLUG?ref=AFFILIATE_CODE"
+      // );
 
       return res.redirect("/");
     }
 
-    console.log("✅ Ref received:", ref);
+    // console.log("✅ Ref received:", ref);
 
     // =====================================================
     // STEP 5: FIND AFFILIATE LINK
     // =====================================================
 
-    console.log("\n🔎 STEP 5: FINDING AFFILIATE LINK");
+    // console.log("\n🔎 STEP 5: FINDING AFFILIATE LINK");
 
-    console.log(
-      "Searching AffiliateLink with slug:",
-      slug
-    );
+    // console.log(
+    //   "Searching AffiliateLink with slug:",
+    //   slug
+    // );
 
     const link = await AffiliateLink.findOne({
       slug,
@@ -484,34 +484,34 @@ export const trackAffiliateClick = async (req, res) => {
       return res.redirect("/");
     }
 
-    console.log("✅ AFFILIATE LINK FOUND");
+    // console.log("✅ AFFILIATE LINK FOUND");
 
-    console.log("Link ID:", link._id);
-    console.log("Link slug:", link.slug);
-    console.log("Link affiliate:", link.affiliate);
-    console.log(
-      "Link destination:",
-      link.destination || "/"
-    );
-    console.log(
-      "Current link clicks:",
-      link.clicks
-    );
+    // console.log("Link ID:", link._id);
+    // console.log("Link slug:", link.slug);
+    // console.log("Link affiliate:", link.affiliate);
+    // console.log(
+    //   "Link destination:",
+    //   link.destination || "/"
+    // );
+    // console.log(
+    //   "Current link clicks:",
+    //   link.clicks
+    // );
 
     // =====================================================
     // STEP 6: FIND AFFILIATE
     // =====================================================
 
-    console.log("\n👤 STEP 6: FINDING AFFILIATE");
+    // console.log("\n👤 STEP 6: FINDING AFFILIATE");
 
-    console.log(
-      "Searching affiliate using:"
-    );
+    // console.log(
+    //   "Searching affiliate using:"
+    // );
 
-    console.log({
-      affiliateId: link.affiliate,
-      affiliateCode: ref,
-    });
+    // console.log({
+    //   affiliateId: link.affiliate,
+    //   affiliateCode: ref,
+    // });
 
     const affiliate = await Affiliate.findOne({
       _id: link.affiliate,
@@ -536,74 +536,74 @@ export const trackAffiliateClick = async (req, res) => {
       return res.redirect("/");
     }
 
-    console.log("✅ AFFILIATE FOUND");
+    // console.log("✅ AFFILIATE FOUND");
 
-    console.log("Affiliate ID:", affiliate._id);
-    console.log(
-      "Affiliate Code:",
-      affiliate.affiliateCode
-    );
-    console.log(
-      "Affiliate User:",
-      affiliate.user
-    );
-    console.log(
-      "Affiliate Status:",
-      affiliate.status
-    );
-    console.log(
-      "Total Clicks BEFORE:",
-      affiliate.totalClicks
-    );
+    // console.log("Affiliate ID:", affiliate._id);
+    // console.log(
+    //   "Affiliate Code:",
+    //   affiliate.affiliateCode
+    // );
+    // console.log(
+    //   "Affiliate User:",
+    //   affiliate.user
+    // );
+    // console.log(
+    //   "Affiliate Status:",
+    //   affiliate.status
+    // // );
+    // console.log(
+    //   "Total Clicks BEFORE:",
+    //   affiliate.totalClicks
+    // );
 
     // =====================================================
     // STEP 7: UPDATE LINK CLICK
     // =====================================================
 
-    console.log("\n📈 STEP 7: UPDATING LINK CLICK");
+    // console.log("\n📈 STEP 7: UPDATING LINK CLICK");
 
-    console.log(
-      "Clicks BEFORE:",
-      link.clicks
-    );
+    // console.log(
+    //   "Clicks BEFORE:",
+    //   link.clicks
+    // );
 
     link.clicks += 1;
 
     await link.save();
 
-    console.log(
-      "Clicks AFTER:",
-      link.clicks
-    );
+    // console.log(
+    //   "Clicks AFTER:",
+    //   link.clicks
+    // );
 
-    console.log(
-      "✅ AffiliateLink click saved"
-    );
+    // console.log(
+    //   "✅ AffiliateLink click saved"
+    // );
 
     // =====================================================
     // STEP 8: UPDATE AFFILIATE CLICK
     // =====================================================
 
-    console.log("\n📊 STEP 8: UPDATING AFFILIATE CLICK");
+    // console.log("\n📊 STEP 8: UPDATING AFFILIATE CLICK");
 
     affiliate.totalClicks += 1;
 
     await affiliate.save();
 
-    console.log(
-      "Total clicks AFTER:",
-      affiliate.totalClicks
-    );
+    // console.log(
+    //   "Total clicks AFTER:",
+    //   affiliate.totalClicks
+    // );
 
-    console.log(
-      "✅ Affiliate totalClicks saved"
-    );
+    // console.log(
+    //   "✅ Affiliate totalClicks saved"
+    // );
 
     // =====================================================
     // STEP 9: CREATE REFERRAL
     // =====================================================
 
-    console.log("\n📝 STEP 9: CREATING AFFILIATE REFERRAL");
+    // console.log("\n📝 STEP 9: CREATING AFFILIATE REFERRAL");
 
     const referral = await AffiliateReferral.create({
       affiliate: affiliate._id,
@@ -614,35 +614,35 @@ export const trackAffiliateClick = async (req, res) => {
       status: "clicked",
     });
 
-    console.log(
-      "✅ REFERRAL CREATED"
-    );
+    // console.log(
+    //   "✅ REFERRAL CREATED"
+    // );
 
-    console.log(
-      "Referral ID:",
-      referral._id
-    );
+    // console.log(
+    //   "Referral ID:",
+    //   referral._id
+    // );
 
-    console.log(
-      "Referral Affiliate:",
-      referral.affiliate
-    );
+    // console.log(
+    //   "Referral Affiliate:",
+    //   referral.affiliate
+    // );
 
-    console.log(
-      "Referral Link:",
-      referral.affiliateLink
-    );
+    // console.log(
+    //   "Referral Link:",
+    //   referral.affiliateLink
+    // );
 
-    console.log(
-      "Referral Status:",
-      referral.status
-    );
+    // console.log(
+    //   "Referral Status:",
+    //   referral.status
+    // );
 
     // =====================================================
     // STEP 10: SAVE REFERRAL IN SESSION
     // =====================================================
 
-    console.log("\n🍪 STEP 10: SAVING REFERRAL TO SESSION");
+    // console.log("\n🍪 STEP 10: SAVING REFERRAL TO SESSION");
 
     req.session.affiliateReferral = {
       referralId: referral._id,
@@ -650,19 +650,19 @@ export const trackAffiliateClick = async (req, res) => {
       linkId: link._id,
     };
 
-    console.log(
-      "Session affiliateReferral BEFORE save:"
-    );
+    // console.log(
+    //   "Session affiliateReferral BEFORE save:"
+    // );
 
-    console.log(
-      req.session.affiliateReferral
-    );
+    // console.log(
+    //   req.session.affiliateReferral
+    // );
 
     // =====================================================
     // STEP 11: SAVE SESSION
     // =====================================================
 
-    console.log("\n💾 STEP 11: SAVING SESSION");
+    // console.log("\n💾 STEP 11: SAVING SESSION");
 
     await new Promise((resolve) => {
       req.session.save((err) => {
@@ -695,15 +695,15 @@ export const trackAffiliateClick = async (req, res) => {
     // STEP 12: DESTINATION
     // =====================================================
 
-    console.log("\n🔄 STEP 12: PREPARING REDIRECT");
+    // console.log("\n🔄 STEP 12: PREPARING REDIRECT");
 
     const destination =
       link.destination || "/";
 
-    console.log(
-      "Destination:",
-      destination
-    );
+    // console.log(
+    //   "Destination:",
+    //   destination
+    // );
 
     // =====================================================
     // STEP 13: FULL URL REDIRECT
@@ -713,18 +713,18 @@ export const trackAffiliateClick = async (req, res) => {
       destination.startsWith("http://") ||
       destination.startsWith("https://")
     ) {
-      console.log(
-        "🌐 Full URL destination detected"
-      );
+      // console.log(
+      //   "🌐 Full URL destination detected"
+      // );
 
-      console.log(
-        "➡️ Redirecting to:",
-        destination
-      );
+      // console.log(
+      //   "➡️ Redirecting to:",
+      //   destination
+      // );
 
-      console.log(
-        "======================================================"
-      );
+      // console.log(
+      //   "======================================================"
+      // );
 
       return res.redirect(destination);
     }
@@ -740,27 +740,27 @@ export const trackAffiliateClick = async (req, res) => {
     const finalRedirect =
       `${frontendUrl}${destination}`;
 
-    console.log(
-      "🌐 Frontend URL:",
-      frontendUrl
-    );
+    // console.log(
+    //   "🌐 Frontend URL:",
+    //   frontendUrl
+    // );
 
-    console.log(
-      "➡️ Final redirect:",
-      finalRedirect
-    );
+    // console.log(
+    //   "➡️ Final redirect:",
+    //   finalRedirect
+    // );
 
-    console.log(
-      "======================================================"
-    );
+    // console.log(
+    //   "======================================================"
+    // );
 
-    console.log(
-      "✅ TRACK AFFILIATE CLICK - SUCCESS"
-    );
+    // console.log(
+    //   "✅ TRACK AFFILIATE CLICK - SUCCESS"
+    // );
 
-    console.log(
-      "======================================================\n"
-    );
+    // console.log(
+    //   "======================================================\n"
+    // );
 
     return res.redirect(finalRedirect);
 

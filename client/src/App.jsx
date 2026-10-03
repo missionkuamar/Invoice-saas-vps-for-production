@@ -62,21 +62,21 @@ export const AffiliateRedirect = () => {
     const params = new URLSearchParams(location.search);
     const ref = params.get("ref");
 
-    console.log("================================");
-    console.log("🔗 AFFILIATE REDIRECT");
-    console.log("📍 Current URL:", window.location.href);
-    console.log("📍 Slug:", slug);
-    console.log("🎯 Ref:", ref);
-    console.log("================================");
+    // console.log("================================");
+    // console.log("🔗 AFFILIATE REDIRECT");
+    // console.log("📍 Current URL:", window.location.href);
+    // console.log("📍 Slug:", slug);
+    // console.log("🎯 Ref:", ref);
+    // console.log("================================");
 
     if (ref) {
       try {
         localStorage.setItem("affiliateRef", ref);
 
-        console.log(
-          "✅ affiliateRef saved:",
-          localStorage.getItem("affiliateRef")
-        );
+        // console.log(
+        //   "✅ affiliateRef saved:",
+        //   localStorage.getItem("affiliateRef")
+        // );
       } catch (error) {
         console.error(
           "❌ Failed to save affiliateRef:",

@@ -13,38 +13,38 @@ export const loginWithGoogle = createAsyncThunk(
       // ============================================================
       // 🔍 DEBUG: Initial State
       // ============================================================
-      console.group('🚀 loginWithGoogle START');
-      console.log('📍 Current URL:', window.location.href);
-      console.log('📍 Credential received?', !!credentialResponse?.credential);
-      console.log('📍 Credential length:', credentialResponse?.credential?.length || 0);
-      console.log('📍 Credential preview:', credentialResponse?.credential?.substring(0, 30) + '...');
-      console.groupEnd();
+      // console.group('🚀 loginWithGoogle START');
+      // console.log('📍 Current URL:', window.location.href);
+      // console.log('📍 Credential received?', !!credentialResponse?.credential);
+      // console.log('📍 Credential length:', credentialResponse?.credential?.length || 0);
+      // console.log('📍 Credential preview:', credentialResponse?.credential?.substring(0, 30) + '...');
+      // console.groupEnd();
 
       const { credential } = credentialResponse;
 
       // ============================================================
       // 🔍 DEBUG: localStorage Before Reading
       // ============================================================
-      console.group('💾 localStorage State BEFORE reading ref');
-      console.log('💾 affiliateRef:', localStorage.getItem('affiliateRef'));
-      console.log('💾 affiliateRef type:', typeof localStorage.getItem('affiliateRef'));
-      console.log('💾 All keys:', Object.keys(localStorage));
-      console.log('💾 Full dump:');
-      Object.keys(localStorage).forEach((key) => {
-        const value = localStorage.getItem(key);
-        const preview = value?.length > 50 ? value.substring(0, 50) + '...' : value;
-         console.log(`   - ${key}: ${preview}`);
-      });
-       console.groupEnd();
+      // console.group('💾 localStorage State BEFORE reading ref');
+      // console.log('💾 affiliateRef:', localStorage.getItem('affiliateRef'));
+      // console.log('💾 affiliateRef type:', typeof localStorage.getItem('affiliateRef'));
+      // console.log('💾 All keys:', Object.keys(localStorage));
+      // console.log('💾 Full dump:');
+      // Object.keys(localStorage).forEach((key) => {
+      //   const value = localStorage.getItem(key);
+      //   const preview = value?.length > 50 ? value.substring(0, 50) + '...' : value;
+      //    console.log(`   - ${key}: ${preview}`);
+      // });
+      //  console.groupEnd();
 
       // ✅ STEP 1: Get ref from localStorage
       const ref = localStorage.getItem('affiliateRef') || '';
       
-      console.group('🎯 Ref Extraction');
-      console.log('🎯 Raw ref value:', localStorage.getItem('affiliateRef'));
-      console.log('🎯 Final ref (with fallback):', ref);
-      console.log('🎯 Ref is empty?', ref === '');
-      console.log('🎯 Ref length:', ref.length);
+      // console.group('🎯 Ref Extraction');
+      // console.log('🎯 Raw ref value:', localStorage.getItem('affiliateRef'));
+      // console.log('🎯 Final ref (with fallback):', ref);
+      // console.log('🎯 Ref is empty?', ref === '');
+      // console.log('🎯 Ref length:', ref.length);
       if (!ref) {
         console.warn('⚠️ REF IS EMPTY! Affiliate tracking will NOT work.');
         console.warn('⚠️ Possible reasons:');
@@ -55,7 +55,7 @@ export const loginWithGoogle = createAsyncThunk(
       }
       console.groupEnd();
 
-      console.log('🔗 Sending ref to backend:', ref);
+      // console.log('🔗 Sending ref to backend:', ref);
 
       // ============================================================
       // 🔍 DEBUG: API Request
@@ -65,12 +65,12 @@ export const loginWithGoogle = createAsyncThunk(
         ref,
       };
       
-      console.group('📤 API Request');
-      console.log('📤 URL: /auth/google');
-      console.log('📤 Method: POST');
-      console.log('📤 Payload:', requestPayload);
-      console.log('📤 Ref in payload:', ref || '(empty)');
-      console.groupEnd();
+      // console.group('📤 API Request');
+      // console.log('📤 URL: /auth/google');
+      // console.log('📤 Method: POST');
+      // console.log('📤 Payload:', requestPayload);
+      // console.log('📤 Ref in payload:', ref || '(empty)');
+      // console.groupEnd();
 
       // ✅ STEP 2: Send credential + ref to backend
       const response = await api.post('/auth/google', {
@@ -81,42 +81,42 @@ export const loginWithGoogle = createAsyncThunk(
       // ============================================================
       // 🔍 DEBUG: API Response
       // // ============================================================
-      console.group('📥 API Response');
-      console.log('📥 Status:', response.status);
-      console.log('📥 Success:', response.data?.success);
-      console.log('📥 Message:', response.data?.message);
-      console.log('📥 Data:', response.data?.data);
-      console.log('📥 User:', {
-        id: response.data?.data?._id,
-        name: response.data?.data?.name,
-        email: response.data?.data?.email,
-        username: response.data?.data?.username,
-      });
-      console.groupEnd();
+      // console.group('📥 API Response');
+      // console.log('📥 Status:', response.status);
+      // console.log('📥 Success:', response.data?.success);
+      // console.log('📥 Message:', response.data?.message);
+      // console.log('📥 Data:', response.data?.data);
+      // console.log('📥 User:', {
+      //   id: response.data?.data?._id,
+      //   name: response.data?.data?.name,
+      //   email: response.data?.data?.email,
+      //   username: response.data?.data?.username,
+      // });
+      // console.groupEnd();
 
       const { data } = response.data;
 
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data));
 
-      console.group('💾 localStorage AFTER save');
-      console.log('💾 token saved:', !!localStorage.getItem('token'));
-      console.log('💾 user saved:', !!localStorage.getItem('user'));
-      console.log('💾 affiliateRef still there?:', localStorage.getItem('affiliateRef'));
-      console.log('💾 All keys:', Object.keys(localStorage));
-      console.groupEnd();
+      // console.group('💾 localStorage AFTER save');
+      // console.log('💾 token saved:', !!localStorage.getItem('token'));
+      // console.log('💾 user saved:', !!localStorage.getItem('user'));
+      // console.log('💾 affiliateRef still there?:', localStorage.getItem('affiliateRef'));
+      // console.log('💾 All keys:', Object.keys(localStorage));
+      // console.groupEnd();
 
       // ✅ STEP 3: Clean up ref after successful registration
       if (response.data.message === 'Registration successful') {
-        console.group('🧹 Cleanup - Registration Successful');
-        console.log('🧹 Removing affiliateRef from localStorage');
-        console.log('🧹 Value before removal:', localStorage.getItem('affiliateRef'));
+        // console.group('🧹 Cleanup - Registration Successful');
+        // console.log('🧹 Removing affiliateRef from localStorage');
+        // console.log('🧹 Value before removal:', localStorage.getItem('affiliateRef'));
         
         localStorage.removeItem('affiliateRef');
         
-        console.log('🧹 Value after removal:', localStorage.getItem('affiliateRef'));
-        console.log('🧹 All keys after removal:', Object.keys(localStorage));
-        console.groupEnd();
+        // console.log('🧹 Value after removal:', localStorage.getItem('affiliateRef'));
+        // console.log('🧹 All keys after removal:', Object.keys(localStorage));
+        // console.groupEnd();
         
         toast.success(`Welcome ${data.name}! Account created successfully.`);
       } else {
@@ -124,7 +124,7 @@ export const loginWithGoogle = createAsyncThunk(
         toast.success(`Welcome back ${data.name}!`);
       }
 
-      console.log('✅ loginWithGoogle SUCCESS');
+      // console.log('✅ loginWithGoogle SUCCESS');
       return data;
     } catch (error) {
       // ============================================================

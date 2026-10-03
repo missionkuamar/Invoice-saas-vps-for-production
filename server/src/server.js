@@ -118,34 +118,34 @@ app.get('/r/:slug', async (req, res) => {
     const { slug } = req.params;
     const { ref } = req.query;
 
-    console.log("\n");
-    console.log("==============================================");
-    console.log("🌐 GET /r/:slug HIT");
-    console.log("==============================================");
+    // console.log("\n");
+    // console.log("==============================================");
+    // console.log("🌐 GET /r/:slug HIT");
+    // console.log("==============================================");
 
-    console.log("📍 Full URL:", req.originalUrl);
-    console.log("📍 Method:", req.method);
-    console.log("📍 Slug:", slug);
-    console.log("📍 Ref:", ref);
-    console.log("📍 IP:", req.ip);
-    console.log(
-      "📍 User-Agent:",
-      req.headers["user-agent"]
-    );
+    // console.log("📍 Full URL:", req.originalUrl);
+    // console.log("📍 Method:", req.method);
+    // console.log("📍 Slug:", slug);
+    // console.log("📍 Ref:", ref);
+    // console.log("📍 IP:", req.ip);
+    // console.log(
+    //   "📍 User-Agent:",
+    //   req.headers["user-agent"]
+    // );
 
-    console.log(
-      "🍪 Session ID:",
-      req.sessionID || "NO SESSION"
-    );
+    // console.log(
+    //   "🍪 Session ID:",
+    //   req.sessionID || "NO SESSION"
+    // );
 
-    console.log(
-      "🍪 Session affiliateReferral:",
-      req.session?.affiliateReferral || "NONE"
-    );
+    // console.log(
+    //   "🍪 Session affiliateReferral:",
+    //   req.session?.affiliateReferral || "NONE"
+    // );
 
-    console.log(
-      "📦 Importing trackAffiliateClick..."
-    );
+    // console.log(
+    //   "📦 Importing trackAffiliateClick..."
+    // );
 
     const {
       trackAffiliateClick
@@ -153,13 +153,13 @@ app.get('/r/:slug', async (req, res) => {
       './controllers/affiliateController.js'
     );
 
-    console.log(
-      "✅ trackAffiliateClick imported"
-    );
+    // console.log(
+    //   "✅ trackAffiliateClick imported"
+    // );
 
-    console.log(
-      "🚀 Calling trackAffiliateClick..."
-    );
+    // console.log(
+    //   "🚀 Calling trackAffiliateClick..."
+    // );
 
     return trackAffiliateClick(req, res);
 

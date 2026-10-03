@@ -440,13 +440,13 @@ const backendUrl = "https://api.invoicehub.fun";
       `${encodeURIComponent(slug)}` +
       `?ref=${encodeURIComponent(code)}`;
 
-    console.log("================================");
-    console.log("🔗 AFFILIATE LINK CREATED");
-    console.log("Slug:", slug);
-    console.log("Affiliate Code:", code);
-    console.log("Frontend URL:", frontendUrl);
-    console.log("Final URL:", url);
-    console.log("================================");
+    // console.log("================================");
+    // console.log("🔗 AFFILIATE LINK CREATED");
+    // console.log("Slug:", slug);
+    // console.log("Affiliate Code:", code);
+    // console.log("Frontend URL:", backendUrl);
+    // console.log("Final URL:", url);
+    // console.log("================================");
 
     await navigator.clipboard.writeText(url);
 
