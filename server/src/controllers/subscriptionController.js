@@ -680,17 +680,17 @@ export const verifyPayment = async (req, res) => {
 
     const startDate = new Date();
 
-    const endDate = new Date();
+    //const endDate = new Date();
 
-    endDate.setDate(
-      endDate.getDate() +
-      selectedPlan.durationDays
-    );   
+    // endDate.setDate(
+    //   endDate.getDate() +
+    //   selectedPlan.durationDays
+    // );   
 
 
     // only for tesing purpose 5 minutes ke lye 
-    // const endDate = new Date(startDate);
-    // endDate.setMinutes(endDate.getMinutes() + 5);
+    const endDate = new Date(startDate);
+    endDate.setMinutes(endDate.getMinutes() + 5);
 
     
     // ========================================================
