@@ -58,27 +58,30 @@ const AffiliateRedirect = () => {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const ref = params.get("ref");
+    const ref = params.get('ref');
 
-    // Save affiliate ref to localStorage
+    // Save ref to localStorage
     if (ref) {
       try {
-        localStorage.setItem("affiliateRef", ref);
+        localStorage.setItem('affiliateRef', ref);
       } catch (err) {
-        console.error("localStorage save failed:", err);
+        console.error('localStorage save failed:', err);
       }
     }
 
-    // ================================
-    // PRODUCTION BACKEND URL
-    // ================================
-    const backendUrl = "https://api.invoicehub.fun";
+    // Backend URL — ek hi variable use karo
+    // const backendUrl =
+    //   import.meta.env.VITE_BACKEND_URL ||
+    //   (import.meta.env.DEV ? 'http://localhost:5000' : '');
 
-    const redirectUrl = `${backendUrl}/r/${encodeURIComponent(
-      slug
-    )}${location.search}`;
+    // if (!backendUrl) {
+    //   console.error('❌ VITE_BACKEND_URL missing');
+    //   return;
+    // }
 
-    console.log("🔗 Affiliate Redirect URL:", redirectUrl);
+     const backendUrl = "https://api.invoicehub.fun"; 
+     
+    const redirectUrl = `${backendUrl}/r/${slug}${location.search}`;
 
     const timer = setTimeout(() => {
       window.location.href = redirectUrl;
@@ -86,16 +89,11 @@ const AffiliateRedirect = () => {
 
     return () => clearTimeout(timer);
   }, [slug, location.search]);
-
   return (
     <div className="flex justify-center items-center h-64">
       <div className="text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
-
-        <p className="text-gray-600">
-          Redirecting...
-        </p>
-
+        <p className="text-gray-600">Redirecting...</p>
         <p className="text-xs text-gray-400 mt-2">
           Check console for debug logs...
         </p>
@@ -103,8 +101,6 @@ const AffiliateRedirect = () => {
     </div>
   );
 };
-
-export default AffiliateRedirect;
 
 // ✅ Protected Route Component
 const ProtectedRoute = ({ children }) => {
