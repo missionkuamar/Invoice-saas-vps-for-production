@@ -430,7 +430,7 @@ const AffiliateDashboard = () => {
       return;
     }
 const backendUrl = "https://api.invoicehub.fun";
-   // const frontendUrl = "http://localhost:5000";
+    //const backendUrl = "http://localhost:5000";
 
     const cleanFrontendUrl =
       backendUrl.replace(/\/$/, "");

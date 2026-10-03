@@ -339,8 +339,8 @@ export const createAffiliateLink = async (req, res) => {
     });
 
     // Generate full link URL
-    const baseUrl =   'https://invoicehub.fun' || 'https://www.invoicehub.fun'
-   // const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+   // const baseUrl =   'https://invoicehub.fun' || 'https://www.invoicehub.fun'
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     const linkUrl = `${baseUrl}/r/${link.slug}?ref=${affiliate.affiliateCode}`;
 
     res.status(201).json({
@@ -363,18 +363,25 @@ export const createAffiliateLink = async (req, res) => {
 
 // @desc    Track affiliate click and redirect
 // @route   GET /r/:slug
+// controllers/affiliateController.js
+
 export const trackAffiliateClick = async (req, res) => {
+  const START_TIME = Date.now();
+
   // console.log("\n");
-  // console.log("======================================================");
-  // console.log("🚀 TRACK AFFILIATE CLICK - START");
-  // console.log("======================================================");
+  // console.log("╔══════════════════════════════════════════════════════════════╗");
+  // console.log("║          🚀 TRACK AFFILIATE CLICK - START                  ║");
+  // console.log("╚══════════════════════════════════════════════════════════════╝");
 
   try {
-    // =====================================================
+    // =========================================================
     // STEP 1: REQUEST INFORMATION
-    // =====================================================
+    // =========================================================
 
-    // console.log("\n📥 STEP 1: REQUEST INFORMATION");
+    // console.log("\n");
+    // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    // console.log("📥 STEP 1: REQUEST INFORMATION");
+    // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
     const { slug } = req.params;
     const { ref } = req.query;
@@ -389,81 +396,108 @@ export const trackAffiliateClick = async (req, res) => {
       req.headers["user-agent"] || "unknown";
 
     const referrer =
-      req.headers.referer || "direct";
+      req.headers.referer ||
+      req.headers.referrer ||
+      "direct";
 
-    // console.log("📍 Request URL:", req.originalUrl);
-    // console.log("📍 Method:", req.method);
-    // console.log("📍 Slug:", slug);
-    // console.log("📍 Ref:", ref);
-    // console.log("📍 IP:", ip);
-    // console.log("📍 User Agent:", userAgent);
-    // console.log("📍 Browser Referrer:", referrer);
+    // console.log("🌐 Request Information:");
+    // console.log("   Method        :", req.method);
+    // console.log("   Original URL  :", req.originalUrl);
+    // console.log("   Protocol      :", req.protocol);
+    // console.log("   Host          :", req.get("host"));
+    // console.log("   Slug          :", slug);
+    // console.log("   Ref           :", ref || "EMPTY");
+    // console.log("   IP            :", ip);
+    // console.log("   User-Agent    :", userAgent);
+    // console.log("   Browser Ref   :", referrer);
 
-    // =====================================================
+    // =========================================================
     // STEP 2: SESSION INFORMATION
-    // =====================================================
+    // =========================================================
 
-    // console.log("\n🍪 STEP 2: SESSION INFORMATION");
+    // console.log("\n");
+    // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    // console.log("🍪 STEP 2: SESSION INFORMATION");
+    // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
+    // console.log("🍪 Session exists        :", !!req.session);
+    // console.log("🍪 Session ID            :", req.sessionID || "NO SESSION ID");
     // console.log(
-    //   "Session ID:",
-    //   req.sessionID || "NO SESSION ID"
+    //   "🍪 Session cookie exists :",
+    //   !!req.headers.cookie
     // );
 
     // console.log(
-    //   "Session exists:",
-    //   !!req.session
-    // );
-
-    // console.log(
-    //   "Existing affiliateReferral:",
+    //   "🍪 Existing referral     :",
     //   req.session?.affiliateReferral || "NONE"
     // );
 
-    // =====================================================
-    // STEP 3: VALIDATE SLUG
-    // =====================================================
+    if (req.session?.affiliateReferral) {
+      // console.log("⚠️ Existing affiliate referral already exists:");
+      // console.log(
+      //   JSON.stringify(
+      //     req.session.affiliateReferral,
+      //     null,
+      //     2
+      //   )
+      // );
+    }
 
-    // console.log("\n🔍 STEP 3: VALIDATING SLUG");
+    // =========================================================
+    // STEP 3: VALIDATE SLUG
+    // =========================================================
+
+    // console.log("\n");
+    // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    // console.log("🔍 STEP 3: VALIDATING SLUG");
+    // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
     if (!slug) {
-      console.error("❌ Slug is missing");
+      console.error("❌ SLUG IS MISSING");
+      console.error("❌ Request params:", req.params);
 
       return res.redirect("/");
     }
 
     // console.log("✅ Slug received:", slug);
 
-    // =====================================================
+    // =========================================================
     // STEP 4: VALIDATE REF
-    // =====================================================
+    // =========================================================
 
-    // console.log("\n🎯 STEP 4: VALIDATING REF");
+    // console.log("\n");
+    // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    // console.log("🎯 STEP 4: VALIDATING AFFILIATE REF");
+    // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
     if (!ref) {
-      console.error("❌ REF IS MISSING");
+      console.error("❌ AFFILIATE REF IS MISSING");
 
+      // console.log("⚠️ Expected URL format:");
       // console.log(
-      //   "⚠️ Expected URL format:"
+      //   `   /r/${slug}?ref=AFFILIATE_CODE`
       // );
 
-      // console.log(
-      //   "http://localhost:5000/r/SLUG?ref=AFFILIATE_CODE"
-      // );
+      // console.log("📦 Query received:");
+      // console.log(req.query);
 
       return res.redirect("/");
     }
 
-    // console.log("✅ Ref received:", ref);
+    // console.log("✅ Affiliate ref received:", ref);
+    // console.log("✅ Ref length:", ref.length);
 
-    // =====================================================
+    // =========================================================
     // STEP 5: FIND AFFILIATE LINK
-    // =====================================================
+    // =========================================================
 
-    // console.log("\n🔎 STEP 5: FINDING AFFILIATE LINK");
+    // console.log("\n");
+    // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    // console.log("🔎 STEP 5: FINDING AFFILIATE LINK");
+    // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
     // console.log(
-    //   "Searching AffiliateLink with slug:",
+    //   "🔎 Searching AffiliateLink with slug:",
     //   slug
     // );
 
@@ -472,42 +506,36 @@ export const trackAffiliateClick = async (req, res) => {
     });
 
     if (!link) {
-      console.error(
-        "❌ AFFILIATE LINK NOT FOUND"
-      );
+      console.error("❌ AFFILIATE LINK NOT FOUND");
+      console.error("❌ Requested slug:", slug);
 
-      console.error(
-        "❌ Requested slug:",
-        slug
-      );
+      // console.log("⚠️ Possible reason:");
+      // console.log("   - Slug does not exist");
+      // console.log("   - Affiliate link was deleted");
+      // console.log("   - Wrong affiliate URL");
 
       return res.redirect("/");
     }
 
     // console.log("✅ AFFILIATE LINK FOUND");
 
-    // console.log("Link ID:", link._id);
-    // console.log("Link slug:", link.slug);
-    // console.log("Link affiliate:", link.affiliate);
-    // console.log(
-    //   "Link destination:",
-    //   link.destination || "/"
-    // );
-    // console.log(
-    //   "Current link clicks:",
-    //   link.clicks
-    // );
+    // console.log("🔗 Link Information:");
+    // console.log("   Link ID       :", link._id);
+    // console.log("   Slug          :", link.slug);
+    // console.log("   Affiliate ID  :", link.affiliate);
+    // console.log("   Destination   :", link.destination || "/");
+    // console.log("   Current clicks:", link.clicks);
 
-    // =====================================================
+    // =========================================================
     // STEP 6: FIND AFFILIATE
-    // =====================================================
+    // =========================================================
 
-    // console.log("\n👤 STEP 6: FINDING AFFILIATE");
+    // console.log("\n");
+    // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    // console.log("👤 STEP 6: FINDING AFFILIATE");
+    // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-    // console.log(
-    //   "Searching affiliate using:"
-    // );
-
+    // console.log("🔎 Searching Affiliate with:");
     // console.log({
     //   affiliateId: link.affiliate,
     //   affiliateCode: ref,
@@ -519,91 +547,105 @@ export const trackAffiliateClick = async (req, res) => {
     });
 
     if (!affiliate) {
-      console.error(
-        "❌ AFFILIATE NOT FOUND"
-      );
+      console.error("❌ AFFILIATE NOT FOUND");
 
-      console.error(
-        "❌ Affiliate ID:",
-        link.affiliate
-      );
+      console.error("❌ Search values:");
+      console.error("   Affiliate ID :", link.affiliate);
+      console.error("   Affiliate Ref:", ref);
 
-      console.error(
-        "❌ Affiliate Code:",
-        ref
-      );
+      // console.log("⚠️ Possible reasons:");
+      // console.log("   1. Affiliate code is incorrect");
+      // console.log("   2. Affiliate belongs to another link");
+      // console.log("   3. Affiliate was deleted");
+      // console.log("   4. URL contains wrong ref");
 
       return res.redirect("/");
     }
 
     // console.log("✅ AFFILIATE FOUND");
 
-    // console.log("Affiliate ID:", affiliate._id);
-    // console.log(
-    //   "Affiliate Code:",
-    //   affiliate.affiliateCode
-    // );
-    // console.log(
-    //   "Affiliate User:",
-    //   affiliate.user
-    // );
-    // console.log(
-    //   "Affiliate Status:",
-    //   affiliate.status
-    // // );
-    // console.log(
-    //   "Total Clicks BEFORE:",
-    //   affiliate.totalClicks
-    // );
+    // console.log("👤 Affiliate Information:");
+    // console.log("   Affiliate ID  :", affiliate._id);
+    // console.log("   Affiliate Code:", affiliate.affiliateCode);
+    // console.log("   Affiliate User:", affiliate.user);
+    // console.log("   Status        :", affiliate.status);
+    // console.log("   Total Clicks  :", affiliate.totalClicks);
 
-    // =====================================================
-    // STEP 7: UPDATE LINK CLICK
-    // =====================================================
+    // =========================================================
+    // STEP 7: UPDATE AFFILIATE LINK CLICK
+    // =========================================================
 
-    // console.log("\n📈 STEP 7: UPDATING LINK CLICK");
+    // console.log("\n");
+    // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    // console.log("📈 STEP 7: UPDATING AFFILIATE LINK CLICKS");
+    // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+    const linkClicksBefore = Number(link.clicks || 0);
 
     // console.log(
-    //   "Clicks BEFORE:",
-    //   link.clicks
+    //   "📊 Link clicks BEFORE:",
+    //   linkClicksBefore
     // );
 
-    link.clicks += 1;
+    link.clicks = linkClicksBefore + 1;
 
     await link.save();
 
     // console.log(
-    //   "Clicks AFTER:",
+    //   "📊 Link clicks AFTER :",
     //   link.clicks
     // );
 
+    // console.log("✅ AffiliateLink click saved");
+
+    // =========================================================
+    // STEP 8: UPDATE AFFILIATE TOTAL CLICKS
+    // =========================================================
+
+    // console.log("\n");
+    // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    // console.log("📊 STEP 8: UPDATING AFFILIATE TOTAL CLICKS");
+    // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+    const affiliateClicksBefore =
+      Number(affiliate.totalClicks || 0);
+
     // console.log(
-    //   "✅ AffiliateLink click saved"
+    //   "📊 Affiliate clicks BEFORE:",
+    //   affiliateClicksBefore
     // );
 
-    // =====================================================
-    // STEP 8: UPDATE AFFILIATE CLICK
-    // =====================================================
-
-    // console.log("\n📊 STEP 8: UPDATING AFFILIATE CLICK");
-
-    affiliate.totalClicks += 1;
+    affiliate.totalClicks =
+      affiliateClicksBefore + 1;
 
     await affiliate.save();
 
     // console.log(
-    //   "Total clicks AFTER:",
+    //   "📊 Affiliate clicks AFTER :",
     //   affiliate.totalClicks
     // );
 
-    // console.log(
-    //   "✅ Affiliate totalClicks saved"
-    // );
+    // console.log("✅ Affiliate totalClicks saved");
 
-    // =====================================================
-    // STEP 9: CREATE REFERRAL
-    // =====================================================
+    // =========================================================
+    // STEP 9: CREATE REFERRAL RECORD
+    // =========================================================
 
-    // console.log("\n📝 STEP 9: CREATING AFFILIATE REFERRAL");
+    // console.log("\n");
+    // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    // console.log("📝 STEP 9: CREATING AFFILIATE REFERRAL");
+    // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+
+    // console.log("📝 Referral data:");
+
+    // console.log({
+    //   affiliate: affiliate._id,
+    //   affiliateLink: link._id,
+    //   ip,
+    //   userAgent,
+    //   referrer,
+    //   status: "clicked",
+    // });
 
     const referral = await AffiliateReferral.create({
       affiliate: affiliate._id,
@@ -614,131 +656,172 @@ export const trackAffiliateClick = async (req, res) => {
       status: "clicked",
     });
 
-    // console.log(
-    //   "✅ REFERRAL CREATED"
-    // );
+    // console.log("✅ REFERRAL CREATED");
 
-    // console.log(
-    //   "Referral ID:",
-    //   referral._id
-    // );
+    // console.log("📝 Referral Information:");
+    // console.log("   Referral ID :", referral._id);
+    // console.log("   Affiliate    :", referral.affiliate);
+    // console.log("   Link         :", referral.affiliateLink);
+    // console.log("   Status       :", referral.status);
+    // console.log("   IP           :", referral.ip);
+    // console.log("   Referrer     :", referral.referrer);
 
-    // console.log(
-    //   "Referral Affiliate:",
-    //   referral.affiliate
-    // );
+    // =========================================================
+    // STEP 10: SAVE REFERRAL TO SESSION
+    // =========================================================
 
-    // console.log(
-    //   "Referral Link:",
-    //   referral.affiliateLink
-    // );
+    // console.log("\n");
+    // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    // console.log("🍪 STEP 10: SAVING REFERRAL TO SESSION");
+    // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-    // console.log(
-    //   "Referral Status:",
-    //   referral.status
-    // );
+    if (!req.session) {
+      console.error(
+        "❌ req.session DOES NOT EXIST"
+      );
 
-    // =====================================================
-    // STEP 10: SAVE REFERRAL IN SESSION
-    // =====================================================
+      console.error(
+        "❌ Session middleware may not be configured correctly."
+      );
 
-    // console.log("\n🍪 STEP 10: SAVING REFERRAL TO SESSION");
+      return res.redirect("/");
+    }
 
     req.session.affiliateReferral = {
-      referralId: referral._id,
-      affiliateId: affiliate._id,
-      linkId: link._id,
+      referralId: referral._id.toString(),
+      affiliateId: affiliate._id.toString(),
+      linkId: link._id.toString(),
+      affiliateCode: affiliate.affiliateCode,
+      slug: link.slug,
     };
 
     // console.log(
-    //   "Session affiliateReferral BEFORE save:"
+    //   "💾 Session referral data prepared:"
     // );
 
     // console.log(
-    //   req.session.affiliateReferral
+    //   JSON.stringify(
+    //     req.session.affiliateReferral,
+    //     null,
+    //     2
+    //   )
     // );
 
-    // =====================================================
+    // =========================================================
     // STEP 11: SAVE SESSION
-    // =====================================================
+    // =========================================================
 
-    // console.log("\n💾 STEP 11: SAVING SESSION");
+    // console.log("\n");
+    // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    // console.log("💾 STEP 11: SAVING SESSION");
+    // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
-    await new Promise((resolve) => {
+    await new Promise((resolve, reject) => {
       req.session.save((err) => {
         if (err) {
           console.error(
-            "❌ SESSION SAVE ERROR:",
-            err
-          );
-        } else {
-          console.log(
-            "✅ SESSION SAVED SUCCESSFULLY"
+            "❌ SESSION SAVE ERROR"
           );
 
-          console.log(
-            "Session ID:",
-            req.sessionID
+          console.error(
+            "❌ Error message:",
+            err.message
           );
 
-          console.log(
-            "Session affiliateReferral:",
-            req.session.affiliateReferral
+          console.error(
+            "❌ Error stack:",
+            err.stack
           );
+
+          reject(err);
+
+          return;
         }
+
+        // console.log(
+        //   "✅ SESSION SAVED SUCCESSFULLY"
+        // );
+
+        // console.log(
+        //   "🍪 Session ID:",
+        //   req.sessionID
+        // );
+
+        // console.log(
+        //   "🍪 Session affiliateReferral:"
+        // );
+
+        // console.log(
+        //   JSON.stringify(
+        //     req.session.affiliateReferral,
+        //     null,
+        //     2
+        //   )
+        // );
 
         resolve();
       });
     });
 
-    // =====================================================
-    // STEP 12: DESTINATION
-    // =====================================================
+    // =========================================================
+    // STEP 12: VERIFY SESSION
+    // =========================================================
 
-    // console.log("\n🔄 STEP 12: PREPARING REDIRECT");
-
-    const destination =
-      link.destination || "/";
+    // console.log("\n");
+    // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    // console.log("🔐 STEP 12: VERIFYING SESSION DATA");
+    // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
     // console.log(
-    //   "Destination:",
-    //   destination
+    //   "🍪 Session ID:",
+    //   req.sessionID
     // );
 
-    // =====================================================
-    // STEP 13: FULL URL REDIRECT
-    // =====================================================
+    // console.log(
+    //   "🍪 Referral ID:",
+    //   req.session?.affiliateReferral?.referralId
+    // );
 
-    if (
-      destination.startsWith("http://") ||
-      destination.startsWith("https://")
-    ) {
+    // console.log(
+    //   "👤 Affiliate ID:",
+    //   req.session?.affiliateReferral?.affiliateId
+    // );
+
+    // console.log(
+    //   "🔗 Link ID:",
+    //   req.session?.affiliateReferral?.linkId
+    // );
+
+    // console.log(
+    //   "🎯 Affiliate Code:",
+    //   req.session?.affiliateReferral?.affiliateCode
+    // );
+
+    if (req.session?.affiliateReferral?.referralId) {
       // console.log(
-      //   "🌐 Full URL destination detected"
+      //   "✅ SESSION VERIFICATION PASSED"
       // );
-
-      // console.log(
-      //   "➡️ Redirecting to:",
-      //   destination
-      // );
-
-      // console.log(
-      //   "======================================================"
-      // );
-
-      return res.redirect(destination);
+    } else {
+      console.error(
+        "❌ SESSION VERIFICATION FAILED"
+      );
     }
 
-    // =====================================================
-    // STEP 14: FRONTEND REDIRECT
-    // =====================================================
+    // =========================================================
+    // STEP 13: REDIRECT TO LOGIN
+    // =========================================================
+
+    // console.log("\n");
+    // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    // console.log("🔄 STEP 13: REDIRECTING TO FRONTEND LOGIN");
+    // console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
 
     const frontendUrl =
       process.env.FRONTEND_URL ||
       "http://localhost:3000";
 
-    const finalRedirect =
-      `${frontendUrl}${destination}`;
+    const loginUrl =
+      `${frontendUrl}/login?ref=${encodeURIComponent(ref)}`;
 
     // console.log(
     //   "🌐 Frontend URL:",
@@ -746,79 +829,125 @@ export const trackAffiliateClick = async (req, res) => {
     // );
 
     // console.log(
-    //   "➡️ Final redirect:",
-    //   finalRedirect
+    //   "🎯 Affiliate Ref:",
+    //   ref
     // );
 
     // console.log(
-    //   "======================================================"
+    //   "🔗 Login URL:",
+    //   loginUrl
     // );
 
-    // console.log(
-    //   "✅ TRACK AFFILIATE CLICK - SUCCESS"
-    // );
+    // =========================================================
+    // FINAL SUCCESS LOG
+    // =========================================================
 
-    // console.log(
-    //   "======================================================\n"
-    // );
+    const duration =
+      Date.now() - START_TIME;
 
-    return res.redirect(finalRedirect);
+    // console.log("\n");
+    // console.log("╔══════════════════════════════════════════════════════════════╗");
+    // console.log("║       ✅ TRACK AFFILIATE CLICK - SUCCESS                   ║");
+    // console.log("╚══════════════════════════════════════════════════════════════╝");
+
+    // console.log("📊 SUMMARY");
+    // console.log("   Slug          :", slug);
+    // console.log("   Affiliate Code:", ref);
+    // console.log("   Affiliate ID  :", affiliate._id);
+    // console.log("   Link ID       :", link._id);
+    // console.log("   Referral ID   :", referral._id);
+    // console.log("   Link Clicks   :", link.clicks);
+    // console.log("   Affiliate Clicks:", affiliate.totalClicks);
+    // console.log("   Session ID    :", req.sessionID);
+    // console.log("   Redirect      :", loginUrl);
+    // console.log("   Duration      :", `${duration}ms`);
+
+    // console.log("==============================================================");
+    // console.log("➡️ REDIRECTING USER NOW");
+    // console.log("==============================================================\n");
+
+    return res.redirect(loginUrl);
 
   } catch (error) {
 
-    // =====================================================
-    // ERROR
-    // =====================================================
+    // =========================================================
+    // ERROR HANDLING
+    // =========================================================
+
+    const duration =
+      Date.now() - START_TIME;
 
     console.error("\n");
+    console.error("╔══════════════════════════════════════════════════════════════╗");
+    console.error("║          ❌ TRACK AFFILIATE CLICK - ERROR                  ║");
+    console.error("╚══════════════════════════════════════════════════════════════╝");
+
+    console.error("\n❌ ERROR INFORMATION");
+
     console.error(
-      "======================================================"
-    );
-    console.error(
-      "❌ TRACK AFFILIATE CLICK - ERROR"
-    );
-    console.error(
-      "======================================================"
+      "Message:",
+      error?.message
     );
 
     console.error(
-      "Error message:",
-      error.message
+      "Name:",
+      error?.name
     );
 
     console.error(
-      "Error name:",
-      error.name
+      "Stack:",
+      error?.stack
+    );
+
+    console.error("\n📍 REQUEST INFORMATION");
+
+    console.error(
+      "URL:",
+      req?.originalUrl
     );
 
     console.error(
-      "Error stack:",
-      error.stack
+      "Method:",
+      req?.method
     );
 
     console.error(
-      "Request URL:",
-      req.originalUrl
+      "Params:",
+      req?.params
     );
 
     console.error(
-      "Request params:",
-      req.params
+      "Query:",
+      req?.query
     );
 
+    console.error("\n🍪 SESSION INFORMATION");
+
     console.error(
-      "Request query:",
-      req.query
+      "Session ID:",
+      req?.sessionID
     );
 
     console.error(
       "Session:",
-      req.session
+      req?.session
     );
 
     console.error(
-      "======================================================\n"
+      "Affiliate Referral:",
+      req?.session?.affiliateReferral
     );
+
+    console.error(
+      "\n⏱️ Duration:",
+      `${duration}ms`
+    );
+
+    console.error("\n");
+    console.error("==============================================================");
+    console.error("❌ AFFILIATE TRACKING FAILED");
+    console.error("➡️ Redirecting user to home");
+    console.error("==============================================================\n");
 
     return res.redirect("/");
   }

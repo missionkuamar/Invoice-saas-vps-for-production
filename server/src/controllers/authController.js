@@ -192,8 +192,8 @@ export const googleAuthCallback = async (req, res) => {
       if (req.session?.affiliateReferral) {
          console.group('1️⃣ Session Referral Found');
         const { referralId, affiliateId } = req.session.affiliateReferral;
-        //  console.log('  referralId:', referralId);
-        //  console.log('  affiliateId:', affiliateId);
+        //  console.log('  refierralId:', referralId);
+        //  console.log('  affliateId:', affiliateId);
         
         const referral = await AffiliateReferral.findById(referralId);
         if (referral) {
@@ -229,7 +229,7 @@ export const googleAuthCallback = async (req, res) => {
       // console.log('2️⃣ Condition (ref && !affiliateReferral):', !!(ref && !affiliateReferral));
       
       if (ref && !affiliateReferral) {
-        console.group('2️⃣ Body Ref Check');
+        // console.group('2️⃣ Body Ref Check');
         // console.log('  🔍 Searching affiliate with code:', ref);
 
         const affiliate = await Affiliate.findOne({
@@ -266,7 +266,7 @@ export const googleAuthCallback = async (req, res) => {
 
             // console.log('  ✅ Updated existing referral:', existingClickReferral._id);
           } else {
-            // Create new referral (no click found)
+          //  Create new referral (no click found)
             // console.log('  ⚠️ No existing click referral found');
             // console.log('  ✅ Creating new referral...');
             
@@ -288,8 +288,8 @@ export const googleAuthCallback = async (req, res) => {
           
           const allAffiliates = await Affiliate.find({}).select('affiliateCode status');
           //  console.log('  📋 All affiliates in DB:', allAffiliates.map(a => ({
-          //   code: a.affiliateCode,
-          //   status: a.status,
+            // code: a.affiliateCode,
+            // status: a.status,
           // })));
         }
          console.groupEnd();
@@ -358,7 +358,7 @@ export const googleAuthCallback = async (req, res) => {
       // ------------------------------------------------------------
       // FINAL: Affiliate Tracking Summary
       // ------------------------------------------------------------
-      // console.group('🔗 AFFILIATE TRACKING RESULT');
+      console.group('🔗 AFFILIATE TRACKING RESULT');
       if (affiliateReferral) {
         // console.log('✅ SUCCESS! Referral created/updated');
         // console.log('   Referral ID:', affiliateReferral._id);
