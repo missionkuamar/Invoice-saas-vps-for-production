@@ -20,7 +20,7 @@ import AdminUsers from './pages/admin/AdminUsers';
 import AdminUserDetails from './pages/admin/AdminUserDetails';
 import AdminWithdrawals from './pages/admin/AdminWithdrawals';
 import AdminNotifications from './pages/admin/AdminNotifications';
-import AffiliateDashboard from './pages/AffiliateDashboard';
+
 import AffiliateWithdrawals from './pages/AffiliateWithdrawals';
 import Home from './components/homepage/Home';
 
@@ -48,6 +48,7 @@ import { PersonalData } from './components/common/PersonalData';
 import PrivacyPolicy from './components/homepage/contact/PrivacyPolicy';
 import TermsConditions from './components/homepage/contact/TermsConditions';
 import RefundPolicy from './components/homepage/contact/RefundPolicy';
+import AffiliateDashboard from './pages/AffiliateDashboard';
 
 // ✅ Affiliate Redirect Component
 // ✅ Affiliate Redirect Component
