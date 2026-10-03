@@ -48,7 +48,7 @@ import { PersonalData } from './components/common/PersonalData';
 import PrivacyPolicy from './components/homepage/contact/PrivacyPolicy';
 import TermsConditions from './components/homepage/contact/TermsConditions';
 import RefundPolicy from './components/homepage/contact/RefundPolicy';
-import AffiliateDashboard from './pages/AffiliateDashboard';
+import AffiliateDashboard from './pages/AffiliateDashboard.jsx';
 
 // ✅ Affiliate Redirect Component
 // ✅ Affiliate Redirect Component
