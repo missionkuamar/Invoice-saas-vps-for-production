@@ -9,30 +9,36 @@ A complete SaaS platform for generating professional invoices with user, admin, 
 
 ## 📸 Screenshots
 
+## 📸 Screenshots
+
 ### 🏠 Landing Page & Features
-<img src="./public/landing-page.png" alt="Landing Page" width="800" />
-<img src="./public/feature-page.png" alt="Features" width="800" />
-<img src="./public/tool-feature.png" alt="Tools" width="800" />
+<img src="public/landing-page.png" alt="Landing Page" width="800" />
+<img src="public/feature-page.png" alt="Features" width="800" />
+<img src="public/tool-feature.png" alt="Tools" width="800" />
 
 ### 💰 Pricing Plans
-<img src="./public/pricing.png" alt="Pricing Page" width="800" />
-<img src="./public/pricing-feature.png" alt="Pricing Features" width="800" />
+<img src="public/pricing.png" alt="Pricing Page" width="800" />
+<img src="public/pricing-feature.png" alt="Pricing Features" width="800" />
 
 ### 📊 User Dashboard & Invoicing
-<img src="./public/dashboard.png" alt="User Dashboard" width="800" />
-<img src="./public/create-invoice.png" alt="Create Invoice" width="800" />
-<img src="./public/invoice-manage.png" alt="Invoice Management" width="800" />
-<img src="./public/setting.png" alt="Settings" width="800" />
+<img src="public/dashboard.png" alt="User Dashboard" width="800" />
+<img src="public/user-dashboard.png" alt="User Dashboard Alternate" width="800" />
+<img src="public/create-invoice.png" alt="Create Invoice" width="800" />
+<img src="public/invoice-manage.png" alt="Invoice Management" width="800" />
+<img src="public/setting.png" alt="Settings" width="800" />
 
-### 📧 Email System & Affiliate
-<img src="./public/email-service.png" alt="Email Service" width="800" />
-<img src="./public/email-manage.png" alt="Email Management" width="800" />
-<img src="./public/affiliate-dashboard.png" alt="Affiliate Dashboard" width="800" />
+### 📧 Email System, Affiliate & Notifications
+<img src="public/email-service.png" alt="Email Service" width="800" />
+<img src="public/email-manage.png" alt="Email Management" width="800" />
+<img src="public/affiliate-dashboard.png" alt="Affiliate Dashboard" width="800" />
+<img src="public/notification.png" alt="Notifications" width="800" />
+<img src="public/testo.png" alt="Testimonials" width="800" />
 
 ### 🛡️ Admin & Super-Admin Panel
-<img src="./public/admin-dashboard.png" alt="Admin Dashboard" width="800" />
-<img src="./public/user-management.png" alt="User Management" width="800" />
-<img src="./public/withdrawal-management.png" alt="Withdrawal Management" width="800" />
+<img src="public/admin-dashboard.png" alt="Admin Dashboard" width="800" />
+<img src="public/user-management.png" alt="User Management" width="800" />
+<img src="public/withdrawal-management.png" alt="Withdrawal Management" width="800" />
+
 
 ---
 
