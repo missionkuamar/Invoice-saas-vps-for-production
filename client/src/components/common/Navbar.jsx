@@ -1,3 +1,5 @@
+// frontend/src/components/common/Navbar.jsx
+
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -6,6 +8,8 @@ import {
   FaChevronDown,
   FaSignOutAlt,
   FaUserCircle,
+  FaChevronLeft,
+  FaChevronRight,
 } from 'react-icons/fa';
 import { CgProfile } from 'react-icons/cg';
 import { Link, useNavigate } from 'react-router-dom';
@@ -14,7 +18,13 @@ import { logout } from '../../store/slices/authSlice';
 import { useTheme } from '../../themes/ThemeProvider';
 import ThemeSwitcher from '../homepage/ThemeSwitcher';
 
-const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
+const Navbar = ({
+  onToggleSidebar,     // mobile drawer toggle
+  onToggleCollapse,    // desktop collapse toggle
+  isSidebarOpen,       // mobile drawer open
+  isCollapsed,         // desktop collapsed
+  isMobile,            // responsive flag
+}) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { theme } = useTheme();
@@ -22,7 +32,6 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
   const { user } = useSelector((state) => state.auth);
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
   const dropdownRef = useRef(null);
 
   // --------------------------------------------------
@@ -54,10 +63,26 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
     navigate('/');
   };
 
-  // --------------------------------------------------
-  // Profile image fallback
-  // --------------------------------------------------
   const profileImage = user?.picture;
+
+  // --------------------------------------------------
+  // Dynamic left offset for desktop sidebar width
+  // (synced with Layout: w-72 expanded | w-16 collapsed)
+  // --------------------------------------------------
+  const desktopLeftClass = isCollapsed ? 'lg:left-16' : 'lg:left-72';
+
+  // --------------------------------------------------
+  // Toggle button behavior:
+  //   - mobile → drawer open/close
+  //   - desktop → collapse/expand
+  // --------------------------------------------------
+  const handleMainToggle = () => {
+    if (isMobile) {
+      onToggleSidebar?.();
+    } else {
+      (onToggleCollapse || onToggleSidebar)?.();
+    }
+  };
 
   return (
     <nav
@@ -66,13 +91,16 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
         top-0
         right-0
         left-0
-        lg:left-[220px]
+        ${desktopLeftClass}
         z-30
         ${theme.colors.card}
         border-b
         ${theme.colors.border}
         backdrop-blur-xl
         bg-opacity-95
+        transition-[left]
+        duration-300
+        ease-in-out
       `}
     >
       <div className="w-full">
@@ -93,62 +121,68 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
               LEFT SECTION
           ====================================================== */}
           <div className="flex items-center min-w-0 gap-2 sm:gap-3">
-            {/* Sidebar Toggle */}
+            {/* MAIN TOGGLE — hamburger on mobile, chevron on desktop */}
             <button
               type="button"
-              onClick={onToggleSidebar}
-              aria-label="Toggle sidebar"
-              aria-expanded={isSidebarOpen}
+              onClick={handleMainToggle}
+              aria-label={
+                isMobile
+                  ? isSidebarOpen
+                    ? 'Close menu'
+                    : 'Open menu'
+                  : isCollapsed
+                  ? 'Expand sidebar'
+                  : 'Collapse sidebar'
+              }
+              aria-expanded={isMobile ? isSidebarOpen : !isCollapsed}
               className={`
-                flex
-                items-center
-                justify-center
-                shrink-0
-                w-9
-                h-9
-                sm:w-10
-                sm:h-10
+                flex items-center justify-center shrink-0
+                w-9 h-9 sm:w-10 sm:h-10
                 rounded-xl
                 ${theme.colors.hover}
-                transition-all
-                duration-200
+                transition-all duration-200
                 active:scale-95
+                group
               `}
             >
-              {isSidebarOpen ? (
-                <FaTimes
-                  className={`${theme.colors.text} text-base sm:text-lg`}
-                />
-              ) : (
-                <FaBars
-                  className={`${theme.colors.text} text-base sm:text-lg`}
-                />
-              )}
+              {/* Mobile icon */}
+              <span className="lg:hidden">
+                {isSidebarOpen ? (
+                  <FaTimes
+                    className={`${theme.colors.text} text-base sm:text-lg`}
+                  />
+                ) : (
+                  <FaBars
+                    className={`${theme.colors.text} text-base sm:text-lg`}
+                  />
+                )}
+              </span>
+
+              {/* Desktop icon */}
+              <span className="hidden lg:inline-flex">
+                {isCollapsed ? (
+                  <FaChevronRight
+                    className={`${theme.colors.text} text-sm transition-transform group-hover:translate-x-0.5`}
+                  />
+                ) : (
+                  <FaChevronLeft
+                    className={`${theme.colors.text} text-sm transition-transform group-hover:-translate-x-0.5`}
+                  />
+                )}
+              </span>
             </button>
 
             {/* Brand */}
             <Link
               to="/dashboard"
-              className="
-                flex
-                items-center
-                gap-2
-                min-w-0
-                group
-              "
+              className="flex items-center gap-2 min-w-0 group"
             >
               {/* Desktop Logo */}
               <span
                 className={`
-                  hidden
-                  xs:inline
-                  sm:inline
-                  text-lg
-                  sm:text-xl
-                  md:text-2xl
-                  font-extrabold
-                  tracking-tight
-                  whitespace-nowrap
+                  hidden sm:inline
+                  text-lg sm:text-xl md:text-2xl
+                  font-extrabold tracking-tight whitespace-nowrap
                   ${theme.colors.text}
                 `}
               >
@@ -169,8 +203,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
               <span
                 className={`
                   sm:hidden
-                  text-base
-                  font-extrabold
+                  text-base font-extrabold
                   ${theme.colors.text}
                 `}
               >
@@ -180,14 +213,9 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
               {/* Online indicator */}
               <span
                 className="
-                  hidden
-                  sm:block
-                  w-2
-                  h-2
-                  rounded-full
-                  bg-green-500
-                  animate-pulse
-                  shrink-0
+                  hidden sm:block
+                  w-2 h-2 rounded-full
+                  bg-green-500 animate-pulse shrink-0
                 "
                 title="Online"
               />
@@ -206,25 +234,17 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
             {/* =================================================
                 USER PROFILE
             ================================================== */}
-            <div
-              ref={dropdownRef}
-              className="relative"
-            >
+            <div ref={dropdownRef} className="relative">
               <button
                 type="button"
                 onClick={() => setIsDropdownOpen((prev) => !prev)}
                 aria-label="Open user menu"
                 aria-expanded={isDropdownOpen}
                 className={`
-                  flex
-                  items-center
-                  gap-2
-                  p-1
-                  sm:p-1.5
+                  flex items-center gap-2 p-1 sm:p-1.5
                   rounded-xl
                   ${theme.colors.hover}
-                  transition-all
-                  duration-200
+                  transition-all duration-200
                   active:scale-[0.98]
                 `}
               >
@@ -235,15 +255,9 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
                       src={profileImage}
                       alt={user?.name || 'User'}
                       className="
-                        w-9
-                        h-9
-                        sm:w-10
-                        sm:h-10
-                        rounded-full
-                        object-cover
-                        border-2
-                        border-white
-                        dark:border-gray-700
+                        w-9 h-9 sm:w-10 sm:h-10
+                        rounded-full object-cover
+                        border-2 border-white dark:border-gray-700
                         shadow-sm
                       "
                       onError={(e) => {
@@ -257,16 +271,11 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
                   <div
                     className={`
                       ${profileImage ? 'hidden' : 'flex'}
-                      items-center
-                      justify-center
-                      w-9
-                      h-9
-                      sm:w-10
-                      sm:h-10
+                      items-center justify-center
+                      w-9 h-9 sm:w-10 sm:h-10
                       rounded-full
                       ${theme.colors.background}
-                      border
-                      ${theme.colors.border}
+                      border ${theme.colors.border}
                     `}
                   >
                     <FaUserCircle
@@ -277,16 +286,10 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
                   {/* Online status */}
                   <span
                     className="
-                      absolute
-                      bottom-0
-                      right-0
-                      w-2.5
-                      h-2.5
-                      rounded-full
+                      absolute bottom-0 right-0
+                      w-2.5 h-2.5 rounded-full
                       bg-green-500
-                      border-2
-                      border-white
-                      dark:border-gray-800
+                      border-2 border-white dark:border-gray-800
                     "
                   />
                 </div>
@@ -296,9 +299,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
                   <p
                     className={`
                       ${theme.colors.text}
-                      font-semibold
-                      text-sm
-                      truncate
+                      font-semibold text-sm truncate
                     `}
                   >
                     {user?.name || 'User'}
@@ -307,10 +308,8 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
                   <p
                     className={`
                       ${theme.colors.text}
-                      opacity-50
-                      text-[11px]
-                      capitalize
-                      truncate
+                      opacity-50 text-[11px]
+                      capitalize truncate
                     `}
                   >
                     {user?.role || 'User'}
@@ -320,13 +319,10 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
                 {/* Chevron */}
                 <FaChevronDown
                   className={`
-                    hidden
-                    sm:block
+                    hidden sm:block
                     ${theme.colors.text}
-                    opacity-40
-                    text-xs
-                    transition-transform
-                    duration-200
+                    opacity-40 text-xs
+                    transition-transform duration-200
                     ${isDropdownOpen ? 'rotate-180' : ''}
                   `}
                 />
@@ -338,16 +334,11 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
               {isDropdownOpen && (
                 <div
                   className={`
-                    absolute
-                    right-0
-                    top-full
-                    mt-2
-                    w-[calc(100vw-24px)]
-                    max-w-[320px]
+                    absolute right-0 top-full mt-2
+                    w-[calc(100vw-24px)] max-w-[320px]
                     sm:w-72
                     ${theme.colors.card}
-                    border
-                    ${theme.colors.border}
+                    border ${theme.colors.border}
                     rounded-2xl
                     shadow-2xl
                     overflow-hidden
@@ -356,13 +347,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
                   `}
                 >
                   {/* Profile Header */}
-                  <div
-                    className={`
-                      p-4
-                      border-b
-                      ${theme.colors.border}
-                    `}
-                  >
+                  <div className={`p-4 border-b ${theme.colors.border}`}>
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="relative shrink-0">
                         {profileImage ? (
@@ -370,24 +355,14 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
                             src={profileImage}
                             alt={user?.name || 'User'}
                             className="
-                              w-11
-                              h-11
-                              rounded-full
-                              object-cover
-                              border-2
-                              border-white
-                              dark:border-gray-700
+                              w-11 h-11 rounded-full object-cover
+                              border-2 border-white dark:border-gray-700
                             "
                           />
                         ) : (
                           <div
                             className={`
-                              w-11
-                              h-11
-                              rounded-full
-                              flex
-                              items-center
-                              justify-center
+                              w-11 h-11 rounded-full flex items-center justify-center
                               ${theme.colors.background}
                             `}
                           >
@@ -399,15 +374,10 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
 
                         <span
                           className="
-                            absolute
-                            bottom-0
-                            right-0
-                            w-2.5
-                            h-2.5
+                            absolute bottom-0 right-0
+                            w-2.5 h-2.5
                             bg-green-500
-                            border-2
-                            border-white
-                            dark:border-gray-800
+                            border-2 border-white dark:border-gray-800
                             rounded-full
                           "
                         />
@@ -416,10 +386,8 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
                       <div className="min-w-0">
                         <p
                           className={`
-                            text-sm
-                            font-semibold
-                            ${theme.colors.text}
-                            truncate
+                            text-sm font-semibold
+                            ${theme.colors.text} truncate
                           `}
                         >
                           {user?.name || 'User'}
@@ -427,10 +395,8 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
 
                         <p
                           className={`
-                            text-xs
-                            ${theme.colors.text}
-                            opacity-60
-                            truncate
+                            text-xs ${theme.colors.text}
+                            opacity-60 truncate
                           `}
                         >
                           {user?.email || 'user@example.com'}
@@ -481,27 +447,15 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
                       onClick={() => setIsDropdownOpen(false)}
                     />
 
-                    <div
-                      className={`
-                        h-px
-                        ${theme.colors.border}
-                        my-1
-                      `}
-                    />
+                    <div className={`h-px ${theme.colors.border} my-1`} />
 
                     {/* Logout */}
                     <button
                       type="button"
                       onClick={handleLogout}
                       className="
-                        w-full
-                        flex
-                        items-center
-                        gap-3
-                        px-3
-                        py-2.5
-                        rounded-xl
-                        text-sm
+                        w-full flex items-center gap-3
+                        px-3 py-2.5 rounded-xl text-sm
                         text-red-600
                         hover:bg-red-50
                         dark:hover:bg-red-900/20
@@ -526,38 +480,21 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
    DROPDOWN LINK COMPONENT
 ============================================================ */
 
-const DropdownLink = ({
-  to,
-  icon,
-  label,
-  theme,
-  onClick,
-}) => {
+const DropdownLink = ({ to, icon, label, theme, onClick }) => {
   return (
     <Link
       to={to}
       onClick={onClick}
       className={`
-        flex
-        items-center
-        gap-3
-        px-3
-        py-2.5
-        rounded-xl
-        text-sm
+        flex items-center gap-3
+        px-3 py-2.5 rounded-xl text-sm
         ${theme.colors.text}
         ${theme.colors.hover}
-        transition-colors
-        duration-150
+        transition-colors duration-150
       `}
     >
-      <span className="w-5 text-center text-base shrink-0">
-        {icon}
-      </span>
-
-      <span className="truncate">
-        {label}
-      </span>
+      <span className="w-5 text-center text-base shrink-0">{icon}</span>
+      <span className="truncate">{label}</span>
     </Link>
   );
 };

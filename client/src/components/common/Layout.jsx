@@ -10,110 +10,172 @@ const Layout = () => {
   const { theme } = useTheme();
   const location = useLocation();
   const { user } = useSelector((state) => state.auth);
+
+  // Mobile drawer state
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Desktop collapse state (persisted)
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem('sidebarCollapsed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  // Check if mobile
   const [isMobile, setIsMobile] = useState(false);
 
-  // Check if mobile on mount and resize
+  // ============================================================
+  // RESPONSIVE: detect mobile
+  // ============================================================
   useEffect(() => {
     const checkMobile = () => {
       const mobile = window.innerWidth < 1024;
       setIsMobile(mobile);
-      // Close sidebar on mobile by default
+
       if (mobile) {
-        setIsSidebarOpen(false);
+        setIsSidebarOpen(false); // mobile: drawer closed by default
       } else {
-        setIsSidebarOpen(true);
+        setIsSidebarOpen(true); // desktop: sidebar visible
       }
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Close sidebar on route change (mobile)
+  // ============================================================
+  // CLOSE MOBILE DRAWER ON ROUTE CHANGE
+  // ============================================================
   useEffect(() => {
     if (isMobile) {
       setIsSidebarOpen(false);
     }
-  }, [location, isMobile]);
+  }, [location.pathname, isMobile]);
 
-  // Toggle sidebar
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
+  // ============================================================
+  // PERSIST COLLAPSE STATE
+  // ============================================================
+  useEffect(() => {
+    try {
+      localStorage.setItem('sidebarCollapsed', isCollapsed);
+    } catch {
+      // ignore
+    }
+  }, [isCollapsed]);
+
+  // ============================================================
+  // HANDLERS
+  // ============================================================
+  const toggleSidebar = () => setIsSidebarOpen((v) => !v);
+
+  const toggleCollapse = () => {
+    if (isMobile) {
+      // on mobile, toggle uses drawer
+      toggleSidebar();
+    } else {
+      setIsCollapsed((v) => !v);
+    }
   };
 
-  // Close sidebar when clicking outside (mobile)
   const handleOverlayClick = () => {
     if (isMobile && isSidebarOpen) {
       setIsSidebarOpen(false);
     }
   };
 
+  // Desktop sidebar width
+  const desktopWidth = isCollapsed ? 'w-16' : 'w-72';
+
   return (
     <div className={`min-h-screen flex ${theme.colors.background}`}>
-      {/* Sidebar */}
+      {/* ======================================================
+          SIDEBAR
+      ====================================================== */}
       <div
         className={`
-          fixed top-0 left-0 z-40 h-screen transition-transform duration-300 ease-in-out
+          fixed top-0 left-0 z-40 h-screen
+          transition-all duration-300 ease-in-out
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-          lg:translate-x-0 lg:sticky
+          lg:translate-x-0 lg:sticky lg:top-0
+          ${desktopWidth}
         `}
-        style={{ width: '280px', maxWidth: '80vw' }}
+        style={{
+          // Mobile width; desktop width handled by Tailwind class above
+          width: isMobile
+            ? '280px'
+            : isCollapsed
+            ? '64px'
+            : '288px',
+          maxWidth: isMobile ? '80vw' : undefined,
+        }}
       >
-        <Sidebar onClose={() => setIsSidebarOpen(false)} />
+        <Sidebar
+          onClose={() => setIsSidebarOpen(false)}
+          isCollapsed={!isMobile && isCollapsed}
+          onToggleCollapse={!isMobile ? toggleCollapse : undefined}
+        />
       </div>
 
-      {/* Overlay for mobile */}
+      {/* ======================================================
+          MOBILE OVERLAY
+      ====================================================== */}
       {isMobile && isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden backdrop-blur-sm"
           onClick={handleOverlayClick}
           aria-hidden="true"
         />
       )}
 
-      {/* Main Content */}
-      {/* ✅ FIXED: Removed `overflow-hidden` from wrapper */}
-      <div className="flex-1 flex flex-col min-h-screen w-full">
+      {/* ======================================================
+          MAIN CONTENT
+      ====================================================== */}
+      <div className="flex-1 flex flex-col min-h-screen w-full min-w-0">
         {/* Navbar */}
-        <Navbar onToggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
+        <Navbar
+          onToggleSidebar={toggleSidebar}
+          onToggleCollapse={toggleCollapse}
+          isSidebarOpen={isSidebarOpen}
+          isCollapsed={!isMobile && isCollapsed}
+          isMobile={isMobile}
+        />
 
         {/* Page Content */}
-        {/* ✅ FIXED: Changed `overflow-y-auto` to `overflow-visible` */}
-        <main 
+        <main
           className={`
-            flex-1 overflow-visible p-3 md:p-4 lg:p-6 
+            flex-1 overflow-visible p-3 md:p-4 lg:p-6
             ${theme.colors.background}
             transition-all duration-300
           `}
         >
           <div className="max-w-7xl mx-auto">
-            {/* Page Header - Dynamic based on route */}
+            {/* Page Header */}
             <div className="mb-4 md:mb-6">
               <h1 className={`text-xl md:text-2xl lg:text-3xl font-bold ${theme.colors.text}`}>
                 {getPageTitle(location.pathname)}
               </h1>
-              <p className={`text-sm md:text-base ${theme.colors.text} opacity-70 mt-10`}>
+              <p className={`text-sm md:text-base ${theme.colors.text} opacity-70 mt-2`}>
                 {getPageDescription(location.pathname)}
               </p>
             </div>
 
-            {/* This is where all page components will render */}
             <Outlet />
           </div>
         </main>
 
         {/* Footer */}
-        <footer className={`${theme.colors.card} border-t ${theme.colors.border} py-3 px-4 md:px-6 flex-shrink-0`}>
+        <footer
+          className={`${theme.colors.card} border-t ${theme.colors.border} py-3 px-4 md:px-6 flex-shrink-0`}
+        >
           <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 text-xs md:text-sm">
             <p className={`${theme.colors.text} opacity-60`}>
               © {new Date().getFullYear()} InvoicePro. All rights reserved.
             </p>
             <div className="flex items-center gap-4">
-              <span className={`${theme.colors.text} opacity-60`}>
-                v2.0.0
-              </span>
+              <span className={`${theme.colors.text} opacity-60`}>v2.0.0</span>
               <span className={`${theme.colors.text} opacity-30`}>|</span>
               <span className={`${theme.colors.text} opacity-60`}>
                 👋 Welcome, {user?.name || 'User'}
@@ -126,7 +188,9 @@ const Layout = () => {
   );
 };
 
-// Helper functions for page titles
+// ============================================================
+// PAGE TITLE HELPERS
+// ============================================================
 const getPageTitle = (path) => {
   const titles = {
     '/dashboard': '📊 Dashboard',
@@ -140,17 +204,11 @@ const getPageTitle = (path) => {
     '/admin/withdrawals': '💰 Withdrawals',
     '/admin/notifications': '🔔 Notifications',
   };
-  
-  if (path.includes('/create-invoice/')) {
-    return '➕ Create Invoice';
-  }
-  if (path.includes('/invoices/')) {
-    return '📄 Invoice Details';
-  }
-  if (path.includes('/admin/users/')) {
-    return '👤 User Details';
-  }
-  
+
+  if (path.includes('/create-invoice/')) return '➕ Create Invoice';
+  if (path.includes('/invoices/')) return '📄 Invoice Details';
+  if (path.includes('/admin/users/')) return '👤 User Details';
+
   return titles[path] || '📄 Page';
 };
 
@@ -167,7 +225,7 @@ const getPageDescription = (path) => {
     '/admin/withdrawals': 'Manage withdrawal requests',
     '/admin/notifications': 'Send and manage notifications',
   };
-  
+
   return descriptions[path] || '';
 };
 

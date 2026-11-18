@@ -19,8 +19,14 @@ const googleClient = new OAuth2Client(
   process.env.GOOGLE_CLIENT_SECRET
 );
 
-
 const verifyGoogleToken = async (credential) => {
+  console.log("-----------------------------------------");
+  console.log("🔍 [DEBUG] verifyGoogleToken called");
+  console.log("Credential received type:", typeof credential);
+  console.log("Credential preview:", credential ? `${credential.substring(0, 30)}... (length: ${credential.length})` : "❌ NULL / UNDEFINED");
+  console.log("GOOGLE_CLIENT_ID loaded:", process.env.GOOGLE_CLIENT_ID ? `Yes (${process.env.GOOGLE_CLIENT_ID.substring(0, 8)}...)` : "❌ MISSING/UNDEFINED");
+  console.log("-----------------------------------------");
+
   try {
     const ticket = await googleClient.verifyIdToken({
       idToken: credential,
@@ -28,6 +34,8 @@ const verifyGoogleToken = async (credential) => {
     });
 
     const payload = ticket.getPayload();
+    console.log("✅ [DEBUG] Google token verified successfully for:", payload.email);
+
     return {
       googleId: payload.sub,
       email: payload.email,
@@ -36,7 +44,11 @@ const verifyGoogleToken = async (credential) => {
       emailVerified: payload.email_verified
     };
   } catch (error) {
-    // console.error('Google token verification failed:', error);
+    console.error("❌ [DEBUG] Google token verification failed!");
+    console.error("Error Name:", error.name);
+    console.error("Error Message:", error.message);
+    console.error("Full Error Stack:", error);
+    
     throw new Error('Invalid Google token');
   }
 };

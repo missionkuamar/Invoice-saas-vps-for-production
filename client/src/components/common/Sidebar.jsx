@@ -19,9 +19,10 @@ import {
   FaChevronRight,
   FaFileAlt,
   FaTimes,
-  FaShieldAlt,
   FaUserShield,
   FaTools,
+  FaBars,
+  FaChevronLeft,
 } from 'react-icons/fa';
 
 import { HiOutlineMail } from 'react-icons/hi';
@@ -29,16 +30,14 @@ import { MdOutlineAlternateEmail } from 'react-icons/md';
 import { SiMinutemailer } from 'react-icons/si';
 
 import api from '../../services/api';
-import toast from 'react-hot-toast';
 import { useTheme } from '../../themes/ThemeProvider';
 
-const Sidebar = ({ onClose }) => {
+const Sidebar = ({ onClose, isCollapsed, onToggleCollapse }) => {
   const { user } = useSelector((state) => state.auth);
   const { theme } = useTheme();
   const location = useLocation();
 
   const role = user?.role;
-
   const isAdmin = role === 'admin';
   const isSuperAdmin = role === 'super_admin';
   const hasAdminAccess = isAdmin || isSuperAdmin;
@@ -51,10 +50,6 @@ const Sidebar = ({ onClose }) => {
 
   const [isEmailSubmenuOpen, setIsEmailSubmenuOpen] = useState(
     location.pathname.startsWith('/email-')
-  );
-
-  const [isAdminSubmenuOpen, setIsAdminSubmenuOpen] = useState(
-    location.pathname.startsWith('/admin')
   );
 
   // ============================================================
@@ -76,12 +71,11 @@ const Sidebar = ({ onClose }) => {
   const fetchPendingCount = async () => {
     try {
       const response = await api.get('/admin/stats');
-
       setPendingWithdrawals(
         response.data?.data?.pendingWithdrawals || 0
       );
     } catch (error) {
-      // console.error('Failed to fetch admin stats:', error);
+      // Silent fail
     }
   };
 
@@ -100,20 +94,13 @@ const Sidebar = ({ onClose }) => {
   // ============================================================
 
   const userMenuItems = [
-    {
-      path: '/dashboard',
-      icon: FaHome,
-      label: 'Dashboard',
-    },
-
+    { path: '/dashboard', icon: FaHome, label: 'Dashboard' },
     {
       label: 'Create Invoice',
       icon: FaPlus,
       submenu: true,
       isOpen: isCreateSubmenuOpen,
-      toggle: () =>
-        setIsCreateSubmenuOpen((prev) => !prev),
-
+      toggle: () => setIsCreateSubmenuOpen((prev) => !prev),
       submenuItems: [
         {
           path: '/create-invoice/simple',
@@ -123,15 +110,12 @@ const Sidebar = ({ onClose }) => {
         },
       ],
     },
-
     {
       label: 'Email Service',
       icon: HiOutlineMail,
       submenu: true,
       isOpen: isEmailSubmenuOpen,
-      toggle: () =>
-        setIsEmailSubmenuOpen((prev) => !prev),
-
+      toggle: () => setIsEmailSubmenuOpen((prev) => !prev),
       submenuItems: [
         {
           path: '/email-simple',
@@ -147,86 +131,31 @@ const Sidebar = ({ onClose }) => {
         },
       ],
     },
-
-    {
-      path: '/invoices',
-      icon: FaFileInvoice,
-      label: 'All Invoices',
-    },
-
-    {
-      path: '/subscription',
-      icon: FaCreditCard,
-      label: 'Subscription',
-    },
-
-    {
-      path: '/affiliate',
-      icon: FaShareAlt,
-      label: 'Affiliate',
-    },
-
-    {
-      path: '/settings',
-      icon: FaCog,
-      label: 'Settings',
-    },
+    { path: '/invoices', icon: FaFileInvoice, label: 'All Invoices' },
+    { path: '/subscription', icon: FaCreditCard, label: 'Subscription' },
+    { path: '/affiliate', icon: FaShareAlt, label: 'Affiliate' },
+    { path: '/settings', icon: FaCog, label: 'Settings' },
   ];
 
-  // ============================================================
-  // ADMIN MENU
-  // ============================================================
-
   const adminMenuItems = [
-    {
-      path: '/admin/dashboard',
-      icon: FaChartBar,
-      label: 'Dashboard',
-    },
-
-    {
-      path: '/admin/users',
-      icon: FaUsers,
-      label: 'Users',
-    },
-
+    { path: '/admin/dashboard', icon: FaChartBar, label: 'Dashboard' },
+    { path: '/admin/users', icon: FaUsers, label: 'Users' },
     {
       path: '/admin/withdrawals',
       icon: FaWallet,
       label: 'Withdrawals',
-      badge:
-        pendingWithdrawals > 0
-          ? pendingWithdrawals
-          : null,
+      badge: pendingWithdrawals > 0 ? pendingWithdrawals : null,
     },
-
-    {
-      path: '/admin/notifications',
-      icon: FaBell,
-      label: 'Notifications',
-    },
+    { path: '/admin/notifications', icon: FaBell, label: 'Notifications' },
   ];
-
-  // ============================================================
-  // SUPER ADMIN ONLY
-  // ============================================================
 
   const superAdminMenuItems = [
-    {
-      path: '/admin/admins',
-      icon: FaUserShield,
-      label: 'Manage Admins',
-    },
-
-    {
-      path: '/admin/system',
-      icon: FaTools,
-      label: 'System Settings',
-    },
+    { path: '/admin/admins', icon: FaUserShield, label: 'Manage Admins' },
+    { path: '/admin/system', icon: FaTools, label: 'System Settings' },
   ];
 
   // ============================================================
-  // COMMON CLASSES
+  // CLASSES
   // ============================================================
 
   const sidebarClass = `
@@ -239,6 +168,9 @@ const Sidebar = ({ onClose }) => {
     border-r
     ${theme.colors.border}
     overflow-hidden
+    transition-all
+    duration-300
+    ease-in-out
   `;
 
   const navLinkClass = `
@@ -249,18 +181,16 @@ const Sidebar = ({ onClose }) => {
     w-full
     min-h-[44px]
     px-3
-    sm:px-4
     py-2.5
     rounded-xl
     mb-1
     transition-all
     duration-200
     text-sm
-    sm:text-[15px]
   `;
 
   const inactiveClass = `
-    opacity-75
+    opacity-70
     hover:opacity-100
     hover:bg-gray-100
     dark:hover:bg-gray-800
@@ -273,22 +203,17 @@ const Sidebar = ({ onClose }) => {
   `;
 
   // ============================================================
-  // RENDER SUBMENU
+  // RENDER SUBMENU (collapsed mode shows nothing)
   // ============================================================
 
   const renderSubmenu = (item) => {
+    if (isCollapsed) return null;
+
     return (
       <div
         className="
-          ml-3
-          sm:ml-5
-          mt-1
-          mb-2
-          pl-2
-          sm:pl-3
-          border-l-2
-          border-gray-200
-          dark:border-gray-700
+          ml-3 mt-1 mb-2 pl-2
+          border-l-2 border-gray-200 dark:border-gray-700
           space-y-1
         "
       >
@@ -298,48 +223,16 @@ const Sidebar = ({ onClose }) => {
             to={subItem.path}
             onClick={handleLinkClick}
             className={({ isActive }) => `
-              flex
-              items-center
-              gap-2.5
-              px-3
-              py-2
-              rounded-lg
-              text-xs
-              sm:text-sm
-              transition-all
-              duration-200
-              ${
-                isActive
-                  ? activeClass
-                  : `
-                    opacity-65
-                    hover:opacity-100
-                    hover:bg-gray-100
-                    dark:hover:bg-gray-800
-                  `
-              }
+              flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs
+              transition-all duration-200
+              ${isActive ? activeClass : 'opacity-65 hover:opacity-100 hover:bg-gray-100 dark:hover:bg-gray-800'}
             `}
           >
-            <subItem.icon
-              className="flex-shrink-0"
-              size={15}
-            />
-
+            <subItem.icon className="flex-shrink-0" size={15} />
             <div className="min-w-0">
-              <div className="truncate">
-                {subItem.label}
-              </div>
-
+              <div className="truncate">{subItem.label}</div>
               {subItem.description && (
-                <div
-                  className="
-                    text-[10px]
-                    sm:text-[11px]
-                    opacity-50
-                    truncate
-                    mt-0.5
-                  "
-                >
+                <div className="text-[10px] opacity-50 truncate mt-0.5">
                   {subItem.description}
                 </div>
               )}
@@ -360,47 +253,28 @@ const Sidebar = ({ onClose }) => {
         key={item.path || index}
         to={item.path}
         onClick={handleLinkClick}
+        title={isCollapsed ? item.label : undefined}
         className={({ isActive }) =>
-          `${navLinkClass} ${
-            isActive
-              ? activeClass
-              : inactiveClass
+          `${navLinkClass} ${isActive ? activeClass : inactiveClass} ${
+            isCollapsed ? 'justify-center px-2' : ''
           }`
         }
       >
-        <div className="flex items-center gap-3 min-w-0">
-          <item.icon
-            size={18}
-            className="flex-shrink-0"
-          />
-
-          <span className="truncate font-medium">
-            {item.label}
-          </span>
+        <div className={`flex items-center gap-3 min-w-0 ${isCollapsed ? 'justify-center' : ''}`}>
+          <item.icon size={18} className="flex-shrink-0" />
+          {!isCollapsed && (
+            <span className="truncate font-medium">{item.label}</span>
+          )}
         </div>
 
-        {item.badge && (
-          <span
-            className="
-              flex-shrink-0
-              min-w-[22px]
-              h-[22px]
-              px-1.5
-              flex
-              items-center
-              justify-center
-              rounded-full
-              bg-red-500
-              text-white
-              text-[10px]
-              sm:text-xs
-              font-bold
-            "
-          >
-            {item.badge > 99
-              ? '99+'
-              : item.badge}
+        {!isCollapsed && item.badge && (
+          <span className="flex-shrink-0 min-w-[22px] h-[22px] px-1.5 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold">
+            {item.badge > 99 ? '99+' : item.badge}
           </span>
+        )}
+
+        {isCollapsed && item.badge && (
+          <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500" />
         )}
       </NavLink>
     );
@@ -412,42 +286,58 @@ const Sidebar = ({ onClose }) => {
 
   const renderSubmenuItem = (item, index) => {
     return (
-      <div key={index}>
+      <div key={index} className="relative">
         <button
           type="button"
-          onClick={item.toggle}
+          onClick={() => {
+            if (isCollapsed) return;
+            item.toggle();
+          }}
+          title={isCollapsed ? item.label : undefined}
           className={`
-            ${navLinkClass}
-            ${inactiveClass}
+            ${navLinkClass} ${inactiveClass}
+            ${isCollapsed ? 'justify-center px-2' : ''}
           `}
           aria-expanded={item.isOpen}
         >
-          <div className="flex items-center gap-3 min-w-0">
-            <item.icon
-              size={18}
-              className="flex-shrink-0"
-            />
-
-            <span className="truncate font-medium">
-              {item.label}
-            </span>
+          <div className={`flex items-center gap-3 min-w-0 ${isCollapsed ? 'justify-center' : ''}`}>
+            <item.icon size={18} className="flex-shrink-0" />
+            {!isCollapsed && (
+              <span className="truncate font-medium">{item.label}</span>
+            )}
           </div>
 
-          {item.isOpen ? (
-            <FaChevronDown
-              size={12}
-              className="flex-shrink-0 opacity-60"
-            />
-          ) : (
-            <FaChevronRight
-              size={12}
-              className="flex-shrink-0 opacity-60"
-            />
+          {!isCollapsed && (
+            item.isOpen ? (
+              <FaChevronDown size={12} className="flex-shrink-0 opacity-60" />
+            ) : (
+              <FaChevronRight size={12} className="flex-shrink-0 opacity-60" />
+            )
           )}
         </button>
 
-        {item.isOpen &&
-          renderSubmenu(item)}
+        {!isCollapsed && item.isOpen && renderSubmenu(item)}
+      </div>
+    );
+  };
+
+  // ============================================================
+  // SECTION HEADER
+  // ============================================================
+
+  const SectionHeader = ({ title }) => {
+    if (isCollapsed) {
+      return (
+        <div className="my-2 flex justify-center">
+          <div className="w-6 h-px bg-gray-300 dark:bg-gray-700" />
+        </div>
+      );
+    }
+    return (
+      <div className="px-3 mb-2 mt-4">
+        <p className="text-[10px] font-semibold uppercase tracking-wider opacity-40">
+          {title}
+        </p>
       </div>
     );
   };
@@ -461,133 +351,102 @@ const Sidebar = ({ onClose }) => {
       {/* ======================================================
           HEADER
       ====================================================== */}
-
       <div
         className={`
           flex-shrink-0
-          px-4
-          sm:px-5
-          py-4
+          ${isCollapsed ? 'px-2 py-4' : 'px-4 py-4'}
           border-b
           ${theme.colors.border}
         `}
       >
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <h1
+        <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} gap-3`}>
+          {isCollapsed ? (
+            <div
               className={`
-                text-xl
-                sm:text-2xl
-                font-bold
-                tracking-tight
-                ${theme.colors.text}
-                truncate
+                w-10 h-10 rounded-xl ${theme.colors.button}
+                flex items-center justify-center text-white font-bold text-lg
+                shadow-md
               `}
+              title="InvoicePro"
             >
-              Invoice
-              <span className={theme.colors.primary}>
-                Pro
-              </span>
-            </h1>
-
-            <div className="flex items-center gap-2 mt-1">
-              <span
-                className="
-                  text-[10px]
-                  sm:text-xs
-                  opacity-50
-                "
-              >
-                v2.0
-              </span>
-
-              {isSuperAdmin && (
-                <span
-                  className="
-                    text-[10px]
-                    px-2
-                    py-0.5
-                    rounded-full
-                    bg-purple-100
-                    text-purple-700
-                    dark:bg-purple-900/30
-                    dark:text-purple-300
-                    font-medium
-                  "
-                >
-                  Super Admin
-                </span>
-              )}
-
-              {isAdmin && (
-                <span
-                  className="
-                    text-[10px]
-                    px-2
-                    py-0.5
-                    rounded-full
-                    bg-blue-100
-                    text-blue-700
-                    dark:bg-blue-900/30
-                    dark:text-blue-300
-                    font-medium
-                  "
-                >
-                  Admin
-                </span>
-              )}
+              I
             </div>
-          </div>
+          ) : (
+            <div className="min-w-0">
+              <h1 className={`text-xl font-bold tracking-tight ${theme.colors.text} truncate`}>
+                Invoice<span className={theme.colors.primary}>Pro</span>
+              </h1>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-[10px] opacity-50">v2.0</span>
+                {isSuperAdmin && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 font-medium">
+                    Super Admin
+                  </span>
+                )}
+                {isAdmin && !isSuperAdmin && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 font-medium">
+                    Admin
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Mobile close */}
-
-          {onClose && (
+          {onClose && !isCollapsed && (
             <button
               type="button"
               onClick={onClose}
-              className="
-                lg:hidden
-                flex-shrink-0
-                w-9
-                h-9
-                flex
-                items-center
-                justify-center
-                rounded-xl
-                hover:bg-gray-100
-                dark:hover:bg-gray-800
-                transition-colors
-              "
+              className="lg:hidden flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               aria-label="Close sidebar"
             >
-              <FaTimes
-                className={theme.colors.text}
-              />
+              <FaTimes className={theme.colors.text} />
             </button>
           )}
         </div>
+
+        {/* Desktop collapse toggle */}
+        {onToggleCollapse && (
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            className={`
+              hidden lg:flex
+              ${isCollapsed ? 'mx-auto mt-3' : 'mt-3 w-full'}
+              items-center justify-center gap-2
+              h-8 rounded-lg
+              text-[11px] font-medium
+              bg-gray-100 dark:bg-gray-800
+              hover:bg-gray-200 dark:hover:bg-gray-700
+              opacity-70 hover:opacity-100
+              transition-all duration-200
+            `}
+            title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {isCollapsed ? (
+              <FaChevronRight size={12} />
+            ) : (
+              <>
+                <FaChevronLeft size={12} />
+                <span>Collapse</span>
+              </>
+            )}
+          </button>
+        )}
       </div>
 
       {/* ======================================================
           NAVIGATION
       ====================================================== */}
-
       <nav
-        className="
-          flex-1
-          min-h-0
-          overflow-y-auto
-          overflow-x-hidden
-          px-2
-          sm:px-3
+        className={`
+          flex-1 min-h-0 overflow-y-auto overflow-x-hidden
+          ${isCollapsed ? 'px-1.5' : 'px-2 sm:px-3'}
           py-4
-          scrollbar-thin
-          scrollbar-thumb-gray-300
-          dark:scrollbar-thumb-gray-700
-        "
+          scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700
+        `}
       >
         {/* USER MENU */}
-
         <div>
           {userMenuItems.map((item, index) =>
             item.submenu
@@ -597,51 +456,15 @@ const Sidebar = ({ onClose }) => {
         </div>
 
         {/* ADMIN SECTION */}
-
         {hasAdminAccess && (
-          <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <div className="px-3 mb-2">
-              <p
-                className="
-                  text-[10px]
-                  sm:text-xs
-                  font-semibold
-                  uppercase
-                  tracking-wider
-                  opacity-40
-                "
-              >
-                Administration
-              </p>
-            </div>
-
-            {adminMenuItems.map((item, index) =>
-              renderNormalItem(item, index)
-            )}
-
-            {/* SUPER ADMIN */}
+          <div className={`${isCollapsed ? 'mt-2' : 'mt-2'}`}>
+            <SectionHeader title="Administration" />
+            {adminMenuItems.map((item, index) => renderNormalItem(item, index))}
 
             {isSuperAdmin && (
               <>
-                <div className="px-3 mt-5 mb-2">
-                  <p
-                    className="
-                      text-[10px]
-                      sm:text-xs
-                      font-semibold
-                      uppercase
-                      tracking-wider
-                      opacity-40
-                    "
-                  >
-                    Super Admin
-                  </p>
-                </div>
-
-                {superAdminMenuItems.map(
-                  (item, index) =>
-                    renderNormalItem(item, index)
-                )}
+                <SectionHeader title="Super Admin" />
+                {superAdminMenuItems.map((item, index) => renderNormalItem(item, index))}
               </>
             )}
           </div>
@@ -651,37 +474,22 @@ const Sidebar = ({ onClose }) => {
       {/* ======================================================
           FOOTER
       ====================================================== */}
-
       <div
         className={`
           flex-shrink-0
-          px-4
-          py-3
+          ${isCollapsed ? 'px-2 py-3' : 'px-4 py-3'}
           border-t
           ${theme.colors.border}
         `}
       >
-        <div
-          className="
-            flex
-            flex-col
-            sm:flex-row
-            sm:items-center
-            sm:justify-between
-            gap-1
-            text-[10px]
-            sm:text-xs
-            opacity-50
-          "
-        >
-          <span>
-            © 2024 InvoicePro
-          </span>
-
-          <span>
-            v2.0.0
-          </span>
-        </div>
+        {isCollapsed ? (
+          <div className="flex justify-center text-[10px] opacity-40">v2</div>
+        ) : (
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 text-[10px] opacity-50">
+            <span>© 2024 InvoicePro</span>
+            <span>v2.0.0</span>
+          </div>
+        )}
       </div>
     </aside>
   );
