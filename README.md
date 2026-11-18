@@ -3,36 +3,36 @@
 A complete SaaS platform for generating professional invoices with user, admin, moderator, and affiliate roles. Features subscription plans, email reminders, and a 10% affiliate commission system.
 
 ## 🚀 Project Repository
-[GitHub Repo](https://github.com/missionkuamar/Invoice-Saas_with-Email)
+[GitHub Repo](https://github.com/missionkuamar/Invoice-saas-vps-for-production.git)
 
 ---
 
 ## 📸 Screenshots
 
 ### 🏠 Landing Page & Features
-<img src="/landing-page.png" alt="Landing Page" width="800" />
-<img src="/feature-page.png" alt="Features" width="800" />
-<img src="/tool-feature.png" alt="Tools" width="800" />
+<img src="./public/landing-page.png" alt="Landing Page" width="800" />
+<img src="./public/feature-page.png" alt="Features" width="800" />
+<img src="./public/tool-feature.png" alt="Tools" width="800" />
 
 ### 💰 Pricing Plans
-<img src="/pricing.png" alt="Pricing Page" width="800" />
-<img src="/pricing-feature.png" alt="Pricing Features" width="800" />
+<img src="./public/pricing.png" alt="Pricing Page" width="800" />
+<img src="./public/pricing-feature.png" alt="Pricing Features" width="800" />
 
 ### 📊 User Dashboard & Invoicing
-<img src="/dashboard.png" alt="User Dashboard" width="800" />
-<img src="/create-invoice.png" alt="Create Invoice" width="800" />
-<img src="/invoice-manage.png" alt="Invoice Management" width="800" />
-<img src="/setting.png" alt="Settings" width="800" />
+<img src="./public/dashboard.png" alt="User Dashboard" width="800" />
+<img src="./public/create-invoice.png" alt="Create Invoice" width="800" />
+<img src="./public/invoice-manage.png" alt="Invoice Management" width="800" />
+<img src="./public/setting.png" alt="Settings" width="800" />
 
 ### 📧 Email System & Affiliate
-<img src="/email-service.png" alt="Email Service" width="800" />
-<img src="/email-manage.png" alt="Email Management" width="800" />
-<img src="/affiliate-dashboard.png" alt="Affiliate Dashboard" width="800" />
+<img src="./public/email-service.png" alt="Email Service" width="800" />
+<img src="./public/email-manage.png" alt="Email Management" width="800" />
+<img src="./public/affiliate-dashboard.png" alt="Affiliate Dashboard" width="800" />
 
 ### 🛡️ Admin & Super-Admin Panel
-<img src="/admin-dashboard.png" alt="Admin Dashboard" width="800" />
-<img src="/user-management.png" alt="User Management" width="800" />
-<img src="/withdrawal-management.png" alt="Withdrawal Management" width="800" />
+<img src="./public/admin-dashboard.png" alt="Admin Dashboard" width="800" />
+<img src="./public/user-management.png" alt="User Management" width="800" />
+<img src="./public/withdrawal-management.png" alt="Withdrawal Management" width="800" />
 
 ---
 
@@ -53,12 +53,12 @@ A complete SaaS platform for generating professional invoices with user, admin, 
 
 ### 💰 Subscription Plans
 
-| Plan | Price | Invoices/Month | Features |
-|------|-------|----------------|----------|
-| **Free** | ₹0 | 5 | Basic invoice creation, 1 template |
-| **Basic** | ₹299/month | 100 invoice creating| 100 email Scheduled Emails| PDF export, Email support |
-| **Pro** | ₹499/month | 250 invoice creating| 250 email Scheduled Emails| Analytics, Priority support, Custom branding |
-| **Enterprise** |₹1199/month | 1000 invoice creating| 1000 email Scheduled Emails| Analytics, Priority support, Custom branding | White-label, Dedicated support, Custom features |
+| Plan | Price | Invoices/Month | Emails/Month | Features |
+|------|-------|----------------|--------------|----------|
+| **Free** | ₹0 | 5 | - | Basic invoice creation, 1 template |
+| **Basic** | ₹299/month | 100 | 100 | PDF export, Email support |
+| **Pro** | ₹499/month | 250 | 250 | Analytics, Priority support, Custom branding |
+| **Enterprise** | ₹1199/month | 1000 | 1000 | White-label, Dedicated support, Custom features |
 
 ### How Subscription Works
 1. User signs up with Free plan (5 free invoices)
@@ -72,8 +72,8 @@ A complete SaaS platform for generating professional invoices with user, admin, 
 
 ### 🤝 Affiliate Program
 - **10% commission** on every referral subscription
-- Example: If you refer someone who buys Pro plan (₹999), you earn ₹99
-- If they buy Enterprise (₹2999), you earn ₹299
+- Example: If you refer someone who buys Pro plan (₹499), you earn ₹49.9
+- If they buy Enterprise (₹1199), you earn ₹119.9
 - Recurring commission - you earn every month they stay subscribed
 - Custom affiliate links with tracking
 - Withdraw earnings via Bank/UPI/PayPal (minimum ₹500)
