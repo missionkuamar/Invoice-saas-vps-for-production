@@ -306,9 +306,11 @@ export const googleAuthCallback = async (req, res) => {
         }
          console.groupEnd();
       } else {
-        if (!ref) console.log('   Reason: ref is empty');
-        if (affiliateReferral) console.log('   Reason: already have referral from session');
-      }
+      //   if (!ref)
+      //     //  console.log('   Reason: ref is empty');
+      //   if (affiliateReferral) 
+      //     // console.log('   Reason: already have referral from session');
+      // }
 
       // ------------------------------------------------------------
       // 3. Check ref from query
@@ -411,6 +413,7 @@ export const googleAuthCallback = async (req, res) => {
         token,
       },
     });
+  }
   } catch (error) {
     console.group('❌ GOOGLE AUTH ERROR');
     console.error('❌ Error:', error);
