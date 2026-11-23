@@ -34,7 +34,7 @@ const verifyGoogleToken = async (credential) => {
     });
 
     const payload = ticket.getPayload();
-    console.log("✅ [DEBUG] Google token verified successfully for:", payload.email);
+    // console.log("✅ [DEBUG] Google token verified successfully for:", payload.email);
 
     return {
       googleId: payload.sub,
@@ -202,7 +202,7 @@ export const googleAuthCallback = async (req, res) => {
       // ------------------------------------------------------------
       //  console.log('1️⃣ Checking session...');
       if (req.session?.affiliateReferral) {
-         console.group('1️⃣ Session Referral Found');
+        //  console.group('1️⃣ Session Referral Found');
         const { referralId, affiliateId } = req.session.affiliateReferral;
         //  console.log('  refierralId:', referralId);
         //  console.log('  affliateId:', affiliateId);
@@ -226,11 +226,11 @@ export const googleAuthCallback = async (req, res) => {
           await req.session.save();
           //  console.log('  ✅ Session cleared');
         } else {
-          //  console.log('  ❌ Referral not found in DB');
+           console.error('  ❌ Referral not found in DB');
         }
          console.groupEnd();
       } else {
-        //  console.log('1️⃣ ❌ No session referral');
+         console.error('1️⃣ ❌ No session referral');
       }
 
       // ------------------------------------------------------------
@@ -299,25 +299,25 @@ export const googleAuthCallback = async (req, res) => {
           //  console.log('  ❌ Checking all affiliates...');
           
           const allAffiliates = await Affiliate.find({}).select('affiliateCode status');
-          //  console.log('  📋 All affiliates in DB:', allAffiliates.map(a => ({
-            // code: a.affiliateCode,
-            // status: a.status,
-          // })));
+           console.log('  📋 All affiliates in DB:', allAffiliates.map(a => ({
+            code: a.affiliateCode,
+            status: a.status,
+          })));
         }
-         console.groupEnd();
+        //  console.groupEnd();
       } else {
-      //   if (!ref)
-      //     //  console.log('   Reason: ref is empty');
-      //   if (affiliateReferral) 
-      //     // console.log('   Reason: already have referral from session');
-      // }
+        if (!ref)
+           console.error('   Reason: ref is empty');
+        if (affiliateReferral) 
+          console.error('   Reason: already have referral from session');
+      }
 
       // ------------------------------------------------------------
       // 3. Check ref from query
       // ------------------------------------------------------------
       // console.log('3️⃣ Checking ref from query...');
       if (req.query.ref && !affiliateReferral) {
-        console.group('3️⃣ Query Ref Check');
+        // console.group('3️⃣ Query Ref Check');
         // console.log('  🔍 req.query.ref:', req.query.ref);
         
         const affiliate = await Affiliate.findOne({
@@ -337,7 +337,7 @@ export const googleAuthCallback = async (req, res) => {
         }
        console.groupEnd();
       } else {
-        //  console.log('3️⃣ ❌ No query ref or already handled');
+         console.error('3️⃣ ❌ No query ref or already handled');
       }
 
       // ------------------------------------------------------------
@@ -378,15 +378,15 @@ export const googleAuthCallback = async (req, res) => {
         // console.log('   Referral ID:', affiliateReferral._id);
         // console.log('   Status:', affiliateReferral.status);
         // console.log('   referredUser:', affiliateReferral.referredUser);
-        // console.log('   affiliate:', affiliateReferral.affiliate);
+        console.error('   affiliate:', affiliateReferral.affiliate);
       } else {
-        // console.log('❌ FAILED! No referral created');
+        console.error('❌ FAILED! No referral created');
         // console.log('   Possible reasons:');
         // console.log('   - ref was empty in request body');
         // console.log('   - No matching affiliate found');
         // console.log('   - Affiliate status not "active"');
       }
-      console.groupEnd();
+      // console.groupEnd();
     }
 
     // ============ GENERATE TOKEN ============
@@ -413,13 +413,13 @@ export const googleAuthCallback = async (req, res) => {
         token,
       },
     });
-  }
+  
   } catch (error) {
-    console.group('❌ GOOGLE AUTH ERROR');
-    console.error('❌ Error:', error);
-    console.error('❌ Error message:', error.message);
-    console.error('❌ Error stack:', error.stack);
-    console.groupEnd();
+    // console.group('❌ GOOGLE AUTH ERROR');
+    // console.error('❌ Error:', error);
+    // console.error('❌ Error message:', error.message);
+    // console.error('❌ Error stack:', error.stack);
+    // console.groupEnd();
 
     if (error.code === 11000) {
       return res.status(400).json({

@@ -89,10 +89,10 @@ export const loginWithGoogle = createAsyncThunk(
       // ========================================================
 
       if (affiliateRef) {
-        // console.log(
+        console.error(
           '✅ AFFILIATE REF FOUND:',
           affiliateRef
-        // );
+        );
       } else {
         console.warn(
           '⚠️ AFFILIATE REF IS EMPTY'

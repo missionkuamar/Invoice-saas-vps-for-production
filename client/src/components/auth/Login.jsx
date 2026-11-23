@@ -88,10 +88,10 @@ const Login = () => {
 
       navigate('/dashboard');
     } catch (error) {
-      console.error(
-        '❌ Google login error:',
-        error
-      );
+      // console.error(
+      //   '❌ Google login error:',
+      //   error
+      // );
 
       toast.error(
         error?.message ||

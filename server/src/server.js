@@ -41,7 +41,7 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir);
 }
 
-// ============ MIDDLEWARE ============
+// ============ MIDDLEWARE ============ 
 
 // Session middleware - MUST BE BEFORE ROUTES
 app.use(session({

@@ -27,6 +27,6 @@ RUN npm install -g serve
 
 COPY --from=build /app/dist ./dist
 
-EXPOSE 3000
+EXPOSE 5173
 
 CMD ["serve", "-s", "dist", "-l", "tcp://0.0.0.0:3000"]

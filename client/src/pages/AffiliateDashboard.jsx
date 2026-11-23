@@ -429,7 +429,10 @@ const AffiliateDashboard = () => {
       toast.error("Affiliate code is missing");
       return;
     }
-const backendUrl = "https://api.invoicehub.fun";
+// Entry point (jaise server.js ya app.js) ke top par dotenv load hona chahiye:
+// import 'dotenv/config'; // ya require('dotenv').config();
+
+const backendUrl = import.meta.env.VITE_BACKEND_URL || "https://api.invoicehub.fun";
     //const backendUrl = "http://localhost:5000";
 
     const cleanFrontendUrl =
