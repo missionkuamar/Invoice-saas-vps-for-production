@@ -19,7 +19,7 @@ services:
     container_name: invoice-client
     
     ports:
-      - "5173:5173"
+      - "5173:3000"
     depends_on:
       - server
     restart: unless-stopped
