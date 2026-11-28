@@ -62,45 +62,81 @@ const Login = () => {
   // GOOGLE LOGIN SUCCESS
   // ============================================
 
+  // const handleGoogleSuccess = async (credentialResponse) => {
+  //   setIsLoggingIn(true);
+
+  //   try {
+  //     // console.log('================================');
+  //     // console.log('🚀 GOOGLE LOGIN START');
+  //     // console.log('================================');
+
+  //     // console.log(
+  //     //   '📍 Current URL:',
+  //     //   window.location.href
+  //     // );
+
+  //     // console.log(
+  //     //   '🎯 Affiliate ref BEFORE login:',
+  //     //   localStorage.getItem('affiliateRef')
+  //     // );
+
+  //     await dispatch(
+  //       loginWithGoogle(credentialResponse)
+  //     ).unwrap();
+
+  //     // console.log('✅ GOOGLE LOGIN SUCCESS');
+
+  //     navigate('/dashboard');
+  //   } catch (error) {
+  //     // console.error(
+  //     //   '❌ Google login error:',
+  //     //   error
+  //     // );
+
+  //     toast.error(
+  //       error?.message ||
+  //       'Google login failed. Please try again.'
+  //     );
+  //   } finally {
+  //     setIsLoggingIn(false);
+  //   }
+  // };
+
+
   const handleGoogleSuccess = async (credentialResponse) => {
-    setIsLoggingIn(true);
+  setIsLoggingIn(true);
 
-    try {
-      // console.log('================================');
-      // console.log('🚀 GOOGLE LOGIN START');
-      // console.log('================================');
+  try {
+    console.log('================================');
+    console.log('🚀 GOOGLE LOGIN START');
+    console.log('================================');
+    console.log('📍 Current URL:', window.location.href);
+    console.log(
+      '🎯 Affiliate ref BEFORE login:',
+      localStorage.getItem('affiliateRef')
+    );
 
-      // console.log(
-      //   '📍 Current URL:',
-      //   window.location.href
-      // );
+    const result = await dispatch(
+      loginWithGoogle(credentialResponse)
+    ).unwrap();
 
-      // console.log(
-      //   '🎯 Affiliate ref BEFORE login:',
-      //   localStorage.getItem('affiliateRef')
-      // );
+    console.log('✅ GOOGLE LOGIN SUCCESS:', result);
+    console.log('➡️ Navigating to /dashboard...');
 
-      await dispatch(
-        loginWithGoogle(credentialResponse)
-      ).unwrap();
+    navigate('/dashboard');
+  } catch (error) {
+    console.error('❌ handleGoogleSuccess caught error:', error);
 
-      // console.log('✅ GOOGLE LOGIN SUCCESS');
+    toast.error(
+      error?.message ||
+      (typeof error === 'string' ? error : 'Google login failed. Please try again.')
+    );
+  } finally {
+    console.log('🏁 handleGoogleSuccess finally -> setIsLoggingIn(false)');
+    setIsLoggingIn(false);
+  }
+};
 
-      navigate('/dashboard');
-    } catch (error) {
-      // console.error(
-      //   '❌ Google login error:',
-      //   error
-      // );
-
-      toast.error(
-        error?.message ||
-        'Google login failed. Please try again.'
-      );
-    } finally {
-      setIsLoggingIn(false);
-    }
-  };
 
   // ============================================
   // GOOGLE LOGIN ERROR

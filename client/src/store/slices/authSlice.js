@@ -8,142 +8,442 @@ import toast from 'react-hot-toast';
 // GOOGLE LOGIN
 // ============================================================
 
+// export const loginWithGoogle = createAsyncThunk(
+//   'auth/loginWithGoogle',
+
+//   async (credentialResponse, { rejectWithValue }) => {
+//     try {
+//       // console.log('==============================================');
+//       // console.log('🚀 loginWithGoogle START');
+//       // console.log('==============================================');
+
+//       // ========================================================
+//       // STEP 1: GOOGLE CREDENTIAL
+//       // ========================================================
+
+//       // console.log(
+//       //   '📍 Current URL:',
+//       //   window.location.href
+//       // );
+
+//       // console.log(
+//       //   '📍 Credential received?',
+//       //   !!credentialResponse?.credential
+//       // );
+
+//       // console.log(
+//       //   '📍 Credential length:',
+//       //   credentialResponse?.credential?.length || 0
+//       // );
+
+//       // console.log(
+//       //   '📍 Credential preview:',
+//       //   credentialResponse?.credential
+//       //     ? `${credentialResponse.credential.substring(0, 30)}...`
+//       //     : '(none)'
+//       // );
+
+//       if (!credentialResponse?.credential) {
+//         console.error('❌ Google credential missing');
+
+//         return rejectWithValue(
+//           'Google credential is missing'
+//         );
+//       }
+
+//       const { credential } = credentialResponse;
+
+//       // ========================================================
+//       // STEP 2: READ AFFILIATE REF
+//       // ========================================================
+
+//       // console.log('==============================================');
+//       // console.log('💾 AFFILIATE REF CHECK');
+//       // console.log('==============================================');
+
+//       const affiliateRef =
+//         localStorage.getItem('affiliateRef') || '';
+
+//       // console.log(
+//       //   '💾 affiliateRef:',
+//       //   affiliateRef || '(EMPTY)'
+//       // );
+
+//       // console.log(
+//       //   '💾 affiliateRef exists:',
+//       //   !!affiliateRef
+//       // );
+
+//       // console.log(
+//       //   '💾 affiliateRef length:',
+//       //   affiliateRef.length
+//       // );
+
+//       // console.log(
+//       //   '💾 All localStorage keys:',
+//       //   Object.keys(localStorage)
+//       // );
+
+//       // ========================================================
+//       // STEP 3: DEBUG REF
+//       // ========================================================
+
+//       if (affiliateRef) {
+//         console.error(
+//           '✅ AFFILIATE REF FOUND:',
+//           affiliateRef
+//         );
+//       } else {
+//         console.warn(
+//           '⚠️ AFFILIATE REF IS EMPTY'
+//         );
+
+//         console.warn(
+//           '⚠️ Google login will continue without affiliate ref'
+//         );
+//       }
+
+//       // ========================================================
+//       // STEP 4: PREPARE API PAYLOAD
+//       // ========================================================
+
+//       const requestPayload = {
+//         credential,
+//         ref: affiliateRef,
+//       };
+
+//       // console.log('==============================================');
+//       // console.log('📤 GOOGLE LOGIN API REQUEST');
+//       // console.log('==============================================');
+
+//       // console.log(
+//       //   '📤 URL:',
+//       //   '/auth/google'
+//       // );
+
+//       // console.log(
+//       //   '📤 Method:',
+//       //   'POST'
+//       // );
+
+//       // console.log(
+//       //   '📤 Ref being sent:',
+//       //   affiliateRef || '(EMPTY)'
+//       // );
+
+//       // console.log(
+//       //   '📤 Payload:',
+//       //   {
+//       //     credential:
+//       //       credential.substring(0, 30) + '...',
+//       //     ref: affiliateRef || '(EMPTY)',
+//       //   }
+//       // );
+
+//       // ========================================================
+//       // STEP 5: SEND REQUEST
+//       // ========================================================
+
+//       const response = await api.post(
+//         '/auth/google',
+//         requestPayload,
+//         {
+//           withCredentials: true,
+//         }
+//       );
+
+//       // ========================================================
+//       // STEP 6: API RESPONSE
+//       // ========================================================
+
+//       // console.log('==============================================');
+//       // console.log('📥 GOOGLE LOGIN API RESPONSE');
+//       // console.log('==============================================');
+
+//       // console.log(
+//       //   '📥 Status:',
+//       //   response.status
+//       // );
+
+//       // console.log(
+//       //   '📥 Success:',
+//       //   response.data?.success
+//       // );
+
+//       // console.log(
+//       //   '📥 Message:',
+//       //   response.data?.message
+//       // );
+
+//       // console.log(
+//       //   '📥 User data:',
+//       //   response.data?.data
+//       // );
+
+//       // console.log(
+//       //   '📥 User:',
+//       //   {
+//       //     id: response.data?.data?._id,
+//       //     name: response.data?.data?.name,
+//       //     email: response.data?.data?.email,
+//       //     username: response.data?.data?.username,
+//       //   }
+//       // );
+
+//       // ========================================================
+//       // STEP 7: EXTRACT DATA
+//       // ========================================================
+
+//       const { data } = response.data || {};
+
+//       if (!data) {
+//         console.error(
+//           '❌ No data received from Google login'
+//         );
+
+//         return rejectWithValue(
+//           'Invalid response from server'
+//         );
+//       }
+
+//       if (!data.token) {
+//         console.error(
+//           '❌ Token missing from Google login response'
+//         );
+
+//         return rejectWithValue(
+//           'Authentication token missing'
+//         );
+//       }
+
+//       // ========================================================
+//       // STEP 8: SAVE AUTH DATA
+//       // ========================================================
+
+//       localStorage.setItem(
+//         'token',
+//         data.token
+//       );
+
+//       localStorage.setItem(
+//         'user',
+//         JSON.stringify(data)
+//       );
+
+//       // Set Authorization header immediately
+//       api.defaults.headers.common[
+//         'Authorization'
+//       ] = `Bearer ${data.token}`;
+
+//       // console.log('==============================================');
+//       // console.log('💾 AUTH DATA SAVED');
+//       // console.log('==============================================');
+
+//       // console.log(
+//       //   '💾 Token saved:',
+//       //   !!localStorage.getItem('token')
+//       // );
+
+//       // console.log(
+//       //   '💾 User saved:',
+//       //   !!localStorage.getItem('user')
+//       // );
+
+//       // console.log(
+//       //   '💾 Affiliate ref BEFORE cleanup:',
+//       //   localStorage.getItem('affiliateRef')
+//       // );
+
+//       // ========================================================
+//       // STEP 9: AFFILIATE REF CLEANUP
+//       // ========================================================
+//       //
+//       // IMPORTANT:
+//       // Ref ko API successfully complete hone ke BAAD hi remove
+//       // karna hai.
+//       //
+//       // Agar API fail hoti hai to catch me jayega aur ref
+//       // localStorage me safe rahega.
+//       // ========================================================
+
+//       if (affiliateRef) {
+//         // console.log('==============================================');
+//         // console.log('🧹 AFFILIATE REF CLEANUP');
+//         // console.log('==============================================');
+
+//         // console.log(
+//         //   '🧹 Removing affiliateRef:',
+//         //   affiliateRef
+//         // );
+
+//         localStorage.removeItem(
+//           'affiliateRef'
+//         );
+
+//         // console.log(
+//         //   '🧹 affiliateRef after removal:',
+//         //   localStorage.getItem('affiliateRef')
+//         // );
+//       }
+
+//       // ========================================================
+//       // STEP 10: SUCCESS TOAST
+//       // ========================================================
+
+//       if (
+//         response.data?.message ===
+//         'Registration successful'
+//       ) {
+//         toast.success(
+//           `Welcome ${data.name}! Account created successfully.`
+//         );
+//       } else {
+//         toast.success(
+//           `Welcome back ${data.name}!`
+//         );
+//       }
+
+//       // console.log('==============================================');
+//       // console.log('✅ loginWithGoogle SUCCESS');
+//       // console.log('==============================================');
+
+//       return data;
+
+//     } catch (error) {
+//       // ========================================================
+//       // ERROR HANDLING
+//       // ========================================================
+
+//       // console.log('==============================================');
+//       // console.log('❌ loginWithGoogle FAILED');
+//       // console.log('==============================================');
+
+//       console.error(
+//         '❌ Error:',
+//         error
+//       );
+
+//       console.error(
+//         '❌ Error message:',
+//         error?.message
+//       );
+
+//       console.error(
+//         '❌ Error response:',
+//         error?.response
+//       );
+
+//       console.error(
+//         '❌ Error status:',
+//         error?.response?.status
+//       );
+
+//       console.error(
+//         '❌ Error data:',
+//         error?.response?.data
+//       );
+
+//       console.error(
+//         '❌ Error URL:',
+//         error?.config?.url
+//       );
+
+//       console.error(
+//         '❌ Error method:',
+//         error?.config?.method
+//       );
+
+//       console.error(
+//         '❌ Request payload:',
+//         error?.config?.data
+//       );
+
+//       // IMPORTANT:
+//       // affiliateRef ko yahan remove nahi karna.
+//       // Agar login fail hua to next attempt me ref available rahega.
+
+//       const errorMsg =
+//         error?.response?.data?.message ||
+//         error?.message ||
+//         'Login failed. Please try again.';
+
+//       toast.error(errorMsg);
+
+//       return rejectWithValue(
+//         errorMsg
+//       );
+//     }
+//   }
+// );
+
+
 export const loginWithGoogle = createAsyncThunk(
   'auth/loginWithGoogle',
-
   async (credentialResponse, { rejectWithValue }) => {
     try {
-      // console.log('==============================================');
-      // console.log('🚀 loginWithGoogle START');
-      // console.log('==============================================');
+      console.log('==============================================');
+      console.log('🚀 loginWithGoogle START');
+      console.log('==============================================');
 
-      // ========================================================
       // STEP 1: GOOGLE CREDENTIAL
-      // ========================================================
-
-      // console.log(
-      //   '📍 Current URL:',
-      //   window.location.href
-      // );
-
-      // console.log(
-      //   '📍 Credential received?',
-      //   !!credentialResponse?.credential
-      // );
-
-      // console.log(
-      //   '📍 Credential length:',
-      //   credentialResponse?.credential?.length || 0
-      // );
-
-      // console.log(
-      //   '📍 Credential preview:',
-      //   credentialResponse?.credential
-      //     ? `${credentialResponse.credential.substring(0, 30)}...`
-      //     : '(none)'
-      // );
+      console.log('📍 Current URL:', window.location.href);
+      console.log('🌐 Axios baseURL:', api?.defaults?.baseURL);
+      console.log('🌐 VITE_API_URL:', import.meta.env.VITE_API_URL);
+      console.log('📍 Credential received?', !!credentialResponse?.credential);
+      console.log('📍 Credential length:', credentialResponse?.credential?.length || 0);
+      console.log(
+        '📍 Credential preview:',
+        credentialResponse?.credential
+          ? `${credentialResponse.credential.substring(0, 30)}...`
+          : '(none)'
+      );
 
       if (!credentialResponse?.credential) {
         console.error('❌ Google credential missing');
-
-        return rejectWithValue(
-          'Google credential is missing'
-        );
+        return rejectWithValue('Google credential is missing');
       }
 
       const { credential } = credentialResponse;
 
-      // ========================================================
       // STEP 2: READ AFFILIATE REF
-      // ========================================================
+      console.log('==============================================');
+      console.log('💾 AFFILIATE REF CHECK');
+      console.log('==============================================');
 
-      // console.log('==============================================');
-      // console.log('💾 AFFILIATE REF CHECK');
-      // console.log('==============================================');
+      const affiliateRef = localStorage.getItem('affiliateRef') || '';
 
-      const affiliateRef =
-        localStorage.getItem('affiliateRef') || '';
+      console.log('💾 affiliateRef:', affiliateRef || '(EMPTY)');
+      console.log('💾 affiliateRef exists:', !!affiliateRef);
+      console.log('💾 affiliateRef length:', affiliateRef.length);
+      console.log('💾 All localStorage keys:', Object.keys(localStorage));
 
-      // console.log(
-      //   '💾 affiliateRef:',
-      //   affiliateRef || '(EMPTY)'
-      // );
-
-      // console.log(
-      //   '💾 affiliateRef exists:',
-      //   !!affiliateRef
-      // );
-
-      // console.log(
-      //   '💾 affiliateRef length:',
-      //   affiliateRef.length
-      // );
-
-      // console.log(
-      //   '💾 All localStorage keys:',
-      //   Object.keys(localStorage)
-      // );
-
-      // ========================================================
       // STEP 3: DEBUG REF
-      // ========================================================
-
       if (affiliateRef) {
-        console.error(
-          '✅ AFFILIATE REF FOUND:',
-          affiliateRef
-        );
+        console.log('✅ AFFILIATE REF FOUND:', affiliateRef);
       } else {
-        console.warn(
-          '⚠️ AFFILIATE REF IS EMPTY'
-        );
-
-        console.warn(
-          '⚠️ Google login will continue without affiliate ref'
-        );
+        console.warn('⚠️ AFFILIATE REF IS EMPTY');
+        console.warn('⚠️ Google login will continue without affiliate ref');
       }
 
-      // ========================================================
       // STEP 4: PREPARE API PAYLOAD
-      // ========================================================
-
       const requestPayload = {
         credential,
         ref: affiliateRef,
       };
 
-      // console.log('==============================================');
-      // console.log('📤 GOOGLE LOGIN API REQUEST');
-      // console.log('==============================================');
+      console.log('==============================================');
+      console.log('📤 GOOGLE LOGIN API REQUEST');
+      console.log('==============================================');
+      console.log('📤 Endpoint:', '/auth/google');
+      console.log('📤 Full Target URL:', `${api?.defaults?.baseURL || ''}/auth/google`);
+      console.log('📤 Method:', 'POST');
+      console.log('📤 Ref being sent:', affiliateRef || '(EMPTY)');
+      console.log('📤 Payload:', {
+        credential: credential.substring(0, 30) + '...',
+        ref: affiliateRef || '(EMPTY)',
+      });
 
-      // console.log(
-      //   '📤 URL:',
-      //   '/auth/google'
-      // );
-
-      // console.log(
-      //   '📤 Method:',
-      //   'POST'
-      // );
-
-      // console.log(
-      //   '📤 Ref being sent:',
-      //   affiliateRef || '(EMPTY)'
-      // );
-
-      // console.log(
-      //   '📤 Payload:',
-      //   {
-      //     credential:
-      //       credential.substring(0, 30) + '...',
-      //     ref: affiliateRef || '(EMPTY)',
-      //   }
-      // );
-
-      // ========================================================
       // STEP 5: SEND REQUEST
-      // ========================================================
-
       const response = await api.post(
         '/auth/google',
         requestPayload,
@@ -152,215 +452,81 @@ export const loginWithGoogle = createAsyncThunk(
         }
       );
 
-      // ========================================================
       // STEP 6: API RESPONSE
-      // ========================================================
+      console.log('==============================================');
+      console.log('📥 GOOGLE LOGIN API RESPONSE');
+      console.log('==============================================');
+      console.log('📥 Status:', response.status);
+      console.log('📥 Success:', response.data?.success);
+      console.log('📥 Message:', response.data?.message);
+      console.log('📥 User data:', response.data?.data);
+      console.log('📥 User:', {
+        id: response.data?.data?._id,
+        name: response.data?.data?.name,
+        email: response.data?.data?.email,
+        username: response.data?.data?.username,
+      });
 
-      // console.log('==============================================');
-      // console.log('📥 GOOGLE LOGIN API RESPONSE');
-      // console.log('==============================================');
-
-      // console.log(
-      //   '📥 Status:',
-      //   response.status
-      // );
-
-      // console.log(
-      //   '📥 Success:',
-      //   response.data?.success
-      // );
-
-      // console.log(
-      //   '📥 Message:',
-      //   response.data?.message
-      // );
-
-      // console.log(
-      //   '📥 User data:',
-      //   response.data?.data
-      // );
-
-      // console.log(
-      //   '📥 User:',
-      //   {
-      //     id: response.data?.data?._id,
-      //     name: response.data?.data?.name,
-      //     email: response.data?.data?.email,
-      //     username: response.data?.data?.username,
-      //   }
-      // );
-
-      // ========================================================
       // STEP 7: EXTRACT DATA
-      // ========================================================
-
       const { data } = response.data || {};
 
       if (!data) {
-        console.error(
-          '❌ No data received from Google login'
-        );
-
-        return rejectWithValue(
-          'Invalid response from server'
-        );
+        console.error('❌ No data received from Google login');
+        return rejectWithValue('Invalid response from server');
       }
 
       if (!data.token) {
-        console.error(
-          '❌ Token missing from Google login response'
-        );
-
-        return rejectWithValue(
-          'Authentication token missing'
-        );
+        console.error('❌ Token missing from Google login response');
+        return rejectWithValue('Authentication token missing');
       }
 
-      // ========================================================
       // STEP 8: SAVE AUTH DATA
-      // ========================================================
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data));
 
-      localStorage.setItem(
-        'token',
-        data.token
-      );
+      api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
 
-      localStorage.setItem(
-        'user',
-        JSON.stringify(data)
-      );
+      console.log('==============================================');
+      console.log('💾 AUTH DATA SAVED');
+      console.log('==============================================');
+      console.log('💾 Token saved:', !!localStorage.getItem('token'));
+      console.log('💾 User saved:', !!localStorage.getItem('user'));
+      console.log('💾 Affiliate ref BEFORE cleanup:', localStorage.getItem('affiliateRef'));
 
-      // Set Authorization header immediately
-      api.defaults.headers.common[
-        'Authorization'
-      ] = `Bearer ${data.token}`;
-
-      // console.log('==============================================');
-      // console.log('💾 AUTH DATA SAVED');
-      // console.log('==============================================');
-
-      // console.log(
-      //   '💾 Token saved:',
-      //   !!localStorage.getItem('token')
-      // );
-
-      // console.log(
-      //   '💾 User saved:',
-      //   !!localStorage.getItem('user')
-      // );
-
-      // console.log(
-      //   '💾 Affiliate ref BEFORE cleanup:',
-      //   localStorage.getItem('affiliateRef')
-      // );
-
-      // ========================================================
       // STEP 9: AFFILIATE REF CLEANUP
-      // ========================================================
-      //
-      // IMPORTANT:
-      // Ref ko API successfully complete hone ke BAAD hi remove
-      // karna hai.
-      //
-      // Agar API fail hoti hai to catch me jayega aur ref
-      // localStorage me safe rahega.
-      // ========================================================
-
       if (affiliateRef) {
-        // console.log('==============================================');
-        // console.log('🧹 AFFILIATE REF CLEANUP');
-        // console.log('==============================================');
-
-        // console.log(
-        //   '🧹 Removing affiliateRef:',
-        //   affiliateRef
-        // );
-
-        localStorage.removeItem(
-          'affiliateRef'
-        );
-
-        // console.log(
-        //   '🧹 affiliateRef after removal:',
-        //   localStorage.getItem('affiliateRef')
-        // );
+        console.log('==============================================');
+        console.log('🧹 AFFILIATE REF CLEANUP');
+        console.log('==============================================');
+        console.log('🧹 Removing affiliateRef:', affiliateRef);
+        localStorage.removeItem('affiliateRef');
+        console.log('🧹 affiliateRef after removal:', localStorage.getItem('affiliateRef'));
       }
 
-      // ========================================================
       // STEP 10: SUCCESS TOAST
-      // ========================================================
-
-      if (
-        response.data?.message ===
-        'Registration successful'
-      ) {
-        toast.success(
-          `Welcome ${data.name}! Account created successfully.`
-        );
+      if (response.data?.message === 'Registration successful') {
+        toast.success(`Welcome ${data.name}! Account created successfully.`);
       } else {
-        toast.success(
-          `Welcome back ${data.name}!`
-        );
+        toast.success(`Welcome back ${data.name}!`);
       }
 
-      // console.log('==============================================');
-      // console.log('✅ loginWithGoogle SUCCESS');
-      // console.log('==============================================');
+      console.log('==============================================');
+      console.log('✅ loginWithGoogle SUCCESS');
+      console.log('==============================================');
 
       return data;
-
     } catch (error) {
-      // ========================================================
-      // ERROR HANDLING
-      // ========================================================
-
-      // console.log('==============================================');
-      // console.log('❌ loginWithGoogle FAILED');
-      // console.log('==============================================');
-
-      console.error(
-        '❌ Error:',
-        error
-      );
-
-      console.error(
-        '❌ Error message:',
-        error?.message
-      );
-
-      console.error(
-        '❌ Error response:',
-        error?.response
-      );
-
-      console.error(
-        '❌ Error status:',
-        error?.response?.status
-      );
-
-      console.error(
-        '❌ Error data:',
-        error?.response?.data
-      );
-
-      console.error(
-        '❌ Error URL:',
-        error?.config?.url
-      );
-
-      console.error(
-        '❌ Error method:',
-        error?.config?.method
-      );
-
-      console.error(
-        '❌ Request payload:',
-        error?.config?.data
-      );
-
-      // IMPORTANT:
-      // affiliateRef ko yahan remove nahi karna.
-      // Agar login fail hua to next attempt me ref available rahega.
+      console.log('==============================================');
+      console.log('❌ loginWithGoogle FAILED');
+      console.log('==============================================');
+      console.error('❌ Full Error Object:', error);
+      console.error('❌ Error message:', error?.message);
+      console.error('❌ Error response:', error?.response);
+      console.error('❌ Error status:', error?.response?.status);
+      console.error('❌ Error data:', error?.response?.data);
+      console.error('❌ Error URL:', error?.config?.url);
+      console.error('❌ Error method:', error?.config?.method);
+      console.error('❌ Request payload:', error?.config?.data);
 
       const errorMsg =
         error?.response?.data?.message ||
@@ -369,12 +535,11 @@ export const loginWithGoogle = createAsyncThunk(
 
       toast.error(errorMsg);
 
-      return rejectWithValue(
-        errorMsg
-      );
+      return rejectWithValue(errorMsg);
     }
   }
 );
+
 
 // ============================================================
 // NORMAL LOGIN
